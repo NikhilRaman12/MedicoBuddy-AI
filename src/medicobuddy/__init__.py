@@ -1,0 +1,4 @@
+"""MedicoBuddy — Safety-first, evidence-grounded GraphRAG wellness assistant."""
+
+__version__ = "0.1.0"
+__app_name__ = "MedicoBuddy"

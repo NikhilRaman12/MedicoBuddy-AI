@@ -1,0 +1,161 @@
+# MedicoBuddy — Production Docker Compose
+# Architecture: FastAPI + Streamlit + Neo4j + Milvus + pgvector + Redis
+
+services:
+  # ── Backend API ──────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+    networks:
+      - medicobuddy-net
+    restart: unless-stopped
+
+  # ── Streamlit Frontend ─────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - medicobuddy-net
+    restart: unless-stopped
+
+  # ── Neo4j Knowledge Graph ──────────────────────────────
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-medicobuddy_dev}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_server_memory_heap_max__size: "1g"
+      NEO4J_server_memory_pagecache_size: "512m"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD", "neo4j", "status"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - medicobuddy-net
+    restart: unless-stopped
+
+  # ── Milvus Vector Database (Primary) ───────────────────
+  milvus:
+    image: milvusdb/milvus:v2.5.4
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      - etcd
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medicobuddy-net
+    restart: unless-stopped
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+    volumes:
+      - etcd_data:/etcd
+    networks:
+      - medicobuddy-net
+
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: minio server /minio_data
+    volumes:
+      - minio_data:/minio_data
+    networks:
+      - medicobuddy-net
+
+  # ── PostgreSQL with pgvector (Secondary Vector & Metadata)
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-medicobuddy}
+      POSTGRES_USER: ${POSTGRES_USER:-medicobuddy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medicobuddy_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medicobuddy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medicobuddy-net
+    restart: unless-stopped
+
+  # ── Redis (Rate Limiting & Session Caching) ───────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+    networks:
+      - medicobuddy-net
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  milvus_data:
+  etcd_data:
+  minio_data:
+  postgres_data:
+  redis_data:
+
+networks:
+  medicobuddy-net:
+    driver: bridge
