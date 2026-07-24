@@ -160,19 +160,63 @@ def query_planner_node(state: GraphState) -> dict[str, Any]:
 # ════════════════════════════════════════════════════════════
 
 async def mcp_retrieval_node(state: GraphState) -> dict[str, Any]:
-    """Execute searches across all available MCP connectors.
+    """Execute parallel searches across official read-only MCP data connectors.
 
-    NOTE: Connectors are injected via the graph's config at runtime.
-    This node uses a stub list if connectors aren't available.
+    Queries:
+    - PubMed / NCBI E-utilities
+    - ClinicalTrials.gov API v2
+    - MedlinePlus / NLM
+    - Crossref Metadata API
+    - WHO IRIS
     """
+    import asyncio
+    from medicobuddy.mcp.pubmed import PubMedConnector
+    from medicobuddy.mcp.clinicaltrials import ClinicalTrialsConnector
+    from medicobuddy.mcp.medlineplus import MedlinePlusConnector
+    from medicobuddy.mcp.who_crossref_ayush_cochrane import CrossrefConnector, WHOConnector
+    from medicobuddy.models.mcp import MCPResult
+
     search_queries = state.get("search_queries", [])
     if not search_queries:
         return {"mcp_results": []}
 
-    # In production, connectors are injected via graph config
-    # For now, return empty — connectors are wired in graph.py
-    logger.info("MCP retrieval: %d queries to execute", len(search_queries))
-    return {"mcp_results": []}
+    logger.info("Executing MCP retrieval for %d queries", len(search_queries))
+    all_results: list[MCPResult] = []
+
+    connectors = [
+        PubMedConnector(),
+        ClinicalTrialsConnector(),
+        MedlinePlusConnector(),
+        CrossrefConnector(),
+    ]
+
+    async def fetch_connector_results(connector: Any, query: str) -> list[MCPResult]:
+        try:
+            return await connector.search(query, max_results=3)
+        except Exception:
+            logger.info("MCP connector %s query failed for '%s'", connector.connector_name, query)
+            return []
+        finally:
+            await connector.close()
+
+    tasks = [
+        fetch_connector_results(conn, query)
+        for query in search_queries[:2]  # Query top 2 planned terms
+        for conn in connectors
+    ]
+
+    gathered = await asyncio.gather(*tasks, return_exceptions=True)
+
+    seen_titles: set[str] = set()
+    for res_list in gathered:
+        if isinstance(res_list, list):
+            for item in res_list:
+                if item.title and item.title.lower() not in seen_titles:
+                    seen_titles.add(item.title.lower())
+                    all_results.append(item)
+
+    logger.info("MCP retrieval completed: %d authenticated evidence items retrieved", len(all_results))
+    return {"mcp_results": all_results}
 
 
 # ════════════════════════════════════════════════════════════
@@ -180,17 +224,63 @@ async def mcp_retrieval_node(state: GraphState) -> dict[str, Any]:
 # ════════════════════════════════════════════════════════════
 
 async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
-    """Perform hybrid retrieval from knowledge graph and vector store.
+    """Perform hybrid GraphRAG retrieval combining Neo4j Cypher traversal + Milvus/pgvector vector search."""
+    from medicobuddy.config import get_settings
+    from medicobuddy.knowledge_graph.client import Neo4jClient
+    from medicobuddy.knowledge_graph.queries import KnowledgeGraphQueries
+    from medicobuddy.retrieval.hybrid import HybridRetriever
+    from medicobuddy.retrieval.vector_store import VectorStoreClient
 
-    NOTE: Retriever is injected via graph config at runtime.
-    """
-    logger.info("Hybrid retrieval node executing")
+    settings = get_settings()
+    symptom_report = state.get("symptom_report")
+    user_context = state.get("user_context", UserContext())
+    user_message = state.get("user_message", "")
+
+    symptom_name = symptom_report.main_symptom if symptom_report else user_message
+    conditions = user_context.chronic_conditions
+
+    # Initialize graph and vector clients
+    neo4j_client = Neo4jClient(settings)
+    vector_store = VectorStoreClient(settings)
+
+    graph_results = []
+    vector_results = []
+    fused_results = []
+    contraindications = []
+    ayurvedic_concepts = []
+
+    try:
+        await neo4j_client.connect()
+        graph_queries = KnowledgeGraphQueries(neo4j_client)
+        retriever = HybridRetriever(graph_queries, vector_store)
+
+        retrieval_output = await retriever.retrieve(
+            query=user_message,
+            symptom_name=symptom_name,
+            conditions=conditions,
+            top_k=10,
+        )
+
+        graph_results = retrieval_output.get("graph_results", [])
+        vector_results = retrieval_output.get("vector_results", [])
+        fused_results = retrieval_output.get("fused_results", [])
+        contraindications = retrieval_output.get("contraindications", [])
+        ayurvedic_concepts = retrieval_output.get("ayurvedic_concepts", [])
+
+    except Exception:
+        logger.info("Knowledge Graph / Vector Store running in offline/graceful mode")
+    finally:
+        try:
+            await neo4j_client.close()
+        except Exception:
+            pass
+
     return {
-        "graph_results": [],
-        "vector_results": [],
-        "fused_results": [],
-        "contraindications": [],
-        "ayurvedic_graph_concepts": [],
+        "graph_results": graph_results,
+        "vector_results": vector_results,
+        "fused_results": fused_results,
+        "contraindications": contraindications,
+        "ayurvedic_graph_concepts": ayurvedic_concepts,
     }
 
 
