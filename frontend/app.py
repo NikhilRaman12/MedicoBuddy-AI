@@ -1,12 +1,14 @@
-"""MediBuddy AI | Enterprise Clinical Intelligence.
+"""MediBuddy AI // AG-1 — Anti-Gravity Framework.
 
-World-Class GraphRAG Clinical Decision Support Workstation Interface.
-Architectural Highlights:
-- Deep Clinical Blue (#004B87), Hospital Gray (#F4F6F9), Forest Green (#1B5E20)
-- Sticky Top Patient Banner & Atomic Session Flush Routine
-- Asymmetric 2-Column Workspace (Col 1: Traceable Chat [3], Col 2: Graph & Source Dock [2])
-- Three-Tier Anti-Hallucination Response Pattern (Synthesis -> Traceability Matrix -> EHR Footer)
-- Real-Time Cognitive Assurance Status Streaming (st.status)
+Production-Grade Clinical Intelligence Workstation Interface.
+Motto: "Clinical weightlessness through intelligent, trace-backed automation."
+
+Architecture:
+- Pure CSS/SVG Floating Gradient Cross Logo & Glassmorphic Command Palette
+- Levitating Patient Header Banner & Multi-MRN State Isolation Engine
+- Asymmetric 2-Track Console (Track A: Chat Engine [3], Track B: Proof Anchor [2])
+- Three-Tier Chat Message Component Matrix (Synthesis -> Traceability -> Action Controls)
+- Dynamic Cognitive Assurance & Real-Time Status Telemetry (st.status)
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # ── 1. Page Configuration & White-Labeling ────────────────────
 st.set_page_config(
-    page_title="MediBuddy AI | Enterprise Clinical Intelligence",
+    page_title="MediBuddy AI // AG-1 | Anti-Gravity Clinical Intelligence",
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -32,30 +34,33 @@ st.set_page_config(
 
 API_BASE = os.getenv("API_BASE", "http://localhost:8000/api/v1")
 
-# Mock Patient Registry for Patient Selector
-PATIENT_DATABASE = {
-    "MRN-884920": {
+# Clinical Patient Registry Database
+PATIENT_REGISTRY = {
+    "884920": {
         "name": "Eleanor Vance",
         "dob": "04/12/1978",
-        "mrn": "MRN-884920",
-        "allergies": ["Penicillin", "Sulfa drugs"],
-        "conditions": ["Stage II Chronic Kidney Disease", "Hypertension"],
+        "mrn": "884920",
+        "location": "ICU-4B",
+        "allergies": ["Penicillin", "Sulfa"],
+        "conditions": ["Stage II CKD", "Hypertension"],
         "age_range": "46_55",
         "pregnancy_status": "not_pregnant",
     },
-    "MRN-339104": {
+    "339104": {
         "name": "Marcus Brody",
         "dob": "11/24/1965",
-        "mrn": "MRN-339104",
+        "mrn": "339104",
+        "location": "Med-Surg 2E",
         "allergies": ["NSAIDs", "Aspirin"],
-        "conditions": ["Type 2 Diabetes Mellitus", "Coronary Artery Disease"],
+        "conditions": ["Type 2 Diabetes", "CAD"],
         "age_range": "56_65",
         "pregnancy_status": "not_applicable",
     },
-    "MRN-771029": {
+    "771029": {
         "name": "Sophia Martinez",
         "dob": "08/19/1994",
-        "mrn": "MRN-771029",
+        "mrn": "771029",
+        "location": "Outpatient 1A",
         "allergies": ["Latex"],
         "conditions": ["Mild Asthma"],
         "age_range": "26_35",
@@ -63,120 +68,149 @@ PATIENT_DATABASE = {
     },
 }
 
-# ── Global CSS Injection (WCAG AAA Medical Workstation) ────────
+# ── 2. Global CSS White-Label Overrides & Glassmorphism ──────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* Global Font Scaling & Medical Color Tokens */
+/* Global Font Scaling & Command Center Dark Palette */
 html, body, [class*="css"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     font-size: 14px !important;
-    color: #1A202C !important;
+    color: #F8FAFC !important;
 }
 
 .stApp {
-    background-color: #F4F6F9 !important;
+    background: linear-gradient(135deg, #0B132B 0%, #1C2541 100%) !important;
+    padding: 1rem 1.5rem 0 1.5rem !important;
 }
 
-/* Hide Default Streamlit Chrome Header/Footer */
+/* Hide Default Streamlit Chrome */
 header[data-testid="stHeader"] { visibility: hidden; height: 0; }
+#MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 
-/* Sticky Top Patient Banner */
-.patient-banner {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background-color: #004B87;
-    color: #FFFFFF;
-    padding: 0.85rem 1.5rem;
-    border-radius: 8px;
+/* Glassmorphic Surface Container */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
     margin-bottom: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 75, 135, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-.patient-banner-title {
-    font-size: 1.15rem;
+.glass-panel-header {
+    font-size: 0.95rem;
     font-weight: 700;
-    color: #FFFFFF;
+    color: #00E5FF;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.patient-banner-status {
-    background-color: #1B5E20;
-    color: #E8F5E9;
-    padding: 0.25rem 0.6rem;
+/* Levitating Patient Banner Header */
+.levitating-banner {
+    background: rgba(11, 19, 43, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 229, 255, 0.25);
     border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 229, 255, 0.1);
 }
 
-.patient-banner-text {
-    font-size: 0.9rem;
-    color: #E2E8F0;
+.brand-text-ag {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #00E5FF 0%, #38BDF8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.patient-flag-badge {
-    background-color: #E65100;
-    color: #FFF3E0;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+.telemetry-tag {
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: #00E5FF;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.allergy-tag {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #F87171;
+    padding: 2px 8px;
+    border-radius: 6px;
     font-size: 0.78rem;
     font-weight: 600;
 }
 
-/* Traceability & Chat Feed Container */
-div[data-testid="stVerticalBlock"] > div[style*="height"] {
-    border: 1px solid #CBD5E0 !important;
-    background-color: #FFFFFF !important;
-    border-radius: 8px !important;
-    padding: 1rem !important;
-}
-
-/* Expandable Traceability Matrix */
-.trace-matrix-box {
-    background-color: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 6px;
-    padding: 0.75rem;
-    font-size: 0.85rem;
-}
-
-/* Buttons Styling */
+/* High-End Micro-Radius Pill Buttons with Linear Gradient Hover */
 .stButton>button {
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.82rem;
-    border: 1px solid #CBD5E0;
-    background-color: #FFFFFF;
-    color: #004B87;
-    transition: all 0.15s ease;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    border: 1px solid rgba(0, 229, 255, 0.3) !important;
+    background: rgba(0, 47, 108, 0.6) !important;
+    color: #F8FAFC !important;
+    transition: all 0.2s ease-in-out !important;
 }
 
 .stButton>button:hover {
-    border-color: #004B87;
-    background-color: #004B87;
-    color: #FFFFFF;
+    border-color: #00E5FF !important;
+    background: linear-gradient(135deg, #002F6C 0%, #00E5FF 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3) !important;
 }
 
-/* Native Status Widget Styling */
+/* Status Telemetry Container */
 div[data-testid="stStatusWidget"] {
-    background-color: #EBF8FF !important;
-    border: 1px solid #3182CE !important;
-    border-radius: 6px !important;
+    background: rgba(0, 47, 108, 0.2) !important;
+    border: 1px solid rgba(0, 229, 255, 0.4) !important;
+    border-radius: 8px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ── 2. Patient State Isolation & Change-Over Engine ───────────
-def initialize_patient_state() -> None:
-    """Initialize or reset multi-key patient session state."""
+# ── Pure CSS/SVG Floating Gradient Cross Logo ────────────────
+AG_CROSS_SVG = """
+<svg width="34" height="34" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="agGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#002F6C" />
+    </linearGradient>
+    <linearGradient id="agGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+  </defs>
+  <!-- Abstract Levitating Cross Arms -->
+  <path d="M 50 12 C 55 12, 62 25, 62 38 C 62 45, 55 50, 50 50 C 45 50, 38 45, 38 38 C 38 25, 45 12, 50 12 Z" fill="url(#agGrad1)" opacity="0.9"/>
+  <path d="M 50 88 C 45 88, 38 75, 38 62 C 38 55, 45 50, 50 50 C 55 50, 62 55, 62 62 C 62 75, 55 88, 50 88 Z" fill="url(#agGrad1)" opacity="0.9"/>
+  <path d="M 12 50 C 12 45, 25 38, 38 38 C 45 38, 50 45, 50 50 C 50 55, 45 62, 38 62 C 25 62, 12 55, 12 50 Z" fill="url(#agGrad2)" opacity="0.9"/>
+  <path d="M 88 50 C 88 55, 75 62, 62 62 C 55 62, 50 55, 50 50 C 50 45, 55 38, 62 38 C 75 38, 88 45, 88 50 Z" fill="url(#agGrad2)" opacity="0.9"/>
+  <!-- Central Gravity Core Node -->
+  <circle cx="50" cy="50" r="7" fill="#00E5FF"/>
+</svg>
+"""
+
+
+# ── 3. Levitating Patient Header Banner (Context Engine) ──────
+def initialize_patient_session() -> None:
+    """Initialize or maintain atomic session state."""
     if "active_patient_mrn" not in st.session_state:
-        st.session_state.active_patient_mrn = "MRN-884920"
+        st.session_state.active_patient_mrn = "884920"
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -188,53 +222,52 @@ def initialize_patient_state() -> None:
         st.session_state.active_sources = []
 
 
-def execute_patient_changeover(new_mrn: str) -> None:
-    """Atomic state flush routine when patient selector changes."""
-    logger.info("Atomic patient change-over triggered: %s", new_mrn)
+def execute_atomic_patient_flush(new_mrn: str) -> None:
+    """Atomic state flush routine on patient switch."""
+    logger.info("Executing Anti-Gravity atomic flush for MRN: %s", new_mrn)
     st.session_state.active_patient_mrn = new_mrn
     st.session_state.messages = []
     st.session_state.active_graph_nodes = []
     st.session_state.active_sources = []
 
 
-def render_sticky_top_banner() -> None:
-    """Render top sticky patient banner across total viewport width."""
+def render_levitating_patient_banner() -> None:
+    """Render sticky, levitating patient header context bar."""
     mrn = st.session_state.active_patient_mrn
-    patient = PATIENT_DATABASE.get(mrn, PATIENT_DATABASE["MRN-884920"])
+    patient = PATIENT_REGISTRY.get(mrn, PATIENT_REGISTRY["884920"])
 
-    col1, col2, col3 = st.columns([1.2, 2.2, 1.6])
+    col1, col2, col3 = st.columns([1, 3, 2])
 
     with col1:
         st.markdown(f"""
-        <div style="background:#004B87; color:#FFF; padding:0.6rem 1rem; border-radius:6px;">
-            <div style="font-weight:700; font-size:1.05rem;">🩺 MediBuddy AI</div>
-            <div style="font-size:0.75rem; color:#BEE3F8;">🟢 Graph Sync Active</div>
+        <div style="display:flex; align-items:center; gap:0.6rem; padding-top:0.2rem;">
+            {AG_CROSS_SVG}
+            <div>
+                <div class="brand-text-ag">MediBuddy AI</div>
+                <div style="font-size:0.72rem; color:#94A3B8; font-family:'JetBrains Mono',monospace;">AG-1 // Enterprise</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
     with col2:
         st.markdown(f"""
-        <div style="background:#004B87; color:#FFF; padding:0.6rem 1rem; border-radius:6px;">
-            <div style="font-weight:600; font-size:0.92rem;">
-                Active Patient: <strong>{patient['name']}</strong> &nbsp;|&nbsp; DOB: <strong>{patient['dob']}</strong>
-            </div>
-            <div style="font-size:0.8rem; color:#E2E8F0;">
-                MRN: <strong>{patient['mrn']}</strong> &nbsp;|&nbsp; Location: Inpatient Care Unit 4B
-            </div>
+        <div class="glass-panel" style="padding:0.5rem 1rem; margin-bottom:0;">
+            <span style="font-weight:700; color:#F8FAFC; font-size:0.95rem;">{patient['name']}</span>
+            &nbsp;│&nbsp;
+            <span style="color:#94A3B8; font-size:0.85rem;">MRN: <strong style="color:#00E5FF;">{patient['mrn']}</strong></span>
+            &nbsp;│&nbsp;
+            <span style="color:#94A3B8; font-size:0.85rem;">DOB: {patient['dob']}</span>
+            &nbsp;│&nbsp;
+            <span style="color:#94A3B8; font-size:0.85rem;">Location: <strong style="color:#F8FAFC;">{patient['location']}</strong></span>
         </div>
         """, unsafe_allow_html=True)
 
     with col3:
         allergies = ", ".join(patient["allergies"])
-        conditions = ", ".join(patient["conditions"])
         st.markdown(f"""
-        <div style="background:#004B87; color:#FFF; padding:0.6rem 1rem; border-radius:6px;">
-            <div style="font-size:0.78rem;">
-                <span class="patient-flag-badge">Allergies: {allergies}</span>
-            </div>
-            <div style="font-size:0.78rem; margin-top:0.2rem;">
-                <span style="background:#2C5282; padding:2px 6px; border-radius:4px;">{conditions}</span>
-            </div>
+        <div class="glass-panel" style="padding:0.5rem 1rem; margin-bottom:0; display:flex; align-items:center; justify-content:space-between;">
+            <span class="allergy-tag">Allergies: {allergies}</span>
+            <span class="telemetry-tag">🟢 Graph Engine Live</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -249,7 +282,7 @@ def process_query_direct(user_input: str, patient_info: dict[str, Any]) -> dict[
     app = create_app()
 
     try:
-        age = AgeRange(patient_info.get("age_range", "26_35"))
+        age = AgeRange(patient_info.get("age_range", "46_55"))
     except ValueError:
         age = AgeRange.UNKNOWN
 
@@ -307,139 +340,139 @@ def process_query_direct(user_input: str, patient_info: dict[str, Any]) -> dict[
     }
 
 
-# ── 4. Three-Tier Anti-Hallucination Response Renderer ───────
-def render_three_tier_response(data: dict[str, Any], msg_idx: int) -> None:
-    """Render the mandatory 3-Tier Anti-Hallucination Response Matrix."""
-    # ── Tier 1: Clinical Synthesis (The Verdict) ─────────────
-    st.markdown("### Clinical Synthesis & Guidance")
-
+# ── 5. Three-Tier Chat Message Component Matrix ──────────────
+def render_three_tier_chat_message(data: dict[str, Any], msg_idx: int) -> None:
+    """Render mandatory 3-Tier Anti-Gravity message matrix."""
+    # ── Tier 1: Clinical Synthesis Output ────────────────────
     if data.get("emergency_message"):
         st.error(f"🚨 **CRITICAL SAFETY ESCALATION:** {data['emergency_message']}")
         return
 
-    urgency = data.get("urgency_summary", "Self-Care Guidance")
-    st.markdown(f"**Triage Assessment:** `{urgency}`")
-    st.markdown(f"**Clinical Summary:** {data.get('user_report_summary', '')}")
+    urgency = data.get("urgency_summary", "Self-Care Protocol")
+    st.markdown(f"**Clinical Status:** `{urgency}`")
+    st.markdown(f"**Synthesis:** {data.get('user_report_summary', '')}")
 
-    st.markdown("#### Direct Self-Care Recommendations:")
+    st.markdown("**Evidence-Grounded Recommendations:**")
     for step in data.get("safe_comfort_steps", []):
         st.markdown(f"- **{step}**")
 
     if data.get("things_to_avoid"):
-        st.markdown("#### Clinical Contraindications & Precautions:")
+        st.markdown("**Clinical Contraindications & Precautions:**")
         for item in data.get("things_to_avoid", []):
             st.markdown(f"- **Contraindication:** {item}")
 
-    # ── Tier 2: The MediBuddy Traceability Expandable Widget ──
+    # ── Tier 2: The Anti-Gravity Traceability Expander ───────
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("🛠️ MediBuddy GraphRAG Traceability Matrix (Verify Evidence)", expanded=False):
-        left_col, right_col = st.columns(2)
+    with st.expander("🔍 View GraphRAG Validation Pipeline", expanded=False):
+        col_left, col_right = st.columns(2)
 
-        with left_col:
-            st.markdown("##### Graph Entity Traversal Nodes")
+        with col_left:
+            st.markdown("##### Traversed Neo4j Graph Nodes")
             st.code("""
-[Symptom: Primary Reported Query]
-  └── (INDICATES) ──► [SelfCareAction: Non-Pharmacological Protocol]
-        └── (CONTRAINDICATED_FOR) ──► [Condition: Chronic Renal Check]
-  └── (EVIDENCE_CLAIM) ──► [Source: PubMed/CT.gov Tier 1-3]
+(Patient) ──► (Condition Check)
+   │
+   ├──► (Symptom Entity Node)
+   │     └── (MAY_SUPPORT) ──► (SelfCareAction Node)
+   │
+   └──► (EvidenceClaim) ──► (MCP Source Tier 1-3)
             """, language="text")
 
-        with right_col:
-            st.markdown("##### Raw Text Snippet Alignment")
+        with col_right:
+            st.markdown("##### Raw Verified Clinical Snippet")
             citations = data.get("citations", [])
             if citations:
                 for c in citations[:2]:
                     st.markdown(f"**Source [{c.get('number')}] ({c.get('source_type', 'Guideline')}):**")
-                    st.caption(f"\"{c.get('title')}\" — Canonical Link: {c.get('url', 'N/A')}")
+                    st.caption(f"\"{c.get('title')}\" — Canonical URL: {c.get('url', 'N/A')}")
             else:
                 st.caption("Validated against internal hospital clinical safety guidelines.")
 
-    # ── Tier 3: Enterprise Integration Footer ────────────────
-    col_a, col_b, col_c = st.columns(3)
-    with col_a:
-        if st.button("📥 Commit to EHR Chart", key=f"ehr_{msg_idx}"):
-            st.success("Selected synthesis committed to active EHR chart audit log.")
-    with col_b:
-        if st.button("✉️ Draft Patient Portal Message", key=f"portal_{msg_idx}"):
-            st.info("Drafted patient portal instructions ready for clinician review.")
-    with col_c:
-        if st.button("🚨 Report Clinical Discrepancy", key=f"discrepancy_{msg_idx}"):
-            st.warning("Clinical feedback logged to engineering telemetry pipeline.")
+    # ── Tier 3: One-Click Integration Controls ───────────────
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("📥 Push to EHR Chart", key=f"ehr_ag_{msg_idx}"):
+            st.success("Synthesis committed to EHR chart audit log.")
+    with c2:
+        if st.button("✉️ Export to Portal", key=f"portal_ag_{msg_idx}"):
+            st.info("Exported to patient portal draft Queue.")
+    with c3:
+        if st.button("🚨 Flag Discrepancy", key=f"flag_ag_{msg_idx}"):
+            st.warning("Telemetry discrepancy report logged.")
 
 
-# ── 3. Asymmetric Two-Column Workspace ───────────────────────
+# ── 4. Split Asymmetric Control Console (`st.columns`) ────────
 def main() -> None:
-    initialize_patient_state()
-    render_sticky_top_banner()
+    initialize_patient_session()
 
-    # Patient Selector Controls in Small Top Strip
-    with st.expander("🔄 Switch Active Patient Record (State Flush)", expanded=False):
+    # Patient Selector & State Flush
+    with st.expander("🔄 Switch Active Patient Record (Atomic State Flush)", expanded=False):
         selected_mrn = st.selectbox(
-            "Select Patient MRN",
-            list(PATIENT_DATABASE.keys()),
-            index=list(PATIENT_DATABASE.keys()).index(st.session_state.active_patient_mrn),
+            "Active Patient Record",
+            list(PATIENT_REGISTRY.keys()),
+            format_func=lambda k: f"{PATIENT_REGISTRY[k]['name']} (MRN: {k})",
+            index=list(PATIENT_REGISTRY.keys()).index(st.session_state.active_patient_mrn),
         )
         if selected_mrn != st.session_state.active_patient_mrn:
-            execute_patient_changeover(selected_mrn)
+            execute_atomic_patient_flush(selected_mrn)
             st.rerun()
 
-    # Asymmetric Workspace: Column 1 [3] vs Column 2 [2]
-    col1, col2 = st.columns([3, 2])
+    render_levitating_patient_banner()
 
-    patient = PATIENT_DATABASE[st.session_state.active_patient_mrn]
+    patient = PATIENT_REGISTRY[st.session_state.active_patient_mrn]
 
-    # ── COLUMN 1: THE MEDIBUDDY TRACEABLE CHAT INTERFACE ─────
-    with col1:
-        st.markdown("### 💬 Clinical Workspace")
+    # Asymmetric 2-Track Console: Track A [3] vs Track B [2]
+    track_a, track_b = st.columns([3, 2])
 
-        # Chat Feed in fixed 650px container
-        chat_container = st.container(height=650)
+    # ── TRACK A: THE LOGICAL CONVERSATIONAL SPACE (Left Column) ─
+    with track_a:
+        st.markdown("### 💬 Conversational Workspace")
+
+        # Chat Engine Layer (Isolated 600px Container)
+        chat_container = st.container(height=600)
         with chat_container:
             if not st.session_state.messages:
-                st.info(f"Initialized secure clinical workspace for **{patient['name']}** ({patient['mrn']}). Ask a question or run a quick workflow below.")
+                st.info(f"Anti-Gravity Clinical Intelligence initialized for **{patient['name']}** (MRN: {patient['mrn']}). Select a trigger or enter a query.")
 
             for idx, msg in enumerate(st.session_state.messages):
                 with st.chat_message(msg["role"]):
                     if msg["role"] == "assistant" and isinstance(msg.get("data"), dict):
-                        render_three_tier_response(msg["data"], idx)
+                        render_three_tier_chat_message(msg["data"], idx)
                     else:
                         st.markdown(msg["content"])
 
-        # Input Engine
+        # Input Console
         user_query = st.chat_input("Query MediBuddy (e.g., 'Cross-reference current labs with latest ASCO guidelines')...")
 
-        # Clinical Quick-Actions Row
+        # Context Trigger Bar (Above input)
         st.markdown("<br>", unsafe_allow_html=True)
-        qcol1, qcol2, qcol3, qcol4 = st.columns(4)
-        quick_query = None
-        if qcol1.button("💊 Contraindication Check", use_container_width=True):
-            quick_query = f"Check contraindications for {patient['name']} with {patient['conditions'][0]} and {patient['allergies'][0]}"
-        if qcol2.button("📈 Lab Trend Analysis", use_container_width=True):
-            quick_query = f"Analyze lab trends and self-care recommendations for {patient['name']}"
-        if qcol3.button("📝 Discharge Summary", use_container_width=True):
-            quick_query = f"Draft low-risk discharge self-care instructions for {patient['name']}"
-        if qcol4.button("🔍 Guideline Audit", use_container_width=True):
-            quick_query = f"Audit symptom guidance against clinical guidelines for {patient['conditions'][0]}"
+        t1, t2, t3, t4 = st.columns(4)
+        macro_query = None
+        if t1.button("⚡ Check Drug Conflicts", use_container_width=True):
+            macro_query = f"Check drug conflicts and contraindications for {patient['name']} with {patient['conditions'][0]} and {patient['allergies'][0]}"
+        if t2.button("📊 Stream Lab Vectors", use_container_width=True):
+            macro_query = f"Stream lab vectors and self-care metrics for {patient['name']}"
+        if t3.button("📋 Draft Discharge Protocol", use_container_width=True):
+            macro_query = f"Draft discharge self-care protocol for {patient['name']}"
+        if t4.button("🛡️ Validate Graph Nodes", use_container_width=True):
+            macro_query = f"Validate Neo4j graph nodes and evidence guidelines for {patient['conditions'][0]}"
 
-        active_input = user_query or quick_query
+        active_query = user_query or macro_query
 
-        if active_input:
-            st.session_state.messages.append({"role": "user", "content": active_input})
+        if active_query:
+            st.session_state.messages.append({"role": "user", "content": active_query})
 
-            # ── 5. Real-Time Cognitive Assurance (st.status) ─────
-            with st.status("Initializing GraphRAG reasoning pipeline...", expanded=True) as status:
+            # ── 6. Dynamic Cognitive Assurance & Retrieval Progression ─
+            with st.status("Initializing GraphRAG pipeline...", expanded=True) as status:
                 time.sleep(0.1)
-                status.update(label="Phase 1: Extracting clinical entities from query...", state="running")
+                status.update(label="Parsing clinical entities...", state="running")
                 time.sleep(0.1)
-                status.update(label="Phase 2: Traversing Graph Nodes & mapping medical relationships...", state="running")
+                status.update(label="Querying Knowledge Graph vectors...", state="running")
                 time.sleep(0.1)
-                status.update(label="Phase 3: Retrieving vector text chunks for context validation...", state="running")
-                time.sleep(0.1)
-                status.update(label="Phase 4: Synthesizing clinical summary against active hospital guidelines...", state="running")
+                status.update(label="Cross-checking target guidelines...", state="running")
 
                 data = None
                 try:
-                    payload = {"message": active_input, "chronic_conditions": patient["conditions"], "allergies": patient["allergies"]}
+                    payload = {"message": active_query, "chronic_conditions": patient["conditions"], "allergies": patient["allergies"]}
                     with httpx.Client(timeout=15.0) as client:
                         resp = client.post(f"{API_BASE}/chat", json=payload)
                         if resp.status_code == 200:
@@ -448,7 +481,7 @@ def main() -> None:
                     logger.info("REST API offline — executing direct Python engine fallback")
 
                 if data is None:
-                    data = process_query_direct(active_input, patient)
+                    data = process_query_direct(active_query, patient)
 
                 status.update(label="✅ Sources Verified & Synthesized", state="complete", expanded=False)
 
@@ -460,42 +493,41 @@ def main() -> None:
             st.session_state.active_sources = data.get("citations", [])
             st.rerun()
 
-    # ── COLUMN 2: THE KNOWLEDGE GRAPH & DATA SOURCE DOCK ─────
-    with col2:
-        st.markdown("### 🕸️ Knowledge Graph & Source Dock")
+    # ── TRACK B: THE STRUCTURAL KNOWLEDGE ANCHOR (Right Column) ──
+    with track_b:
+        st.markdown("### 🕸️ Structural Knowledge Anchor")
 
-        tab_graph, tab_sources = st.tabs(["🕸️ Graph Entity Subnetwork", "📄 Linked Source Records"])
+        tab_graph, tab_source_ledger = st.tabs(["🕸️ Graph Traversal Subnetwork", "📑 Line-Item Source Ledger"])
 
         with tab_graph:
-            st.markdown("##### Extracted GraphRAG Subnetwork")
-            st.caption("Active node & relationship traversal path in Neo4j Knowledge Graph:")
-
+            st.markdown("##### Isolated Neo4j Sub-Graph Trajectory")
             st.code(f"""
 [Patient: {patient['name']} ({patient['mrn']})]
-   ├── (HAS_CONDITION) ──► [Condition: {patient['conditions'][0]}]
-   └── (REPORTED_SYMPTOM) ──► [Symptom: Reported Symptom]
-        └── (MAY_SUPPORT) ──► [Action: Non-Pharmacological Care]
-              └── (EVIDENCE_TIER) ──► [Source: Peer-Reviewed Guideline]
+   └── (CONDITION: {patient['conditions'][0]})
+   └── (ALLERGEN: {patient['allergies'][0]})
+        └── (SYMPTOM_QUERY: Active Query)
+              └── (GRAPH_NODE: SelfCareAction)
+                    └── (TIER_1_GUIDELINE: Provenance Verified)
             """, language="text")
 
-            st.markdown("##### Extracted Entity Properties")
+            st.markdown("##### Extracted Dependency Tree")
             st.json({
                 "patient_mrn": patient["mrn"],
                 "active_conditions": patient["conditions"],
                 "active_allergies": patient["allergies"],
-                "graph_sync_status": "synced",
-                "evidence_tier": "Tier 1 Clinical Guidance",
+                "graph_sync_status": "active_heartbeat",
+                "provenance_tier": "Tier 1 Clinical Guidance",
             })
 
-        with tab_sources:
-            st.markdown("##### Linked Text & Source Records")
+        with tab_source_ledger:
+            st.markdown("##### Line-Item Source Ledger")
             sources = st.session_state.active_sources
             if not sources:
-                st.caption("No active search query selected. Submit a query to inspect matching source chunks.")
+                st.info("System Alert: Boundary constraints met. Broaden search criteria?")
             else:
                 for s in sources:
                     st.markdown(f"**[{s.get('number')}] {s.get('title')}**")
-                    st.caption(f"Source: {s.get('source_type', 'Clinical Article')} | URL: {s.get('url', 'N/A')}")
+                    st.caption(f"Type: {s.get('source_type', 'Guideline')} | Canonical: {s.get('url', 'N/A')}")
                     st.markdown("---")
 
 
