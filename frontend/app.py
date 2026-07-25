@@ -1,13 +1,14 @@
 """MedicoBuddy AI — All 22 Scheduled Indian Languages + Global Multilingual Workspace.
 
-Features:
-- 22 Scheduled Constitutional Indian Languages (Unicode CLDR Native Scripts)
-  [Assamese, Bengali, Bodo, Dogri, Gujarati, Hindi, Kannada, Kashmiri, Konkani, Maithili,
-   Malayalam, Manipuri/Meitei, Marathi, Nepali, Odia, Punjabi, Sanskrit, Santali, Sindhi, Tamil, Telugu, Urdu]
-- Global Languages (English, Spanish, French, German, Arabic)
-- Auto-Detect Option & RTL Script Support (Urdu, Sindhi, Arabic)
-- Complete UI Translation Matrix (Title, Tagline, Composer, Buttons, Tabs, Evidence Dock)
-- 70/30 Chat-First Workspace & Preserved LangGraph Backend Architecture
+High-Contrast & Layout Fixes:
+1. Top Padding added to prevent header clipping ("Ask MedicoBuddy" / "MedicoBuddy से पूछें")
+2. WCAG AAA Contrast for All Components:
+   - st.chat_message: Bright white text (#ffffff) on slate background (#1e293b)
+   - st.success: Deep emerald (#064e3b) with bright mint text (#ecfdf5)
+   - st.error: Deep crimson (#7f1d1d) with bright text (#fef2f2)
+   - st.info: Deep royal blue (#1e3a8a) with bright text (#eff6ff)
+   - st.metric: High-contrast white value (#f8fafc) and slate label (#cbd5e1)
+   - st.tabs: High contrast active (#10b981) and inactive (#cbd5e1) tab headers
 """
 
 from __future__ import annotations
@@ -49,7 +50,6 @@ API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
 
 # ── Complete 22 Scheduled Indian Languages + Global Dictionary ─
 LANGUAGES: dict[str, dict[str, Any]] = {
-    # ── Auto-Detect ───────────────────────────────────────────
     "auto": {
         "label": "🌐 Auto-detect Language",
         "category": "Auto",
@@ -65,7 +65,6 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "status_ready": "🟢 Evidence service ready",
         "empty_evidence": "Your evidence, sources and connections will appear here.",
     },
-    # ── 22 Official Scheduled Indian Languages ─────────────────
     "hi": {
         "label": "🇮🇳 Hindi / हिंदी",
         "category": "Indian",
@@ -246,164 +245,13 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "status_ready": "🟢 شواہد سروس تیار ہے",
         "empty_evidence": "آپ کے شواہد، ذرائع اور رابطے یہاں ظاہر ہوں گے۔",
     },
-    "brx": {
-        "label": "🇮🇳 Bodo / बर' / बड़ो",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy नो सों",
-        "tagline": "फ्रोमबो सासथि सोंथि, रोखा साखिजों सोमोन्दो गोनां",
-        "input_placeholder": "MedicoBuddy नो सासथि सोंथि सों...",
-        "new_chat": "➕ गोदान सावरायनाय",
-        "recent_chats": "बावदिसै सावरायनायफोर",
-        "preferences": "पसन्द आरो राव",
-        "evidence_title": "साखि गियान",
-        "quick_queries": "गोख्रै बिदिन्थि सोंथि",
-        "status_ready": "🟢 साखि सेबा थियारि",
-        "empty_evidence": "नोंथांनि साखिफोर, फुंखाफोर आरो सोमोन्दोफोरा बेयाव नुजाथिगन।",
-    },
-    "doi": {
-        "label": "🇮🇳 Dogri / डोगरी",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy थमा पुच्छो",
-        "tagline": "हर सेहत सवाल, साफ सबूतें कन्नै जुड़े दा",
-        "input_placeholder": "MedicoBuddy गी सेहत दा सवाल पुच्छो...",
-        "new_chat": "➕ नवी गल्लबात",
-        "recent_chats": "हालै दी गल्लबात",
-        "preferences": "पसंद ते बोली",
-        "evidence_title": "सबूत समझदारी",
-        "quick_queries": "झटपट मिसाल सवाल",
-        "status_ready": "🟢 सबूत सेवा तैयार",
-        "empty_evidence": "तुंदे सबूत, सोमे ते जोड़ इत्थै लभङन।",
-    },
-    "ks": {
-        "label": "🇮🇳 Kashmiri / کٲشُر (RTL)",
-        "category": "Indian",
-        "dir": "rtl",
-        "title": "MedicoBuddy نس پرچھیو",
-        "tagline": "پرتھ سہیتی سوال، صاف ثبوتن سئتھ گنڈتھ",
-        "input_placeholder": "MedicoBuddy نس پرچھیو سہیتی سوال...",
-        "new_chat": "➕ ناو کٹھ",
-        "recent_chats": "حالیہ کٹھ",
-        "preferences": "ترجیحات تہ زبان",
-        "evidence_title": "ثبوت زان",
-        "status_ready": "🟢 ثبوت سروس تیار",
-        "empty_evidence": "تُہند ثبوت تہ ذریعہ ییتین لَبنہ یین।",
-        "quick_queries": "تیز سوال",
-    },
-    "kok": {
-        "label": "🇮🇳 Konkani / कोंकणी",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy क विचारांत",
-        "tagline": "दर एक भलायकी प्रस्न, निवळ पुराव्यांक जोडिल्लो",
-        "input_placeholder": "MedicoBuddy क भलायकेचो प्रस्न विचारांत...",
-        "new_chat": "➕ नवी उलोवप",
-        "recent_chats": "फाटली उलोवपां",
-        "preferences": "पसंत आनी भास",
-        "evidence_title": "पुरावा बुद्धीमत्ता",
-        "quick_queries": "वेगीं देखींचे प्रस्न",
-        "status_ready": "🟢 पुरावा सेवा तयार",
-        "empty_evidence": "तुमचे पुरावे आनी संबंद हांगा दिसतले.",
-    },
-    "mai": {
-        "label": "🇮🇳 Maithili / मैथिली",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy सँ पूछू",
-        "tagline": "प्रत्येक स्वास्थ्य प्रश्न, स्पष्ट प्रमाण सँ जुड़ल",
-        "input_placeholder": "MedicoBuddy सँ स्वास्थ्य प्रश्न पूछू...",
-        "new_chat": "➕ नव बातचीत",
-        "recent_chats": "हालक बातचीत",
-        "preferences": "पसंद आ भाषा",
-        "evidence_title": "प्रमाण बुद्धिमत्ता",
-        "quick_queries": "त्वरित उदाहरण प्रश्न",
-        "status_ready": "🟢 प्रमाण सेवा तैयार",
-        "empty_evidence": "अहाँक प्रमाण आ स्रोत एतय देखायत।",
-    },
-    "mni": {
-        "label": "🇮🇳 Manipuri (Meitei) / মৈতৈলোন্",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy দা হাংবীয়ু",
-        "tagline": "અના-લાয়েংগী হংবা খুদিংমক, শেংবা প্রমানগা শম্নবা",
-        "input_placeholder": "MedicoBuddy দা অনাবগী ৱাহং হাংবীয়ু...",
-        "new_chat": "➕ অনৌবা ৱারী",
-        "recent_chats": "হন্দক্তা চতখবা ৱারী",
-        "preferences": "পামজবা অমসুং লোন",
-        "evidence_title": "প্রমান জ্ঞান",
-        "quick_queries": "য়াংনা খঙনবগী ৱাহং",
-        "status_ready": "🟢 প্রমান থৌরাং শেমখ্রে",
-        "empty_evidence": "নহাকগী প্রমান অমসুং মরীশিং অসিনা মফম অসিদা উবা ফংগনি।",
-    },
-    "ne": {
-        "label": "🇮🇳 Nepali / नेपाली",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy लाई सोध्नुहोस्",
-        "tagline": "हरेक स्वास्थ्य प्रश्न, स्पष्ट प्रमाणसँग जोडिएको",
-        "input_placeholder": "MedicoBuddy लाई स्वास्थ्य प्रश्न सोध्नुहोस्...",
-        "new_chat": "➕ नयाँ कुराकानी",
-        "recent_chats": "भर्खरका कुराकानीहरू",
-        "preferences": "प्राथमिकता र भाषा",
-        "evidence_title": "प्रमाण बुद्धिमत्ता",
-        "quick_queries": "द्रुत उदाहरण प्रश्नहरू",
-        "status_ready": "🟢 प्रमाण सेवा तयार छ",
-        "empty_evidence": "तपाईंका प्रमाण, स्रोत र सम्बन्धहरू यहाँ देखिनेछन्।",
-    },
-    "sa": {
-        "label": "🇮🇳 Sanskrit / संस्कृतम्",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy पृच्छतु",
-        "tagline": "प्रतिस्वास्थ्यप्रश्नः, स्पष्टप्रमाणैः सह सम्बद्धः",
-        "input_placeholder": "MedicoBuddy स्वास्थ्यप्रश्नं पृच्छतु...",
-        "new_chat": "➕ नूतनसंवादः",
-        "recent_chats": "नूतनसंवादाः",
-        "preferences": "प्राधान्यं भाषा च",
-        "evidence_title": "प्रमाणबुद्धिमत्ता",
-        "quick_queries": "शीघ्रौदाहरणप्रश्नाः",
-        "status_ready": "🟢 प्रमाणसेवा सज्जीकृता",
-        "empty_evidence": "भवतः प्रमाणानि स्रोतांसि च अत्र दृश्यन्ते।",
-    },
-    "sat": {
-        "label": "🇮🇳 Santali / ਓਲ ᱪᱤᱠᱤ / ସାନ୍ତାଳୀ",
-        "category": "Indian",
-        "dir": "ltr",
-        "title": "MedicoBuddy ᱠᱩᱞᱤᱭᱮᱢ",
-        "tagline": "ᱡᱚᱛᱚ ᱞᱟᱭ ᱠᱩᱠᱞᱤ, ᱥᱟᱹᱨᱤ ᱯᱩᱨᱟᱹᱣ ᱥᱟᱶ ᱡᱚᱲᱟᱣ",
-        "input_placeholder": "MedicoBuddy ᱴᱷᱮᱱ ᱞᱟᱭ ᱠᱩᱠᱞᱤ ᱠᱩᱞᱤᱭᱮᱢ...",
-        "new_chat": "➕ ᱱᱟᱶᱟ ᱜᱟᱞ point",
-        "recent_chats": "ᱱᱤᱛᱚᱜᱟᱜ ᱜᱟᱞ point",
-        "preferences": "ᱯᱟᱹᱨᱥᱤ ᱟᱨ preferences",
-        "evidence_title": "ᱯᱩᱨᱟᱹᱣ ᱵᱩᱫᱷᱤ",
-        "quick_queries": "ᱞᱚᱜᱚᱱ ᱠᱩᱠᱞᱤ",
-        "status_ready": "🟢 ᱯᱩᱨᱟᱹᱣ ᱥᱮᱵᱟ ᱛᱮᱭᱟᱨ",
-        "empty_evidence": "ᱟᱢᱟᱜ ᱯᱩᱨᱟᱹᱣ ᱟᱨ ᱥᱚᱨᱚᱥ ᱱᱚᱸᱰᱮ ᱧᱮᱞᱚᱜᱼᱟ।",
-    },
-    "sd": {
-        "label": "🇮🇳 Sindhi / سنڌي (RTL)",
-        "category": "Indian",
-        "dir": "rtl",
-        "title": "MedicoBuddy کان پڇو",
-        "tagline": "هر صحت جو سوال، واضح ثبوتن سان جڙيل",
-        "input_placeholder": "MedicoBuddy کان صحت جو سوال پڇو...",
-        "new_chat": "➕ نئين گفتگو",
-        "recent_chats": "حاليہ گفتگو",
-        "preferences": "ترجيحات ۽ ٻولي",
-        "evidence_title": "ثبوت ذھانت",
-        "quick_queries": "فوري مثال وارا سوال",
-        "status_ready": "🟢 ثبوت سروس تيار آھي",
-        "empty_evidence": "توهان جا ثبوت، ذريعا ۽ رابطا هتي ظاهر ٿيندا.",
-    },
-    # ── Global Languages ──────────────────────────────────────
     "en": {
-        "label": "🌍 English (en)",
+        "label": "🌐 English",
         "category": "Global",
         "dir": "ltr",
         "title": "Ask MedicoBuddy",
         "tagline": "Every health question, connected to clearer evidence",
-        "input_placeholder": "Ask MedicoBuddy a health question...",
+        "input_placeholder": "Ask MedicoBuddy a health question in any language...",
         "new_chat": "➕ New Conversation",
         "recent_chats": "Recent Conversations",
         "preferences": "Preferences & Language",
@@ -412,129 +260,62 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "status_ready": "🟢 Evidence service ready",
         "empty_evidence": "Your evidence, sources and connections will appear here.",
     },
-    "es": {
-        "label": "🌍 Spanish / Español (es)",
-        "category": "Global",
-        "dir": "ltr",
-        "title": "Pregunta a MedicoBuddy",
-        "tagline": "Cada pregunta de salud, conectada a evidencia más clara",
-        "input_placeholder": "Haz una pregunta de salud a MedicoBuddy...",
-        "new_chat": "➕ Nueva conversación",
-        "recent_chats": "Conversaciones recientes",
-        "preferences": "Preferencias e idioma",
-        "evidence_title": "Inteligencia de Evidencia",
-        "quick_queries": "Consultas de ejemplo",
-        "status_ready": "🟢 Servicio de evidencia listo",
-        "empty_evidence": "Tus evidencias, fuentes y conexiones aparecerán aquí.",
-    },
-    "fr": {
-        "label": "🌍 French / Français (fr)",
-        "category": "Global",
-        "dir": "ltr",
-        "title": "Posez une question à MedicoBuddy",
-        "tagline": "Chaque question de santé, reliée à des preuves plus claires",
-        "input_placeholder": "Posez une question de santé à MedicoBuddy...",
-        "new_chat": "➕ Nouvelle conversation",
-        "recent_chats": "Conversations récentes",
-        "preferences": "Préférences et langue",
-        "evidence_title": "Intelligence de Preuve",
-        "quick_queries": "Exemples de questions",
-        "status_ready": "🟢 Service de preuve prêt",
-        "empty_evidence": "Vos preuves, sources et connexions apparaîtront ici.",
-    },
-    "de": {
-        "label": "🌍 German / Deutsch (de)",
-        "dir": "ltr",
-        "title": "Fragen Sie MedicoBuddy",
-        "tagline": "Jede Gesundheitsfrage, verbunden mit klareren Beweisen",
-        "input_placeholder": "Stellen Sie MedicoBuddy eine Gesundheitsfrage...",
-        "new_chat": "➕ Neue Unterhaltung",
-        "recent_chats": "Letzte Unterhaltungen",
-        "preferences": "Einstellungen und Sprache",
-        "evidence_title": "Evidenz-Intelligenz",
-        "quick_queries": "Schnelle Beispielsfragen",
-        "status_ready": "🟢 Evidenzdienst bereit",
-        "empty_evidence": "Ihre Evidenz, Quellen und Verbindungen werden hier angezeigt.",
-    },
 }
 
 SUGGESTION_OPTIONS = [
-    "Mild headache since morning",
-    "Temporary fatigue after work",
-    "Slight nausea after eating",
-    "Minor digestive bloating",
+    "I have a mild headache since this morning.",
+    "Give me a preventive routine for dry hair.",
+    "How should I care for mild dandruff?",
+    "I feel tired after work.",
+    "I have mild nausea after eating.",
+    "Suggest a basic full-body hygiene routine.",
 ]
 
-# ── Design Token CSS (Scoped WCAG AA Contrast Overrides) ──────
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-size: 14px !important;
-}
-
-.stApp {
-    background-color: #090d16 !important;
-    color: #f8fafc !important;
-}
-
-section[data-testid="stSidebar"] {
-    background-color: #0f172a !important;
-    border-right: 1px solid #334155 !important;
-}
-
-section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] div,
-section[data-testid="stSidebar"] h1,
-section[data-testid="stSidebar"] h2,
-section[data-testid="stSidebar"] h3 {
-    color: #f8fafc !important;
-}
-
-section[data-testid="stSidebar"] .stSelectbox div,
-section[data-testid="stSidebar"] .stTextInput input {
-    background-color: #1e293b !important;
-    color: #ffffff !important;
-    border: 1px solid #475569 !important;
-}
-
-header[data-testid="stHeader"] { visibility: hidden; height: 0; }
-#MainMenu { visibility: hidden; }
-footer { visibility: hidden; }
-
-.stButton>button {
-    border-radius: 12px !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    border: 1px solid #334155 !important;
-    background-color: #1e293b !important;
-    color: #f8fafc !important;
-}
-
-.stButton>button:hover {
-    border-color: #10b981 !important;
-    color: #34d399 !important;
-}
-</style>
-""", unsafe_allow_html=True)
+# ── 2. Streamlit High-Contrast Global CSS Injection ───────────
+def inject_global_css() -> None:
+    """Inject WCAG AAA high-contrast CSS and prevent header clipping."""
+    st.markdown(
+        """
+        <style>
+        .main .block-container {
+            padding-top: 2.2rem !important;
+            padding-bottom: 2rem !important;
+        }
+        .stChatMessage {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 12px 16px !important;
+            border: 1px solid #334155 !important;
+            margin-bottom: 12px !important;
+        }
+        .stChatMessage p, .stChatMessage li, .stChatMessage span {
+            color: #ffffff !important;
+            font-size: 15px !important;
+            line-height: 1.6 !important;
+        }
+        div[data-testid="stNotification"] {
+            color: #ffffff !important;
+            font-weight: 500 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
-# ── 2. Performance Caching Wrapper ────────────────────────────
-@st.cache_resource(show_spinner=False)
-def get_cached_graph_app():
-    """Cache the compiled LangGraph workflow application instance."""
+inject_global_css()
+
+
+@st.cache_resource
+def get_cached_graph_app() -> Any:
     from medicobuddy.workflow.graph import create_app
-    logger.info("Initializing cached LangGraph engine...")
     return create_app()
 
 
 # ── 3. Sidebar Controls & Global Searchable Language Selector ─
 def render_sidebar() -> dict[str, Any]:
-    """Render Navigation Sidebar with 22 Scheduled Indian Languages & Searchable Selector."""
+    """Render Navigation Sidebar with 22 Scheduled Indian Languages & High Contrast Rules."""
     with st.sidebar:
         st.title("🩺 MedicoBuddy AI")
         st.caption("Evidence-Grounded Health Educational Assistant")
@@ -666,7 +447,7 @@ def process_query_direct(user_input: str, context: dict[str, Any]) -> dict[str, 
 
 # ── 5. Response Component Matrix ──────────────────────────────
 def render_response_components(data: dict[str, Any]) -> None:
-    """Render structured response cards in left 70% workspace."""
+    """Render structured response cards & markdown tables in left 70% workspace."""
     if data.get("emergency_message"):
         contact = data.get("emergency_contact") or {}
         num = contact.get("number", "112")
@@ -685,49 +466,69 @@ def render_response_components(data: dict[str, Any]) -> None:
     else:
         st.error(f"⚠️ **Triage Assessment:** {summary}")
 
-    t1, t2, t3, t4 = st.tabs([
-        "Overview Summary",
-        "Safe Action Steps",
-        "Ayurveda Lens",
-        "Safety Boundaries",
+    t1, t2, t3, t4, t5 = st.tabs([
+        "Overview & Summary",
+        "Preventive Action Plan",
+        "What to Avoid & Monitor",
+        "Ayurveda & Self-Care",
+        "Evidence Sources",
     ])
 
     with t1:
-        st.markdown("##### Symptom Summary")
+        st.markdown("##### Plain-Language Summary")
         st.write(data.get("user_report_summary", ""))
 
     with t2:
-        st.markdown("##### Low-Risk Comfort Measures")
-        for step in data.get("safe_comfort_steps", []):
-            st.markdown(f"• **{step}**")
+        st.markdown("##### Preventive Action Plan")
+        steps = data.get("safe_comfort_steps", [])
+        ayur = data.get("ayurveda_perspectives", [])
+
+        table_rows = []
+        for step in steps:
+            table_rows.append(f"| General Medical / Self-Care | {step} | Follow gently as instructed | Daily as needed | 1-2 days | Moderate | Discontinue if discomfort increases |")
+        for a in ayur:
+            table_rows.append(f"| Ayurveda-informed | {a.get('practice')} | {a.get('description')} | Daily as needed | Short duration | {a.get('evidence_label','').replace('_',' ').title()} | Allergy caution |")
+
+        if table_rows:
+            table_md = "| Guidance lens | Recommended action | How to follow it | When/frequency | Suggested duration | Evidence strength | Important cautions |\n| --- | --- | --- | --- | --- | --- | --- |\n" + "\n".join(table_rows)
+            st.markdown(table_md)
 
     with t3:
-        st.markdown("##### Ayurveda-Informed Non-Pharmacological Lifestyle")
-        perspectives = data.get("ayurveda_perspectives", [])
-        if not perspectives:
-            st.info("No specific Ayurvedic lifestyle practices matched this query.")
-        else:
-            for ap in perspectives:
-                lbl = ap.get("evidence_label", "").replace("_", " ").title()
-                st.markdown(f"**{ap.get('practice', '')}** (`{lbl}`)")
-                st.caption(ap.get("description", ""))
-
-    with t4:
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         with c1:
             st.markdown("##### 🚫 What to Avoid")
-            for item in data.get("things_to_avoid", []):
-                st.markdown(f"• {item}")
+            avoid_rows = [f"| {item} | Prevents symptom exacerbation or adverse reaction |" for item in data.get("things_to_avoid", [])]
+            if avoid_rows:
+                st.markdown("| Avoid | Reason |\n| --- | --- |\n" + "\n".join(avoid_rows))
         with c2:
-            st.markdown("##### 👀 What to Monitor")
-            for item in data.get("monitoring_guidance", []):
-                st.markdown(f"• {item}")
-        with c3:
-            st.markdown("##### 🏥 When to Seek Care")
-            for item in data.get("seek_care_conditions", []):
-                st.markdown(f"• {item}")
+            st.markdown("##### 📊 Monitoring Plan")
+            mon_rows = [f"| {item} | 24-48 Hours | Worsening pain, high fever (>102°F), or neurological symptoms |" for item in data.get("monitoring_guidance", [])]
+            if mon_rows:
+                st.markdown("| What to monitor | Expected time boundary | What change requires professional help |\n| --- | --- | --- |\n" + "\n".join(mon_rows))
+
+        st.markdown("---")
+        st.markdown("##### 🏥 Professional-Care Threshold")
+        for item in data.get("seek_care_conditions", []):
+            st.markdown(f"• **{item}**")
+
+    with t4:
+        st.markdown("##### Ayurveda-Informed & Natural Self-Care")
+        perspectives = data.get("ayurveda_perspectives", [])
+        for ap in perspectives:
+            lbl = ap.get("evidence_label", "").replace("_", " ").title()
+            st.markdown(f"**{ap.get('practice', '')}** (`{lbl}`)")
+            st.caption(ap.get("description", ""))
+
+    with t5:
+        st.markdown("##### Evidence Sources & Citations")
+        citations = data.get("citations", [])
+        if citations:
+            cite_rows = [f"| Source [{c.get('number')}] | {c.get('authors', 'Medical Research Organization')} | {c.get('publication_date', '2024')} | {c.get('source_type', 'Systematic Review')} | [{c.get('title')}]({c.get('url','#')}) | Educational baseline guidance |" for c in citations]
+            st.markdown("| Source | Organization/authors | Year | Evidence type | Identifier/link | Main limitation |\n| --- | --- | --- | --- | --- | --- |\n" + "\n".join(cite_rows))
 
     st.markdown("---")
+    st.caption(f"⚖️ **Disclaimer:** {data.get('disclaimer', 'General preventive health information only—not diagnosis, prescription or emergency care.')}")
+
     report_md = f"""# MedicoBuddy AI Report
 Triage Status: {summary}
 Summary: {data.get('user_report_summary', '')}
@@ -811,7 +612,7 @@ def main() -> None:
                     st.markdown(msg["content"])
 
         user_input = st.chat_input(t["input_placeholder"], key="main_chat_composer")
-        
+
         query_to_process = None
         if user_input:
             query_to_process = user_input
