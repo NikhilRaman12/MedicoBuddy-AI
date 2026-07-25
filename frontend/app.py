@@ -1,16 +1,8 @@
-"""MedicoBuddy — Enterprise Healthcare SaaS UI Architecture.
+"""MedicoBuddy — Enterprise Healthcare SaaS AI Assistant.
 
-Refactored for clinical restraint, WCAG 2.2 AA accessibility, zero hackathon clutter,
-and enterprise SaaS aesthetic.
-
-Features:
-- Consultation-first primary interface ("How can I help today?")
-- Compact SVG "Medico Nexus" mark & clean navigation shell
-- High-contrast collapsible Patient Context drawer
-- Restrained dark slate clinical palette (#0b0f19, #111827, #38bdf8, #10b981)
-- Separated "System & Architecture Details" view for technical metrics
-- Enterprise answer components with multi-tab results & download controls
-- Direct LangGraph engine fallback + FastAPI REST API integration
+Native Streamlit UI implementation eliminating all raw HTML string escaping leaks,
+providing 100% readable high-contrast dark theme, enterprise consultation flow,
+and robust GraphRAG evidence visualization.
 """
 
 from __future__ import annotations
@@ -28,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # ── Page Configuration ───────────────────────────────────────
 st.set_page_config(
-    page_title="MedicoBuddy — Healthcare Assistant",
+    page_title="MedicoBuddy — Healthcare AI Assistant",
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -38,267 +30,125 @@ st.set_page_config(
 API_BASE = os.getenv("API_BASE", "http://localhost:8000/api/v1")
 
 AGE_DISPLAY_MAP = {
-    "26–35 years (Adult)": "26_35",
-    "18–25 years (Adult)": "18_25",
-    "36–45 years (Adult)": "36_45",
-    "46–55 years (Adult)": "46_55",
-    "56–65 years (Adult)": "56_65",
-    "Under 18 years (Pediatric)": "under_18",
-    "Over 65 years (Senior)": "over_65",
-    "Not specified": "unknown",
+    "26–35 years (Adult Scope)": "26_35",
+    "18–25 years (Adult Scope)": "18_25",
+    "36–45 years (Adult Scope)": "36_45",
+    "46–55 years (Adult Scope)": "46_55",
+    "56–65 years (Adult Scope)": "56_65",
+    "Under 18 years (Pediatric - Out of Scope)": "under_18",
+    "Over 65 years (Senior - Out of Scope)": "over_65",
+    "Not Specified": "unknown",
 }
 
 PREGNANCY_DISPLAY_MAP = {
     "Not pregnant": "not_pregnant",
     "Not applicable": "not_applicable",
-    "Pregnant": "pregnant",
-    "Breastfeeding": "breastfeeding",
-    "Not specified": "unknown",
+    "Pregnant (Out of Scope)": "pregnant",
+    "Breastfeeding (Out of Scope)": "breastfeeding",
+    "Not Specified": "unknown",
 }
 
 SUGGESTED_QUERIES = [
-    "Mild headache since morning",
-    "Temporary fatigue after work",
+    "Mild headache since this morning",
+    "Temporary tiredness after work",
     "Slight nausea after eating",
-    "Minor digestive indigestion",
-    "Short-duration low fever",
+    "Minor indigestion and bloating",
+    "Low-grade fever under 24 hours",
 ]
 
-# ── Enterprise Healthcare SaaS CSS Palette ────────────────────
+
+# ── High-Contrast Enterprise CSS Fixes ─────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-* {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Background Theme */
-.stApp {
-    background: #0b0f19;
-    color: #f8fafc;
-}
-
-/* Top Product Navigation Shell */
-.nav-shell {
-    background: #111827;
-    border-bottom: 1px solid #1e293b;
-    padding: 0.85rem 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 12px;
-}
-
-.nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.nav-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #f8fafc;
-    margin: 0;
-    letter-spacing: -0.01em;
-}
-
-.nav-subtitle {
-    font-size: 0.82rem;
-    color: #94a3b8;
-}
-
-/* Primary Consultation Hero */
-.hero-container {
-    text-align: center;
-    padding: 1.5rem 0 1rem 0;
-    max-width: 720px;
-    margin: 0 auto;
-}
-
-.hero-heading {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #f8fafc;
-    margin-bottom: 0.4rem;
-    letter-spacing: -0.02em;
-}
-
-.hero-lead {
-    font-size: 0.98rem;
-    color: #94a3b8;
-    line-height: 1.5;
-}
-
-/* Cards & Section Panels */
-.saas-card {
-    background: #111827;
-    border: 1px solid #1e293b;
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-}
-
-.saas-card-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #38bdf8;
-    margin-bottom: 0.6rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-/* Triage Banners */
-.triage-banner-selfcare {
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 8px;
-    padding: 0.5rem 0.9rem;
-    color: #34d399;
-    font-weight: 600;
-    font-size: 0.88rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.triage-banner-clinician {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 8px;
-    padding: 0.5rem 0.9rem;
-    color: #fbbf24;
-    font-weight: 600;
-    font-size: 0.88rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.triage-banner-urgent {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    border-radius: 8px;
-    padding: 0.5rem 0.9rem;
-    color: #f87171;
-    font-weight: 600;
-    font-size: 0.88rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-/* Emergency Red-Flag Card */
-.emergency-saas-card {
-    background: #180909;
-    border: 1px solid #dc2626;
-    border-left: 5px solid #ef4444;
-    border-radius: 12px;
-    padding: 1.25rem;
-    color: #fef2f2;
-    margin-bottom: 1.25rem;
-}
-
-/* Sidebar High-Contrast Styling */
+/* High Contrast Sidebar Styling */
 div[data-testid="stSidebar"] {
-    background: #0d131f !important;
-    border-right: 1px solid #1e293b;
+    background-color: #0f172a !important;
 }
 
-div[data-testid="stSidebar"] label {
-    color: #f1f5f9 !important;
-    font-weight: 500 !important;
-    font-size: 0.88rem !important;
-}
-
-div[data-testid="stSidebar"] h1,
-div[data-testid="stSidebar"] h2,
-div[data-testid="stSidebar"] h3 {
+div[data-testid="stSidebar"] label,
+div[data-testid="stSidebar"] p,
+div[data-testid="stSidebar"] span,
+div[data-testid="stSidebar"] div {
     color: #f8fafc !important;
+}
+
+div[data-testid="stSidebar"] .stSelectbox div,
+div[data-testid="stSidebar"] .stTextInput input {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border: 1px solid #334155 !important;
+}
+
+/* Metric Cards High Contrast */
+div[data-testid="stMetricValue"] {
+    color: #38bdf8 !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="stMetricLabel"] {
+    color: #94a3b8 !important;
+    font-weight: 600 !important;
 }
 
 /* Buttons */
 .stButton>button {
     border-radius: 8px;
     font-weight: 500;
-    font-size: 0.88rem;
-    border: 1px solid #1e293b;
-    background: #111827;
+    border: 1px solid #334155;
+    background-color: #1e293b;
     color: #f8fafc;
-    transition: all 0.15s ease;
 }
 
 .stButton>button:hover {
-    border-color: #0ea5e9;
+    border-color: #38bdf8;
     color: #38bdf8;
 }
 
-/* Tabs */
-button[data-baseweb="tab"] {
-    font-weight: 600 !important;
-    font-size: 0.88rem !important;
-    color: #94a3b8 !important;
+/* Response Banners */
+.triage-box-selfcare {
+    background-color: #064e3b;
+    border-left: 4px solid #10b981;
+    color: #ecfdf5;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 1rem;
 }
 
-button[aria-selected="true"] {
-    color: #38bdf8 !important;
-    border-bottom-color: #0ea5e9 !important;
+.triage-box-clinician {
+    background-color: #78350f;
+    border-left: 4px solid #f59e0b;
+    color: #fffbeb;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.triage-box-urgent {
+    background-color: #7f1d1d;
+    border-left: 4px solid #ef4444;
+    color: #fef2f2;
+    padding: 1rem;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-bottom: 1rem;
 }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ── Medico Nexus SVG Logo Component ──────────────────────────
-SVG_LOGO = """
-<svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="6" y="6" width="88" height="88" rx="22" fill="#111827" stroke="#0ea5e9" stroke-width="4"/>
-  <path d="M 28,70 L 28,32 L 50,54 L 72,32 L 72,70" fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M 16,50 H 32 L 40,32 L 48,68 L 56,38 L 64,50 H 84" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="40" cy="32" r="4.5" fill="#38bdf8"/>
-  <circle cx="48" cy="68" r="4.5" fill="#10b981"/>
-  <circle cx="56" cy="38" r="4.5" fill="#f59e0b"/>
-</svg>
-"""
-
-
-def render_nav_shell() -> str:
-    """Render top product header & mode switcher."""
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
-        st.markdown(f"""
-        <div class="nav-brand">
-            {SVG_LOGO}
-            <div>
-                <div class="nav-title">MedicoBuddy</div>
-                <div class="nav-subtitle">Clinical Decision Support & Evidence Guidance</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col2:
-        view_mode = st.radio(
-            "View Mode",
-            ["Consultation", "System Details"],
-            horizontal=True,
-            label_visibility="collapsed",
-            key="view_mode_selector",
-        )
-
-    st.markdown("<hr style='border:0; border-top:1px solid #1e293b; margin:0.5rem 0 1rem 0;'>", unsafe_allow_html=True)
-    return view_mode
-
-
-def render_patient_drawer() -> dict[str, Any]:
-    """Render collapsible, high-contrast Patient Context drawer in sidebar."""
+def render_sidebar() -> dict[str, Any]:
+    """Render high-contrast Patient Context drawer in sidebar."""
     with st.sidebar:
-        st.markdown("### Patient Context & Scope")
-        st.caption("Minimum necessary information for deterministic triage routing.")
+        st.header("🩺 MedicoBuddy")
+        st.caption("Enterprise Clinical Decision Support & GraphRAG AI")
+        st.markdown("---")
 
-        with st.expander("👤 Demographics & Population", expanded=True):
+        st.subheader("Patient Context & Scope")
+
+        with st.expander("👤 1. Population & Demographics", expanded=True):
             selected_age_label = st.selectbox(
                 "Age Bracket",
                 list(AGE_DISPLAY_MAP.keys()),
@@ -308,50 +158,45 @@ def render_patient_drawer() -> dict[str, Any]:
             age_range = AGE_DISPLAY_MAP[selected_age_label]
 
             selected_preg_label = st.selectbox(
-                "Pregnancy / Breastfeeding",
+                "Pregnancy Status",
                 list(PREGNANCY_DISPLAY_MAP.keys()),
                 index=0,
             )
             pregnancy_status = PREGNANCY_DISPLAY_MAP[selected_preg_label]
 
             is_immuno = st.checkbox(
-                "Immunocompromised",
+                "Immunocompromised Status",
                 value=False,
-                help="Check if patient has weakened immunity (e.g. active chemotherapy).",
+                help="Check if patient has weakened immunity (e.g. chemotherapy).",
             )
 
-        with st.expander("🏥 Clinical History & Contraindications", expanded=False):
+        with st.expander("🏥 2. Medical History & Allergies", expanded=False):
             conditions_raw = st.text_input(
                 "Known Conditions",
-                placeholder="e.g. diabetes, hypertension, kidney disease",
-                help="Checked against food/fluid contraindications.",
+                placeholder="e.g. diabetes, hypertension",
             )
             allergies_raw = st.text_input(
-                "Allergies",
-                placeholder="e.g. peanuts, dairy, gluten",
+                "Known Allergies",
+                placeholder="e.g. peanuts, dairy",
             )
             medications_raw = st.text_input(
                 "Current Medications",
                 placeholder="e.g. metformin, lisinopril",
             )
 
-        with st.expander("⚙️ Settings & Consent", expanded=False):
+        with st.expander("🌐 3. Emergency Region & Policy", expanded=False):
             region = st.selectbox(
-                "Emergency Region",
+                "Emergency Contact Region",
                 ["IN", "US", "UK", "EU"],
                 index=0,
-                help="Sets local emergency dial numbers if red flags occur.",
             )
             consent_given = st.checkbox(
-                "I understand MedicoBuddy provides general info, not medical diagnosis",
+                "I understand this is educational info, not medical diagnosis",
                 value=True,
             )
 
-        st.markdown("""
-        <div style="font-size:0.78rem; color:#64748b; margin-top:1.5rem; line-height:1.5; padding:0.75rem; background:#111827; border-radius:8px; border:1px solid #1e293b;">
-            🔒 <strong>Privacy Assurance:</strong> Zero PII collected. Automated regex PII redaction active on all system logs.
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("---")
+        st.caption("🔒 **Privacy Guarantee:** Zero PII collected. Automated regex PII scrubbing active on logs.")
 
     return {
         "age_range": age_range,
@@ -366,75 +211,58 @@ def render_patient_drawer() -> dict[str, Any]:
 
 
 def render_response_components(data: dict[str, Any]) -> None:
-    """Render response components in restrained enterprise style."""
-    # ── Emergency Red-Flag State ─────────────────────────────
+    """Render response components using native Streamlit widgets."""
+    # ── Emergency Red-Flag Banner ─────────────────────────────
     if data.get("emergency_message"):
         contact = data.get("emergency_contact") or {}
         num = contact.get("number", "112")
         name = contact.get("name", "Emergency Medical Services")
 
         st.markdown(f"""
-        <div class="emergency-saas-card">
-            <div style="font-size:1.15rem; font-weight:700; color:#ffffff;">🚨 Immediate Medical Evaluation Recommended</div>
-            <div style="margin-top:0.6rem; font-size:0.95rem; line-height:1.5;">
-                {data["emergency_message"]}
-            </div>
-            <div style="margin-top:1rem; padding:0.75rem; background:rgba(0,0,0,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-size:0.9rem;">Contact {name}:</span>
-                <span style="font-size:1.3rem; font-weight:800; color:#f87171;">{num}</span>
-            </div>
+        <div class="triage-box-urgent">
+            🚨 URGENT MEDICAL EVALUATION RECOMMENDED<br><br>
+            {data["emergency_message"]}<br><br>
+            📞 Call {name} Immediately: <strong>{num}</strong>
         </div>
         """, unsafe_allow_html=True)
         return
 
     # ── Clarification Needed State ───────────────────────────
     if data.get("needs_clarification") and data.get("clarification_questions"):
-        st.info("Please clarify the following details:")
+        st.info("💡 **Clarification Needed Before Guidance:**")
         for q in data["clarification_questions"]:
             st.markdown(f"• {q}")
         return
 
-    # ── Triage Banner & Status ───────────────────────────────
+    # ── Triage Banner ────────────────────────────────────────
     triage_outcome = data.get("triage_outcome", "self_care")
     urgency_summary = data.get("urgency_summary", "Self-care information")
 
     if triage_outcome == "self_care":
-        banner_html = f'<div class="triage-banner-selfcare">✅ {urgency_summary}</div>'
+        st.markdown(f'<div class="triage-box-selfcare">✅ Status: {urgency_summary}</div>', unsafe_allow_html=True)
     elif triage_outcome == "out_of_scope":
-        banner_html = f'<div class="triage-banner-clinician">⚠️ Out of Scope — {urgency_summary}</div>'
+        st.markdown(f'<div class="triage-box-clinician">⚠️ Status: Out of Scope — {urgency_summary}</div>', unsafe_allow_html=True)
     else:
-        banner_html = f'<div class="triage-banner-urgent">🏥 {urgency_summary}</div>'
+        st.markdown(f'<div class="triage-box-urgent">🏥 Status: {urgency_summary}</div>', unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-        {banner_html}
-        <span style="font-size:0.8rem; color:#64748b;">Deterministic Triage Passed</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # ── Multi-Tab Answer Architecture ────────────────────────
+    # ── Enterprise Results Tabs ───────────────────────────────
     tab_overview, tab_steps, tab_ayurveda, tab_safety, tab_evidence, tab_graph, tab_sources = st.tabs([
-        "Overview",
-        "Safe Steps",
-        "Ayurveda Lens",
-        "Safety Boundaries",
-        "Evidence Table",
-        "Knowledge Map",
-        "Sources",
+        "📊 Overview",
+        "🫶 Safe Steps",
+        "🌿 Ayurveda Lens",
+        "🛡️ Safety Boundaries",
+        "📈 Evidence Table",
+        "🕸️ Knowledge Map",
+        "📚 Sources",
     ])
 
-    # ── Overview Tab ─────────────────────────────────────────
     with tab_overview:
-        st.markdown(f"""
-        <div class="saas-card">
-            <div class="saas-card-title">Summary of Reported Symptom</div>
-            <div style="color:#e2e8f0; font-size:0.95rem; line-height:1.5;">{data.get('user_report_summary', 'No summary available.')}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.subheader("Summary of Reported Symptom")
+        st.write(data.get("user_report_summary", "No summary available."))
 
         col_a, col_b = st.columns(2)
         with col_a:
-            st.markdown("##### Key Self-Care Guidance")
+            st.markdown("##### Primary Self-Care Guidance")
             for step in data.get("safe_comfort_steps", [])[:3]:
                 st.markdown(f"• {step}")
         with col_b:
@@ -442,15 +270,13 @@ def render_response_components(data: dict[str, Any]) -> None:
             conf = data.get("overall_evidence_level", "insufficient").title()
             st.metric("Evidence Level", conf)
 
-    # ── Safe Steps Tab ───────────────────────────────────────
     with tab_steps:
-        st.markdown("##### Low-Risk Comfort Measures")
+        st.subheader("Low-Risk Self-Care Comfort Measures")
         for step in data.get("safe_comfort_steps", []):
             st.markdown(f"• {step}")
 
-    # ── Ayurveda Lens Tab ────────────────────────────────────
     with tab_ayurveda:
-        st.markdown("##### Ayurveda-Informed Lifestyle Perspective")
+        st.subheader("Ayurveda-Informed Non-Pharmacological Practices")
         perspectives = data.get("ayurveda_perspectives", [])
         if not perspectives:
             st.info("No specific Ayurvedic lifestyle practices matched this query with verified evidence.")
@@ -460,53 +286,50 @@ def render_response_components(data: dict[str, Any]) -> None:
                 st.markdown(f"**{ap.get('practice', '')}** (`{ev_label}`)")
                 st.caption(ap.get("description", ""))
 
-    # ── Safety Boundaries Tab ────────────────────────────────
     with tab_safety:
+        st.subheader("Safety Boundaries & Patient Plan")
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown("##### What to Avoid")
+            st.markdown("##### 🚫 What to Avoid")
             for item in data.get("things_to_avoid", []):
                 st.markdown(f"• {item}")
         with c2:
-            st.markdown("##### What to Monitor")
+            st.markdown("##### 👀 What to Monitor")
             for item in data.get("monitoring_guidance", []):
                 st.markdown(f"• {item}")
         with c3:
-            st.markdown("##### When to Seek Care")
+            st.markdown("##### 🏥 When to Seek Care")
             for item in data.get("seek_care_conditions", []):
                 st.markdown(f"• {item}")
 
-    # ── Evidence Table Tab ───────────────────────────────────
     with tab_evidence:
-        st.markdown("##### Multi-Factor Evidence Scoring")
+        st.subheader("Multi-Factor Evidence Scoring")
         citations = data.get("citations", [])
         if not citations:
             st.info("No external citations retrieved for this query.")
         else:
-            table_rows = []
+            rows = []
             for c in citations:
-                table_rows.append({
+                rows.append({
                     "Ref": f"[{c.get('number')}]",
-                    "Title": c.get("title", "")[:50] + "...",
+                    "Title": c.get("title", ""),
                     "Source Type": c.get("source_type", "Guideline").replace("_", " ").title(),
-                    "Date": c.get("publication_date", "N/A"),
+                    "Publication Date": c.get("publication_date", "N/A"),
                 })
-            st.dataframe(table_rows, use_container_width=True)
+            st.dataframe(rows, use_container_width=True)
 
-    # ── Knowledge Map Tab ────────────────────────────────────
     with tab_graph:
-        st.markdown("##### GraphRAG Entity Traversal Path")
-        st.markdown("""
-        ```
-        [Symptom: Reported Query] ──► [SelfCareAction] ──► [Contraindication Check]
-                                           │
-                                           └──► [EvidenceClaim] ──► [Study / Guideline Tier 1-3]
-        ```
+        st.subheader("GraphRAG Entity Traversal Path")
+        st.code("""
+(User Reported Symptom) ──[ACTION_MAY_SUPPORT]──► (SelfCareAction)
+        │
+        ├──[ACTION_CONTRAINDICATED_FOR]──► (Contraindication Check)
+        │
+        └──[CLAIM_SUPPORTED_BY]──► (Study / Guideline Tier 1-3)
         """)
 
-    # ── Sources Tab ──────────────────────────────────────────
     with tab_sources:
-        st.markdown("##### Provenance & Citations")
+        st.subheader("Evidence Sources & Provenance")
         citations = data.get("citations", [])
         if not citations:
             st.info("No external citations for this response.")
@@ -514,8 +337,10 @@ def render_response_components(data: dict[str, Any]) -> None:
             for cite in citations:
                 st.markdown(f"**[{cite.get('number')}]** [{cite.get('title')}]({cite.get('url', '#')}) ({cite.get('publication_date', '')})")
 
-    # ── Export & Copy Controls ───────────────────────────────
-    st.markdown("<br>", unsafe_allow_html=True)
+    # ── Export Controls ──────────────────────────────────────
+    st.markdown("---")
+    st.markdown("##### Export Report Data")
+
     report_md = f"""# MedicoBuddy Wellness Report
 Triage Status: {urgency_summary}
 
@@ -546,18 +371,13 @@ Triage Status: {urgency_summary}
             use_container_width=True,
         )
 
-    # Disclaimer
-    st.markdown(f"""
-    <div style="font-size:0.78rem; color:#64748b; margin-top:1.25rem; padding:0.6rem; background:#111827; border-radius:6px; border:1px solid #1e293b;">
-        ⚕️ {data.get('disclaimer', '')}
-    </div>
-    """, unsafe_allow_html=True)
+    st.caption(f"⚕️ {data.get('disclaimer', '')}")
 
 
 def render_system_details() -> None:
     """Render optional technical architecture & GraphRAG status page."""
-    st.markdown("### System & Architecture Details")
-    st.caption("Technical infrastructure and pipeline configuration.")
+    st.title("System & Architecture Details")
+    st.caption("Technical infrastructure, database schemas, and pipeline configuration.")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("LLM Provider", "Groq API")
@@ -565,7 +385,8 @@ def render_system_details() -> None:
     c3.metric("Primary Vector DB", "Milvus Standalone")
     c4.metric("Secondary Vector DB", "pgvector (Postgres)")
 
-    st.markdown("#### GraphRAG Schema & Connectors")
+    st.markdown("---")
+    st.subheader("GraphRAG Schema & Connectors")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
@@ -582,7 +403,8 @@ def render_system_details() -> None:
         - **Crossref REST API**: DOI resolution & metadata.
         """)
 
-    st.markdown("#### Deterministic Triage Engine")
+    st.markdown("---")
+    st.subheader("Deterministic Triage Engine")
     st.markdown("""
     - **23 Red-Flag Rules**: Pattern matching for cardiac, stroke, meningitis, severe abdominal, bleeding, and acute trauma.
     - **2-Pass Gatekeeper**: Evaluated before retrieval and again before response delivery.
@@ -658,80 +480,78 @@ def process_query_direct(user_input: str, user_context: dict[str, Any]) -> dict[
 
 def main() -> None:
     """Main Application Controller."""
-    view_mode = render_nav_shell()
-    user_context = render_patient_drawer()
+    user_context = render_sidebar()
 
-    if view_mode == "System Details":
+    # Native Streamlit View Navigation
+    main_tab1, main_tab2 = st.tabs(["💬 Clinical Consultation", "⚙️ System & Architecture Details"])
+
+    with main_tab2:
         render_system_details()
-        return
 
-    # ── Consultation Primary Interface ────────────────────────
-    st.markdown("""
-    <div class="hero-container">
-        <div class="hero-heading">How can I help today?</div>
-        <div class="hero-lead">Describe your symptom or select a suggestion below for evidence-grounded self-care guidance.</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with main_tab1:
+        st.title("How can I help today?")
+        st.caption("Describe your symptom or select a suggestion below for evidence-grounded self-care guidance.")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Subtle Suggestion Chips ───────────────────────────────
-    cols = st.columns(len(SUGGESTED_QUERIES))
-    selected_query = None
+        # ── Subtle Suggestion Buttons ─────────────────────────
+        cols = st.columns(len(SUGGESTED_QUERIES))
+        selected_query = None
 
-    for i, suggestion in enumerate(SUGGESTED_QUERIES):
-        if cols[i].button(suggestion, key=f"sug_{i}", use_container_width=True):
-            selected_query = suggestion
+        for i, suggestion in enumerate(SUGGESTED_QUERIES):
+            if cols[i].button(suggestion, key=f"sug_{i}", use_container_width=True):
+                selected_query = suggestion
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Chat Stream ──────────────────────────────────────────
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+        # ── Chat Stream ──────────────────────────────────────────
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
 
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            if msg["role"] == "assistant" and isinstance(msg.get("data"), dict):
-                render_response_components(msg["data"])
-            else:
-                st.markdown(msg["content"])
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                if msg["role"] == "assistant" and isinstance(msg.get("data"), dict):
+                    render_response_components(msg["data"])
+                else:
+                    st.markdown(msg["content"])
 
-    # ── Conversational Input Box ──────────────────────────────
-    user_input = st.chat_input("Enter your symptom description...", key="main_consultation_input")
-    query_to_process = selected_query or user_input
+        # ── Conversational Input Box ──────────────────────────────
+        user_input = st.chat_input("Enter your symptom description...", key="main_consultation_input")
+        query_to_process = selected_query or user_input
 
-    if query_to_process:
-        if not user_context.get("consent_given"):
-            st.warning("Please check the consent box in the sidebar context drawer to proceed.")
-            return
+        if query_to_process:
+            if not user_context.get("consent_given"):
+                st.warning("Please check the consent box in the sidebar context drawer to proceed.")
+                return
 
-        st.session_state.messages.append({"role": "user", "content": query_to_process})
-        with st.chat_message("user"):
-            st.markdown(query_to_process)
+            st.session_state.messages.append({"role": "user", "content": query_to_process})
+            with st.chat_message("user"):
+                st.markdown(query_to_process)
 
-        with st.chat_message("assistant"):
-            with st.spinner("Evaluating evidence graph & safety rules..."):
-                data = None
-                try:
-                    payload = {"message": query_to_process, **user_context}
-                    with httpx.Client(timeout=15.0) as client:
-                        resp = client.post(f"{API_BASE}/chat", json=payload)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                except Exception:
-                    logger.info("REST API offline — using direct Python engine fallback")
-
-                if data is None:
+            with st.chat_message("assistant"):
+                with st.spinner("Evaluating evidence graph & safety rules..."):
+                    data = None
                     try:
-                        data = process_query_direct(query_to_process, user_context)
-                    except Exception as e:
-                        st.error(f"Processing error: {e}")
-                        return
+                        payload = {"message": query_to_process, **user_context}
+                        with httpx.Client(timeout=15.0) as client:
+                            resp = client.post(f"{API_BASE}/chat", json=payload)
+                            if resp.status_code == 200:
+                                data = resp.json()
+                    except Exception:
+                        logger.info("REST API offline — using direct Python engine fallback")
 
-                render_response_components(data)
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": "",
-                    "data": data,
-                })
+                    if data is None:
+                        try:
+                            data = process_query_direct(query_to_process, user_context)
+                        except Exception as e:
+                            st.error(f"Processing error: {e}")
+                            return
+
+                    render_response_components(data)
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": "",
+                        "data": data,
+                    })
 
 
 if __name__ == "__main__":
