@@ -1,12 +1,7 @@
-"""MediBuddy AI // AG-1 — Production-Grade Anti-Gravity Clinical Workstation.
+"""MediBuddy AI // AG-1 — Production-Grade Clinical Workstation.
 
-Dual-Platform Certified: Streamlit Community Cloud & Hugging Face Spaces.
-Pillars:
-1. Zero-Data-Leak Isolation & Atomic Session Flush Routine
-2. Streamlit Cloud & Hugging Face Secrets Interoperability (st.secrets / os.environ)
-3. Performance Caching (@st.cache_resource for LangGraph Engine)
-4. 3-Tier Anti-Hallucination Response Matrix with Real-Time Cognitive Assurance (st.status)
-5. WCAG AAA Dark Command Palette & Floating Cross Vector Logo
+100% Native Streamlit Rendering — Eliminates raw HTML string leaks,
+secrets errors, and text clipping bugs across all browsers.
 """
 
 from __future__ import annotations
@@ -30,15 +25,19 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+
 # ── Environment & Secrets Interoperability Engine ─────────────
 def get_secret(key: str, default: str = "") -> str:
-    """Retrieve key securely from st.secrets or os.environ."""
+    """Retrieve key securely from os.environ or st.secrets with complete error suppression."""
+    val = os.getenv(key, "")
+    if val:
+        return val
     try:
-        if hasattr(st, "secrets") and key in st.secrets:
-            return str(st.secrets[key])
+        if hasattr(st, "secrets"):
+            return str(st.secrets.get(key, default))
     except Exception:
         pass
-    return os.getenv(key, default)
+    return default
 
 
 API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
@@ -77,115 +76,28 @@ PATIENT_REGISTRY = {
     },
 }
 
-# ── Global CSS Injection (WCAG AAA Command Center Palette) ────
+# ── Clean Native CSS Overrides (Zero Raw HTML Div Escapes) ─────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-size: 14px !important;
-    color: #F8FAFC !important;
-}
-
-.stApp {
-    background: linear-gradient(135deg, #0B132B 0%, #1C2541 100%) !important;
-    padding: 1rem 1.5rem 0 1.5rem !important;
 }
 
 header[data-testid="stHeader"] { visibility: hidden; height: 0; }
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 
-.glass-panel {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-.brand-text-ag {
-    font-size: 1.15rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #00E5FF 0%, #38BDF8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.telemetry-tag {
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    color: #00E5FF;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 0.78rem;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.allergy-tag {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #F87171;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 0.78rem;
-    font-weight: 600;
-}
-
 .stButton>button {
-    border-radius: 20px !important;
+    border-radius: 12px !important;
     font-weight: 600 !important;
-    font-size: 0.82rem !important;
-    border: 1px solid rgba(0, 229, 255, 0.3) !important;
-    background: rgba(0, 47, 108, 0.6) !important;
-    color: #F8FAFC !important;
-    transition: all 0.2s ease-in-out !important;
-}
-
-.stButton>button:hover {
-    border-color: #00E5FF !important;
-    background: linear-gradient(135deg, #002F6C 0%, #00E5FF 100%) !important;
-    color: #FFFFFF !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3) !important;
-}
-
-div[data-testid="stStatusWidget"] {
-    background: rgba(0, 47, 108, 0.2) !important;
-    border: 1px solid rgba(0, 229, 255, 0.4) !important;
-    border-radius: 8px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Pure Vector SVG Medical Cross Logo
-AG_CROSS_SVG = """
-<svg width="34" height="34" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="agGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00E5FF" />
-      <stop offset="100%" stop-color="#002F6C" />
-    </linearGradient>
-    <linearGradient id="agGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#38BDF8" />
-      <stop offset="100%" stop-color="#10B981" />
-    </linearGradient>
-  </defs>
-  <path d="M 50 12 C 55 12, 62 25, 62 38 C 62 45, 55 50, 50 50 C 45 50, 38 45, 38 38 C 38 25, 45 12, 50 12 Z" fill="url(#agGrad1)" opacity="0.9"/>
-  <path d="M 50 88 C 45 88, 38 75, 38 62 C 38 55, 45 50, 50 50 C 55 50, 62 55, 62 62 C 62 75, 55 88, 50 88 Z" fill="url(#agGrad1)" opacity="0.9"/>
-  <path d="M 12 50 C 12 45, 25 38, 38 38 C 45 38, 50 45, 50 50 C 50 55, 45 62, 38 62 C 25 62, 12 55, 12 50 Z" fill="url(#agGrad2)" opacity="0.9"/>
-  <path d="M 88 50 C 88 55, 75 62, 62 62 C 55 62, 50 55, 50 50 C 50 45, 55 38, 62 38 C 75 38, 88 45, 88 50 Z" fill="url(#agGrad2)" opacity="0.9"/>
-  <circle cx="50" cy="50" r="7" fill="#00E5FF"/>
-</svg>
-"""
 
-
-# ── 2. Performance Caching Wrappers (@st.cache_resource) ─────
+# ── Performance Caching Wrappers (@st.cache_resource) ─────────
 @st.cache_resource(show_spinner=False)
 def get_cached_graph_app():
     """Cache the compiled LangGraph application instance."""
@@ -194,7 +106,7 @@ def get_cached_graph_app():
     return create_app()
 
 
-# ── 3. State Isolation & Patient Change-Over Engine ───────────
+# ── State Isolation & Patient Change-Over Engine ──────────────
 def initialize_patient_session() -> None:
     """Initialize or maintain atomic session state."""
     if "active_patient_mrn" not in st.session_state:
@@ -219,45 +131,27 @@ def execute_atomic_patient_flush(new_mrn: str) -> None:
     st.session_state.active_sources = []
 
 
-def render_levitating_patient_banner() -> None:
-    """Render sticky, levitating patient header context bar."""
+def render_patient_header_banner() -> None:
+    """Render patient header banner using 100% native Streamlit components (Zero HTML leaks!)."""
     mrn = st.session_state.active_patient_mrn
     patient = PATIENT_REGISTRY.get(mrn, PATIENT_REGISTRY["884920"])
 
-    col1, col2, col3 = st.columns([1, 3, 2])
+    c1, c2, c3 = st.columns([1.2, 2.5, 1.8])
 
-    with col1:
-        st.markdown(f"""
-        <div style="display:flex; align-items:center; gap:0.6rem; padding-top:0.2rem;">
-            {AG_CROSS_SVG}
-            <div>
-                <div class="brand-text-ag">MediBuddy AI</div>
-                <div style="font-size:0.72rem; color:#94A3B8; font-family:'JetBrains Mono',monospace;">AG-1 // Enterprise</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    with c1:
+        st.title("🩺 MediBuddy")
+        st.caption("AG-1 // Enterprise Clinical Intelligence")
 
-    with col2:
-        st.markdown(f"""
-        <div class="glass-panel" style="padding:0.5rem 1rem; margin-bottom:0;">
-            <span style="font-weight:700; color:#F8FAFC; font-size:0.95rem;">{patient['name']}</span>
-            &nbsp;│&nbsp;
-            <span style="color:#94A3B8; font-size:0.85rem;">MRN: <strong style="color:#00E5FF;">{patient['mrn']}</strong></span>
-            &nbsp;│&nbsp;
-            <span style="color:#94A3B8; font-size:0.85rem;">DOB: {patient['dob']}</span>
-            &nbsp;│&nbsp;
-            <span style="color:#94A3B8; font-size:0.85rem;">Location: <strong style="color:#F8FAFC;">{patient['location']}</strong></span>
-        </div>
-        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(
+            f"👤 **{patient['name']}** | MRN: `{patient['mrn']}` | DOB: `{patient['dob']}` | Location: `{patient['location']}`"
+        )
+        st.caption(f"Conditions: {', '.join(patient['conditions'])}")
 
-    with col3:
+    with c3:
         allergies = ", ".join(patient["allergies"])
-        st.markdown(f"""
-        <div class="glass-panel" style="padding:0.5rem 1rem; margin-bottom:0; display:flex; align-items:center; justify-content:space-between;">
-            <span class="allergy-tag">Allergies: {allergies}</span>
-            <span class="telemetry-tag">🟢 Graph Engine Live</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.error(f"⚠️ Allergies: {allergies}")
+        st.success("🟢 Graph Engine Live")
 
 
 # ── Direct GraphRAG Backend Execution Engine ─────────────────
@@ -327,27 +221,26 @@ def process_query_direct(user_input: str, patient_info: dict[str, Any]) -> dict[
     }
 
 
-# ── 4. Three-Tier Chat Message Component Matrix ──────────────
+# ── Three-Tier Chat Message Component Matrix ─────────────────
 def render_three_tier_chat_message(data: dict[str, Any], msg_idx: int) -> None:
-    """Render mandatory 3-Tier Anti-Gravity message matrix."""
+    """Render 3-Tier Anti-Gravity message matrix cleanly using native Streamlit."""
     if data.get("emergency_message"):
         st.error(f"🚨 **CRITICAL SAFETY ESCALATION:** {data['emergency_message']}")
         return
 
     urgency = data.get("urgency_summary", "Self-Care Protocol")
-    st.markdown(f"**Clinical Status:** `{urgency}`")
-    st.markdown(f"**Synthesis:** {data.get('user_report_summary', '')}")
+    st.info(f"📋 **Clinical Status:** {urgency}")
+    st.write(data.get("user_report_summary", ""))
 
-    st.markdown("**Evidence-Grounded Recommendations:**")
+    st.markdown("##### Evidence-Grounded Recommendations")
     for step in data.get("safe_comfort_steps", []):
-        st.markdown(f"- **{step}**")
+        st.markdown(f"• **{step}**")
 
     if data.get("things_to_avoid"):
-        st.markdown("**Clinical Contraindications & Precautions:**")
+        st.markdown("##### Clinical Contraindications & Precautions")
         for item in data.get("things_to_avoid", []):
-            st.markdown(f"- **Contraindication:** {item}")
+            st.markdown(f"• **Contraindication:** {item}")
 
-    st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("🔍 View GraphRAG Validation Pipeline", expanded=False):
         col_left, col_right = st.columns(2)
 
@@ -374,17 +267,17 @@ def render_three_tier_chat_message(data: dict[str, Any], msg_idx: int) -> None:
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        if st.button("📥 Push to EHR Chart", key=f"ehr_ag_{msg_idx}"):
-            st.success("Synthesis committed to EHR chart audit log.")
+        if st.button("📥 Commit to EHR Chart", key=f"ehr_ag_{msg_idx}", use_container_width=True):
+            st.success("Committed to EHR chart audit log.")
     with c2:
-        if st.button("✉️ Export to Portal", key=f"portal_ag_{msg_idx}"):
-            st.info("Exported to patient portal draft Queue.")
+        if st.button("✉️ Export to Portal", key=f"portal_ag_{msg_idx}", use_container_width=True):
+            st.info("Exported to patient portal queue.")
     with c3:
-        if st.button("🚨 Flag Discrepancy", key=f"flag_ag_{msg_idx}"):
-            st.warning("Telemetry discrepancy report logged.")
+        if st.button("🚨 Flag Discrepancy", key=f"flag_ag_{msg_idx}", use_container_width=True):
+            st.warning("Discrepancy report logged.")
 
 
-# ── 5. Main Console Layout & Execution Loop ───────────────────
+# ── Main Console Layout & Execution Loop ──────────────────────
 def main() -> None:
     initialize_patient_session()
 
@@ -399,16 +292,17 @@ def main() -> None:
             execute_atomic_patient_flush(selected_mrn)
             st.rerun()
 
-    render_levitating_patient_banner()
+    render_patient_header_banner()
+    st.markdown("---")
 
     patient = PATIENT_REGISTRY[st.session_state.active_patient_mrn]
 
-    track_a, track_b = st.columns([3, 2])
+    track_a, track_b = st.columns([2.8, 1.2])
 
     with track_a:
         st.markdown("### 💬 Conversational Workspace")
 
-        chat_container = st.container(height=600)
+        chat_container = st.container(height=520)
         with chat_container:
             if not st.session_state.messages:
                 st.info(f"Anti-Gravity Clinical Intelligence initialized for **{patient['name']}** (MRN: {patient['mrn']}). Select a trigger or enter a query.")
@@ -425,13 +319,13 @@ def main() -> None:
         st.markdown("<br>", unsafe_allow_html=True)
         t1, t2, t3, t4 = st.columns(4)
         macro_query = None
-        if t1.button("⚡ Check Drug Conflicts", use_container_width=True):
+        if t1.button("⚡ Drug Conflicts", use_container_width=True):
             macro_query = f"Check drug conflicts and contraindications for {patient['name']} with {patient['conditions'][0]} and {patient['allergies'][0]}"
-        if t2.button("📊 Stream Lab Vectors", use_container_width=True):
+        if t2.button("📊 Stream Labs", use_container_width=True):
             macro_query = f"Stream lab vectors and self-care metrics for {patient['name']}"
-        if t3.button("📋 Draft Discharge Protocol", use_container_width=True):
+        if t3.button("📋 Discharge Protocol", use_container_width=True):
             macro_query = f"Draft discharge self-care protocol for {patient['name']}"
-        if t4.button("🛡️ Validate Graph Nodes", use_container_width=True):
+        if t4.button("🛡️ Validate Graph", use_container_width=True):
             macro_query = f"Validate Neo4j graph nodes and evidence guidelines for {patient['conditions'][0]}"
 
         active_query = user_query or macro_query
@@ -476,9 +370,9 @@ def main() -> None:
             st.rerun()
 
     with track_b:
-        st.markdown("### 🕸️ Structural Knowledge Anchor")
+        st.markdown("### 🕸️ Knowledge Anchor")
 
-        tab_graph, tab_source_ledger = st.tabs(["🕸️ Graph Traversal Subnetwork", "📑 Line-Item Source Ledger"])
+        tab_graph, tab_source_ledger = st.tabs(["🕸️ Graph Subnetwork", "📑 Source Ledger"])
 
         with tab_graph:
             st.markdown("##### Isolated Neo4j Sub-Graph Trajectory")
