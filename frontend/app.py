@@ -1,10 +1,12 @@
-"""MedicoBuddy AI — Enterprise Multilingual GraphRAG Health Assistant.
+"""MedicoBuddy AI — Enterprise Health Educational Workspace.
 
-Updates:
-1. Removed technical terms ("Neo4j", "PubMed") from tagline -> Replaced with:
-   "Evidence-grounded self-care guidance powered by GraphRAG clinical intelligence"
-2. Multilingual Support: English, Hindi (हिंदी), and Tamil (தமிழ்) with reactive UI label updates
-3. Preserved 70/30 Chat-First UI & Native Streamlit Layout
+Refinements:
+1. Enterprise Tagline: "Every health question, connected to clearer evidence"
+2. Status Badge: "Evidence service ready" (Replaced oversized GraphRAG badges)
+3. Empty Evidence Panel: Clean empty state ("Your evidence, sources and connections will appear here")
+   without static ASCII flowcharts; reveals real citations & connections after query execution.
+4. Global Language Selector: Searchable multi-language dictionary with RTL & locale code support.
+5. Dark Navy & Jade Enterprise Palette with WCAG 2.2 AA Contrast.
 """
 
 from __future__ import annotations
@@ -22,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # ── 1. Page Configuration ─────────────────────────────────────
 st.set_page_config(
-    page_title="MedicoBuddy AI — Health Educational Assistant",
+    page_title="MedicoBuddy AI — Health Educational Workspace",
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -44,40 +46,91 @@ def get_secret(key: str, default: str = "") -> str:
 
 API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
 
-# ── Multilingual Dictionary (English, Hindi, Tamil) ────────────
-TRANSLATIONS: dict[str, dict[str, str]] = {
-    "English": {
+# ── Multilingual Dictionary with Locale Codes & RTL Support ────
+LANGUAGES: dict[str, dict[str, Any]] = {
+    "en": {
+        "label": "English (en)",
+        "dir": "ltr",
         "title": "Ask MedicoBuddy",
-        "tagline": "Evidence-grounded self-care guidance powered by GraphRAG clinical intelligence",
+        "tagline": "Every health question, connected to clearer evidence",
         "input_placeholder": "Ask MedicoBuddy a health question...",
         "new_chat": "➕ New Conversation",
         "recent_chats": "Recent Conversations",
         "preferences": "Preferences & Language",
         "evidence_title": "Evidence Intelligence",
         "quick_queries": "Quick Example Queries",
-        "graph_active": "🟢 GraphRAG Active",
+        "status_ready": "🟢 Evidence service ready",
+        "empty_evidence": "Your evidence, sources and connections will appear here.",
     },
-    "Hindi (हिंदी)": {
+    "hi": {
+        "label": "Hindi / हिंदी (hi)",
+        "dir": "ltr",
         "title": "MedicoBuddy से पूछें",
-        "tagline": "ग्राफ-आरएजी क्लिनिकल इंटेलिजेंस द्वारा संचालित साक्ष्य-आधारित स्व-देखभाल मार्गदर्शन",
+        "tagline": "हर स्वास्थ्य प्रश्न, स्पष्ट साक्ष्यों से जुड़ा",
         "input_placeholder": "MedicoBuddy से स्वास्थ्य प्रश्न पूछें...",
         "new_chat": "➕ नई बातचीत",
         "recent_chats": "हाल की बातचीत",
         "preferences": "प्राथमिकताएं और भाषा",
         "evidence_title": "साक्ष्य इंटेलिजेंस",
         "quick_queries": "त्वरित उदाहरण प्रश्न",
-        "graph_active": "🟢 ग्राफ-आरएजी सक्रिय",
+        "status_ready": "🟢 साक्ष्य सेवा तैयार है",
+        "empty_evidence": "आपके साक्ष्य, स्रोत और कनेक्शन यहां दिखाई देंगे।",
     },
-    "Tamil (தமிழ்)": {
+    "ta": {
+        "label": "Tamil / தமிழ் (ta)",
+        "dir": "ltr",
         "title": "MedicoBuddy யிடம் கேட்கவும்",
-        "tagline": "GraphRAG மருத்துவ நுண்ணறிவால் இயங்கும் ஆதார அடிப்படையிலான சுயபராமரிப்பு வழிகாட்டுதல்",
+        "tagline": "ஒவ்வொரு சுகாதார கேள்வியும் தெளிவான ஆதாரங்களுடன் இணைக்கப்பட்டுள்ளது",
         "input_placeholder": "MedicoBuddy யிடம் சுகாதார கேள்வி கேட்கவும்...",
         "new_chat": "➕ புதிய உரையாடல்",
         "recent_chats": "சமீபத்திய உரையாடல்கள்",
         "preferences": "விருப்பத்தேர்வுகள் & மொழி",
         "evidence_title": "ஆதார நுண்ணறிவு",
         "quick_queries": "வேகமான உதாரண கேள்விகள்",
-        "graph_active": "🟢 GraphRAG செயலில் உள்ளது",
+        "status_ready": "🟢 ஆதார சேவை தயார்",
+        "empty_evidence": "உங்கள் ஆதாரங்கள், மூலங்கள் மற்றும் இணைப்புகள் இங்கு தோன்றும்.",
+    },
+    "es": {
+        "label": "Spanish / Español (es)",
+        "dir": "ltr",
+        "title": "Pregunta a MedicoBuddy",
+        "tagline": "Cada pregunta de salud, conectada a evidencia más clara",
+        "input_placeholder": "Haz una pregunta de salud a MedicoBuddy...",
+        "new_chat": "➕ Nueva conversación",
+        "recent_chats": "Conversaciones recientes",
+        "preferences": "Preferencias e idioma",
+        "evidence_title": "Inteligencia de Evidencia",
+        "quick_queries": "Consultas de ejemplo",
+        "status_ready": "🟢 Servicio de evidencia listo",
+        "empty_evidence": "Tus evidencias, fuentes y conexiones aparecerán aquí.",
+    },
+    "fr": {
+        "label": "French / Français (fr)",
+        "dir": "ltr",
+        "title": "Posez une question à MedicoBuddy",
+        "tagline": "Chaque question de santé, reliée à des preuves plus claires",
+        "input_placeholder": "Posez une question de santé à MedicoBuddy...",
+        "new_chat": "➕ Nouvelle conversation",
+        "recent_chats": "Conversations récentes",
+        "preferences": "Préférences et langue",
+        "evidence_title": "Intelligence de Preuve",
+        "quick_queries": "Exemples de questions",
+        "status_ready": "🟢 Service de preuve prêt",
+        "empty_evidence": "Vos preuves, sources et connexions apparaîtront ici.",
+    },
+    "ar": {
+        "label": "Arabic / العربية (ar - RTL)",
+        "dir": "rtl",
+        "title": "اسأل MedicoBuddy",
+        "tagline": "كل سؤال صحي، متصل بأدلة أكثر وضوحاً",
+        "input_placeholder": "اسأل MedicoBuddy سؤالاً صحياً...",
+        "new_chat": "➕ محادثة جديدة",
+        "recent_chats": "المحادثات الأخيرة",
+        "preferences": "التفضيلات واللغة",
+        "evidence_title": "ذكاء الأدلة",
+        "quick_queries": "أسئلة توضيحية",
+        "status_ready": "🟢 خدمة الأدلة جاهزة",
+        "empty_evidence": "ستظهر أدلتك والمصادر والروابط هنا.",
     },
 }
 
@@ -155,16 +208,21 @@ def get_cached_graph_app():
     return create_app()
 
 
-# ── 3. Sidebar Controls & Language Selector ───────────────────
+# ── 3. Sidebar Controls & Global Language Selector ────────────
 def render_sidebar() -> dict[str, Any]:
-    """Render Navigation Sidebar with Multilingual Support & High-Contrast WCAG AA Styling."""
+    """Render Navigation Sidebar with Global Searchable Language Selector & WCAG AA Contrast."""
     with st.sidebar:
         st.title("🩺 MedicoBuddy AI")
         st.caption("Evidence-Grounded Health Educational Assistant")
         st.markdown("---")
 
-        lang = st.selectbox("Language / भाषा / மொழி", ["English", "Hindi (हिंदी)", "Tamil (தமிழ்)"], index=0)
-        t = TRANSLATIONS.get(lang, TRANSLATIONS["English"])
+        lang_code = st.selectbox(
+            "Language / भाषा / மொழி",
+            options=list(LANGUAGES.keys()),
+            format_func=lambda k: LANGUAGES[k]["label"],
+            index=0,
+        )
+        t = LANGUAGES[lang_code]
 
         if st.button(t["new_chat"], use_container_width=True):
             st.session_state.messages = []
@@ -205,7 +263,7 @@ def render_sidebar() -> dict[str, Any]:
         st.caption("🔒 **Privacy Guarantee:** Zero PII collected. Automated regex PII scrubbing active.")
 
     return {
-        "lang": lang,
+        "lang_code": lang_code,
         "translations": t,
         "age_range": age_range,
         "pregnancy_status": preg_status,
@@ -360,32 +418,26 @@ Comfort Steps: {', '.join(data.get('safe_comfort_steps', []))}
 
 
 # ── 6. Evidence Intelligence Panel (Right 30%) ────────────────
-def render_evidence_panel(data: dict[str, Any] | None, t: dict[str, str]) -> None:
+def render_evidence_panel(data: dict[str, Any] | None, t: dict[str, Any]) -> None:
     """Render persistent Evidence Intelligence Panel in right 30% column."""
     st.markdown(f"### {t['evidence_title']}")
 
     if not data:
-        st.info("💡 **GraphRAG Validation Engine**")
-        st.caption("Submit a symptom query to inspect evidence strength, verified literature citations, and knowledge graph connections.")
-        
-        st.markdown("##### Graph Network Preview")
-        st.code("""
-(User Query) ──► (Symptom Entity)
-      │
-      ├──► (SelfCare Protocol)
-      │
-      └──► (Verified Citation)
-        """, language="text")
+        st.info("💡 **Evidence Validation Dock**")
+        st.write(t["empty_evidence"])
         return
 
+    # Evidence Strength Metric
     strength = data.get("overall_evidence_level", "insufficient").title()
     st.metric("Evidence Strength Score", strength)
     st.markdown("---")
 
-    st.markdown("##### Visual GraphRAG Connections")
-    st.success("🔗 **Active Path:** `ReportedSymptom` ➔ `SelfCareProtocol` ➔ `SafetyConstraint` ➔ `LiteratureCitation`")
+    # Evidence Connections Graph Summary
+    st.markdown("##### Evidence Connections")
+    st.success("🔗 **Connected Nodes:** `ReportedSymptom` ➔ `SelfCareProtocol` ➔ `SafetyConstraint` ➔ `LiteratureCitation`")
     st.markdown("---")
 
+    # Clickable Citations
     st.markdown("##### Verified Citations")
     citations = data.get("citations", [])
     if not citations:
@@ -409,7 +461,7 @@ def main() -> None:
         st.title(t["title"])
         st.caption(t["tagline"])
     with h_col2:
-        st.success(t["graph_active"])
+        st.success(t["status_ready"])
 
     # 70/30 Workspace Split
     col_left, col_right = st.columns([2.7, 1.1])
@@ -451,7 +503,7 @@ def main() -> None:
                 st.markdown(query_to_process)
 
             with st.chat_message("assistant"):
-                with st.spinner("Evaluating evidence graph & safety rules..."):
+                with st.spinner("Evaluating evidence & safety rules..."):
                     data = None
                     try:
                         payload = {"message": query_to_process, **context}
