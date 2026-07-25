@@ -1,8 +1,12 @@
-"""Groq LLM manager for MedicoBuddy — handles ChatGroq initialization and fallback."""
+"""Groq LLM manager for MedicoBuddy — handles ChatGroq initialization.
+
+Strictly relies on Groq API — no other third-party LLM providers.
+"""
 
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from medicobuddy.config import Settings, get_settings
@@ -19,35 +23,23 @@ def get_llm(settings: Settings | None = None) -> Any:
     if settings is None:
         settings = get_settings()
 
-    provider = settings.llm_provider.lower()
+    api_key = settings.groq_api_key or os.getenv("GROQ_API_KEY", "")
+    if not api_key or api_key == "gsk_CHANGE_ME_GROQ_API_KEY":
+        logger.info("GROQ_API_KEY not set or placeholder — running in deterministic safety fallback mode")
+        return None
 
-    if provider == "groq" or settings.groq_api_key:
-        try:
-            from langchain_groq import ChatGroq
+    try:
+        from langchain_groq import ChatGroq
 
-            logger.info("Initializing Groq LLM model: %s", settings.groq_model_name)
-            return ChatGroq(
-                groq_api_key=settings.groq_api_key,
-                model_name=settings.groq_model_name,
-                temperature=settings.llm_temperature,
-                max_tokens=settings.llm_max_tokens,
-            )
-        except Exception:
-            logger.warning("Failed to initialize ChatGroq — checking alternatives", exc_info=True)
+        model_name = settings.groq_model_name or "llama-3.3-70b-versatile"
+        logger.info("Initializing Groq LLM model: %s", model_name)
 
-    # Fallback to Google Gemini if configured
-    if settings.google_api_key:
-        try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-
-            logger.info("Fallback to Google Gemini LLM")
-            return ChatGoogleGenerativeAI(
-                google_api_key=settings.google_api_key,
-                model=settings.llm_model_name,
-                temperature=settings.llm_temperature,
-            )
-        except Exception:
-            pass
-
-    logger.warning("No LLM provider initialized — system operating in deterministic fallback mode")
-    return None
+        return ChatGroq(
+            groq_api_key=api_key,
+            model_name=model_name,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
+        )
+    except Exception:
+        logger.warning("Failed to initialize ChatGroq client", exc_info=True)
+        return None

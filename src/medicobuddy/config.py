@@ -36,8 +36,6 @@ class Settings(BaseSettings):
     llm_provider: str = "groq"
     groq_api_key: str = ""
     groq_model_name: str = "llama-3.3-70b-versatile"
-    google_api_key: str = ""
-    openai_api_key: str = ""
     llm_temperature: float = 0.1
     llm_max_tokens: int = 4096
 

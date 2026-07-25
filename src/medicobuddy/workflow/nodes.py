@@ -360,10 +360,15 @@ def safety_critic_node(state: GraphState) -> dict[str, Any]:
 # ════════════════════════════════════════════════════════════
 
 def response_composer_node(state: GraphState) -> dict[str, Any]:
-    """Assemble the 10-section MedicoBuddy response."""
+    """Assemble the 10-section MedicoBuddy response using Groq LLM + evidence."""
+    from medicobuddy.llm import get_llm
+
     triage = state.get("triage_result", TriageResult(outcome=TriageOutcome.SELF_CARE, reasoning=""))
     symptom = state.get("symptom_report")
     user_context = state.get("user_context", UserContext())
+    user_message = state.get("user_message", "")
+    fused_results = state.get("fused_results", [])
+    mcp_results: list[MCPResult] = state.get("mcp_results", [])
 
     # Build user report summary
     report = "You have reported: "
@@ -374,35 +379,65 @@ def response_composer_node(state: GraphState) -> dict[str, Any]:
         if symptom.severity.value != "unknown":
             report += f" (intensity: {symptom.severity.value})"
     else:
-        report += state.get("user_message", "a health concern")
+        report += user_message or "a health concern"
 
-    # Default comfort steps based on common patterns
+    # Baseline comfort steps
     comfort_steps = [
-        "Rest in a comfortable, quiet environment",
-        "Stay hydrated with small, frequent sips of water",
-        "Avoid strenuous physical activity temporarily",
+        "Rest in a comfortable, quiet environment with reduced sensory stimulation",
+        "Stay adequately hydrated with small, frequent sips of plain water",
+        "Avoid strenuous physical activity temporarily until feeling well",
     ]
 
-    # Monitoring guidance
     monitoring = [
-        "Track whether symptoms are improving, stable, or worsening",
-        "Monitor your temperature if you have fever",
-        "Note any new symptoms that develop",
+        "Track whether symptoms are improving, stable, or worsening over 24-48 hours",
+        "Monitor your body temperature if feeling warm or feverish",
+        "Note any new or changing symptoms that develop",
     ]
 
-    # When to seek care
     seek_care = [
         "Symptoms worsen significantly or do not improve within 24-48 hours",
-        "You develop any new or concerning symptoms",
-        "You are unable to keep fluids down",
-        "Your fever rises above 39°C (102°F)",
+        "You develop severe pain, high fever (>39°C / 102°F), or difficulty breathing",
+        "You are unable to retain fluids due to persistent vomiting",
+        "You experience any new, unexpected, or concerning symptoms",
     ]
 
-    # Things to avoid
     avoid = [
-        "Avoid self-diagnosing or relying on online symptom checkers for medical decisions",
-        "Avoid strenuous exercise until you feel better",
+        "Avoid self-diagnosing or taking unprescribed medications",
+        "Avoid intense exercise or heavy physical exertion until fully recovered",
     ]
+
+    ayurveda_perspectives = [
+        AyurvedaPerspective(
+            practice="Warm water hydration (Ushnodaka)",
+            description="Sipping warm water throughout the day is a traditional practice to aid comfort and digestion.",
+            evidence_label="limited_or_preliminary_evidence",
+        ),
+        AyurvedaPerspective(
+            practice="Consistent sleep-wake routine (Dinacharya)",
+            description="Maintaining regular sleep and rest times supports body recovery and circadian balance.",
+            evidence_label="evidence_supported",
+        ),
+    ]
+
+    # Attempt Groq LLM synthesis if available
+    llm = get_llm()
+    if llm is not None:
+        try:
+            evidence_summary = "\n".join([f"- {r.title}: {r.supporting_passage[:200]}" for r in mcp_results[:3]])
+            prompt = f"""You are MedicoBuddy, an evidence-grounded health educational assistant.
+User query: {user_message}
+Reported symptom: {report}
+Evidence items:
+{evidence_summary or 'No specific literature items.'}
+
+Provide 3 concise, low-risk, non-pharmacological comfort steps as bullet points. Do NOT mention any drugs, dosages, or diagnoses."""
+            response = llm.invoke(prompt)
+            if hasattr(response, "content") and isinstance(response.content, str) and response.content.strip():
+                lines = [line.strip("- *• ").strip() for line in response.content.split("\n") if line.strip("- *• ").strip()]
+                if len(lines) >= 2:
+                    comfort_steps = lines[:4]
+        except Exception:
+            logger.info("Groq LLM invocation skipped — using baseline templates")
 
     return {
         "user_report_summary": report,
@@ -410,7 +445,7 @@ def response_composer_node(state: GraphState) -> dict[str, Any]:
         "monitoring_guidance": monitoring,
         "seek_care_conditions": seek_care,
         "things_to_avoid": avoid,
-        "ayurveda_perspectives": [],
+        "ayurveda_perspectives": ayurveda_perspectives,
     }
 
 
