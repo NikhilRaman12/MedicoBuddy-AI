@@ -43,7 +43,10 @@ class MCPConnector(ABC):
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(self._timeout),
                 follow_redirects=True,
-                headers={"User-Agent": "MedicoBuddy/0.1 (health-education-tool)"},
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MedicoBuddy-GraphRAG/1.0 (Healthcare Research Tool; clinician@medicobuddy.ai)",
+                    "Accept": "application/json, text/xml, application/xml, */*",
+                },
             )
         return self._client
 

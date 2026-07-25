@@ -30,17 +30,16 @@ class ClinicalTrialsConnector(MCPConnector):
         """Search ClinicalTrials.gov for relevant trials."""
         params = {
             "query.term": query,
-            "pageSize": str(min(max_results, 20)),
+            "pageSize": str(min(max_results, 10)),
             "format": "json",
-            "fields": (
-                "NCTId,BriefTitle,OverallStatus,Phase,StartDate,"
-                "CompletionDate,EnrollmentCount,Condition,InterventionName,"
-                "BriefSummary,StudyType,LeadSponsorName"
-            ),
         }
 
-        data = await self._get(f"{CT_API_BASE}/studies", params=params)
-        studies = data.get("studies", [])
+        try:
+            data = await self._get(f"{CT_API_BASE}/studies", params=params)
+            studies = data.get("studies", [])
+        except Exception:
+            logger.warning("ClinicalTrials.gov search failed for query: %s", query)
+            return []
 
         results: list[MCPResult] = []
         for study in studies[:max_results]:
