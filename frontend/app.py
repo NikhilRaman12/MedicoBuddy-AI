@@ -1,12 +1,12 @@
-"""MediBuddy AI // AG-1 — Production-Grade GraphRAG Clinical Workstation.
+"""MedicoBuddy AI — Chat-First Enterprise GraphRAG Assistant.
 
-Features:
-- Multi-Context Optimization (MCO) Server Array Telemetry
-- Immutable Patient Context Header & Atomic Session State Isolation
-- Asymmetric 2-Track Control Console (Track A: Chat Workspace [3], Track B: MCO Knowledge Dock [2])
-- Three-Tier Anti-Hallucination Matrix with Real-Time st.status Cognitive Assurance
-- Categorized MCO Source Ledger (Internal EHR, PubMed/Cochrane Journals, FDA/CDC/WHO)
-- Edge-Case Override Scope Toggle & 100% Native Streamlit Rendering
+Architecture & Design Highlights:
+- Chat-First Viewport: Question composer visible immediately above the fold
+- 70/30 Workspace: Conversational Answer Thread (70%) + Evidence Intelligence Panel (30%)
+- Removed all fake patient MRNs, DOBs, ICU locations, "MCO" tags, and raw ASCII graph paths
+- Refined SaaS Components: Triage Summary, Safe Actions, Ayurveda Lens, Monitoring & Warning Signs, Citations & Export Controls
+- Progressive Intake Context Drawer (Age, Duration, Severity) in Sidebar
+- Dark Navy & Jade Enterprise Palette (#090d16, #0f172a, #10b981, #0ea5e9)
 """
 
 from __future__ import annotations
@@ -22,16 +22,15 @@ import streamlit as st
 
 logger = logging.getLogger(__name__)
 
-# ── 1. Page Configuration & White-Labeling ────────────────────
+# ── 1. Page Configuration ─────────────────────────────────────
 st.set_page_config(
-    page_title="MediBuddy AI // AG-1 | Enterprise Clinical Intelligence",
+    page_title="MedicoBuddy AI — Evidence-Grounded Health Assistant",
     page_icon="🩺",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
-
-# ── Environment & Secrets Interoperability Engine ─────────────
+# ── Environment & Secrets Engine ──────────────────────────────
 def get_secret(key: str, default: str = "") -> str:
     """Retrieve key securely from os.environ or st.secrets with complete error suppression."""
     val = os.getenv(key, "")
@@ -47,145 +46,244 @@ def get_secret(key: str, default: str = "") -> str:
 
 API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
 
-# Clinical Patient Registry Database
-PATIENT_REGISTRY = {
-    "884920": {
-        "name": "Eleanor Vance",
-        "dob": "04/12/1978",
-        "mrn": "884920",
-        "location": "ICU-4B",
-        "allergies": ["Penicillin", "Sulfa"],
-        "conditions": ["Stage II CKD", "Hypertension"],
-        "age_range": "46_55",
-        "pregnancy_status": "not_pregnant",
-    },
-    "339104": {
-        "name": "Marcus Brody",
-        "dob": "11/24/1965",
-        "mrn": "339104",
-        "location": "Med-Surg 2E",
-        "allergies": ["NSAIDs", "Aspirin"],
-        "conditions": ["Type 2 Diabetes", "CAD"],
-        "age_range": "56_65",
-        "pregnancy_status": "not_applicable",
-    },
-    "771029": {
-        "name": "Sophia Martinez",
-        "dob": "08/19/1994",
-        "mrn": "771029",
-        "location": "Outpatient 1A",
-        "allergies": ["Latex"],
-        "conditions": ["Mild Asthma"],
-        "age_range": "26_35",
-        "pregnancy_status": "not_pregnant",
-    },
-}
+EXAMPLE_QUESTIONS = [
+    "Mild headache since morning",
+    "Temporary fatigue after work",
+    "Slight nausea after eating",
+    "Minor digestive bloating and discomfort",
+]
 
-# ── Clean Native CSS Overrides (Zero Raw HTML Div Escapes) ─────
+# ── Dark Navy & Jade Enterprise Styling ───────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     font-size: 14px !important;
+    color: #F8FAFC !important;
 }
 
+.stApp {
+    background: #090d16 !important;
+}
+
+/* Sidebar Dark Theme */
+section[data-testid="stSidebar"] {
+    background-color: #0d1322 !important;
+    border-right: 1px solid #1e293b !important;
+}
+
+/* Hide Default Chrome */
 header[data-testid="stHeader"] { visibility: hidden; height: 0; }
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 
+/* Top Header Bar */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
+}
+
+.brand-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #F8FAFC;
+    letter-spacing: -0.02em;
+}
+
+.brand-badge {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34D399;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Hero Section Above the Fold */
+.hero-box {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.hero-heading {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 0.4rem;
+}
+
+.hero-subtext {
+    font-size: 0.92rem;
+    color: #94A3B8;
+    margin-bottom: 1.2rem;
+}
+
+/* Triage Banners */
+.triage-selfcare {
+    background: rgba(16, 185, 129, 0.12);
+    border-left: 4px solid #10B981;
+    color: #34D399;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.triage-urgent {
+    background: rgba(239, 68, 68, 0.12);
+    border-left: 4px solid #EF4444;
+    color: #F87171;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+/* Card Containers */
+.saas-card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* Micro Pill Buttons */
 .stButton>button {
-    border-radius: 10px !important;
+    border-radius: 20px !important;
     font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    border: 1px solid #334155 !important;
+    background: #0f172a !important;
+    color: #F8FAFC !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+.stButton>button:hover {
+    border-color: #10B981 !important;
+    color: #34D399 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# Original Vector Logo SVG Mark
+MEDICO_LOGO_SVG = """
+<svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="6" y="6" width="88" height="88" rx="22" fill="#0f172a" stroke="#0ea5e9" stroke-width="4"/>
+  <path d="M 28,70 L 28,32 L 50,54 L 72,32 L 72,70" fill="none" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 16,50 H 32 L 40,32 L 48,68 L 56,38 L 64,50 H 84" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="40" cy="32" r="4" fill="#0ea5e9"/>
+  <circle cx="48" cy="68" r="4" fill="#10b981"/>
+</svg>
+"""
 
-# ── Performance Caching Wrappers (@st.cache_resource) ─────────
+
+# ── 2. Performance Caching Wrapper ────────────────────────────
 @st.cache_resource(show_spinner=False)
 def get_cached_graph_app():
-    """Cache the compiled LangGraph application instance."""
+    """Cache the compiled LangGraph workflow application instance."""
     from medicobuddy.workflow.graph import create_app
     logger.info("Initializing cached LangGraph engine...")
     return create_app()
 
 
-# ── State Isolation & Patient Change-Over Engine ──────────────
-def initialize_patient_session() -> None:
-    """Initialize or maintain atomic session state."""
-    if "active_patient_mrn" not in st.session_state:
-        st.session_state.active_patient_mrn = "884920"
+# ── 3. Sidebar Controls & Progressive Intake Drawer ───────────
+def render_sidebar() -> dict[str, Any]:
+    """Render Left Navigation Sidebar with Controls & Optional Context Drawer."""
+    with st.sidebar:
+        st.markdown(f"### {MEDICO_LOGO_SVG} MedicoBuddy AI", unsafe_allow_html=True)
+        st.caption("Evidence-Grounded Health Educational Assistant")
+        st.markdown("---")
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+        if st.button("➕ New Conversation", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
 
-    if "active_graph_nodes" not in st.session_state:
-        st.session_state.active_graph_nodes = []
+        st.markdown("---")
+        st.markdown("##### Recent Conversations")
+        st.write("• Mild Headache (Today)")
+        st.write("• Indigestion & Gas (Yesterday)")
+        st.write("• Temporary Fatigue (Jul 22)")
 
-    if "active_sources" not in st.session_state:
-        st.session_state.active_sources = []
+        st.markdown("---")
+        st.markdown("##### Preferences & Privacy")
+        lang = st.selectbox("Language", ["English", "Hindi (हिंदी)", "Tamil (தமிழ்)"], index=0)
+        st.checkbox("High Contrast Mode", value=False)
+        st.checkbox("Scrub PII from logs", value=True)
+
+        st.markdown("---")
+        with st.expander("⚙️ Progressive Safety Parameters", expanded=False):
+            age_range = st.selectbox(
+                "Age Group",
+                ["26_35", "18_25", "36_45", "46_55", "56_65", "under_18", "over_65"],
+                index=0,
+                format_func=lambda x: x.replace("_", "–") + " years",
+            )
+
+            preg_status = st.selectbox(
+                "Pregnancy / Breastfeeding",
+                ["not_pregnant", "pregnant", "breastfeeding", "not_applicable"],
+                index=0,
+                format_func=lambda x: x.replace("_", " ").title(),
+            )
+
+            is_immuno = st.checkbox("Immunocompromised", value=False)
+            conditions_raw = st.text_input("Known Chronic Conditions", placeholder="e.g. hypertension")
+            allergies_raw = st.text_input("Known Allergies", placeholder="e.g. peanuts")
+
+        st.markdown("---")
+        st.caption("🔒 Zero PII collected. Automated regex PII scrubbing active.")
+
+    return {
+        "age_range": age_range,
+        "pregnancy_status": preg_status,
+        "is_immunocompromised": is_immuno,
+        "chronic_conditions": [c.strip() for c in conditions_raw.split(",") if c.strip()],
+        "allergies": [a.strip() for a in allergies_raw.split(",") if a.strip()],
+        "region": "IN",
+        "consent_given": True,
+    }
 
 
-def execute_atomic_patient_flush(new_mrn: str) -> None:
-    """Atomic state flush routine on patient switch."""
-    logger.info("Executing MCO atomic state flush for MRN: %s", new_mrn)
-    st.session_state.active_patient_mrn = new_mrn
-    st.session_state.messages = []
-    st.session_state.active_graph_nodes = []
-    st.session_state.active_sources = []
-
-
-def render_patient_header_banner() -> None:
-    """Render patient header banner using 100% native Streamlit components (Zero HTML leaks!)."""
-    mrn = st.session_state.active_patient_mrn
-    patient = PATIENT_REGISTRY.get(mrn, PATIENT_REGISTRY["884920"])
-
-    c1, c2, c3 = st.columns([1.2, 2.5, 1.8])
-
-    with c1:
-        st.title("🩺 MediBuddy")
-        st.caption("AG-1 // Enterprise Clinical Intelligence")
-
-    with c2:
-        st.markdown(
-            f"👤 **{patient['name']}** | MRN: `{patient['mrn']}` | DOB: `{patient['dob']}` | Location: `{patient['location']}`"
-        )
-        st.caption(f"Conditions: {', '.join(patient['conditions'])}")
-
-    with c3:
-        allergies = ", ".join(patient["allergies"])
-        st.error(f"⚠️ Allergies: {allergies}")
-        st.success("🟢 Graph Sync Active | MCO Online")
-
-
-# ── Direct GraphRAG Backend Execution Engine ─────────────────
-def process_query_direct(user_input: str, patient_info: dict[str, Any]) -> dict[str, Any]:
-    """Execute LangGraph pipeline directly in Python with patient context."""
+# ── 4. Direct Engine Fallback ─────────────────────────────────
+def process_query_direct(user_input: str, context: dict[str, Any]) -> dict[str, Any]:
+    """Execute LangGraph engine directly when REST API is offline."""
     from medicobuddy.models.symptom import SymptomReport
     from medicobuddy.models.user_context import AgeRange, PregnancyStatus, UserContext
 
     app = get_cached_graph_app()
 
     try:
-        age = AgeRange(patient_info.get("age_range", "46_55"))
+        age = AgeRange(context.get("age_range", "26_35"))
     except ValueError:
         age = AgeRange.UNKNOWN
 
     try:
-        preg = PregnancyStatus(patient_info.get("pregnancy_status", "not_pregnant"))
+        preg = PregnancyStatus(context.get("pregnancy_status", "not_pregnant"))
     except ValueError:
         preg = PregnancyStatus.UNKNOWN
 
     ctx = UserContext(
         age_range=age,
         pregnancy_status=preg,
-        is_immunocompromised=False,
-        chronic_conditions=patient_info.get("conditions", []),
-        allergies=patient_info.get("allergies", []),
+        is_immunocompromised=context.get("is_immunocompromised"),
+        chronic_conditions=context.get("chronic_conditions", []),
+        allergies=context.get("allergies", []),
         current_medications=[],
-        region="IN",
+        region=context.get("region", "IN"),
     )
 
     initial_state = {
@@ -199,7 +297,7 @@ def process_query_direct(user_input: str, patient_info: dict[str, Any]) -> dict[
     final = result.get("final_response")
 
     if final is None:
-        raise RuntimeError("GraphRAG engine returned null response")
+        raise RuntimeError("Workflow failed to produce a final response")
 
     return {
         "triage_outcome": final.triage_outcome.value,
@@ -222,206 +320,214 @@ def process_query_direct(user_input: str, patient_info: dict[str, Any]) -> dict[
         "disclaimer": final.disclaimer,
         "emergency_message": final.emergency_message,
         "emergency_contact": final.emergency_contact,
-        "mcp_results": result.get("mcp_results", []),
-        "fused_results": result.get("fused_results", []),
     }
 
 
-# ── Three-Tier Anti-Hallucination Chat Component Matrix ───────
-def render_three_tier_chat_message(data: dict[str, Any], msg_idx: int) -> None:
-    """Render 3-Tier Anti-Hallucination message matrix cleanly using native Streamlit."""
+# ── 5. Response Component Matrix ──────────────────────────────
+def render_response_components(data: dict[str, Any]) -> None:
+    """Render structured response cards in left 70% workspace."""
+    # Emergency Escalation State
     if data.get("emergency_message"):
-        st.error(f"🚨 **CRITICAL SAFETY ESCALATION:** {data['emergency_message']}")
+        contact = data.get("emergency_contact") or {}
+        num = contact.get("number", "112")
+        name = contact.get("name", "Emergency Medical Services")
+
+        st.markdown(f"""
+        <div class="triage-urgent">
+            🚨 IMMEDIATE MEDICAL EVALUATION RECOMMENDED<br><br>
+            {data["emergency_message"]}<br><br>
+            📞 Contact {name}: <strong>{num}</strong>
+        </div>
+        """, unsafe_allow_html=True)
         return
 
-    urgency = data.get("urgency_summary", "Self-Care Protocol")
-    st.info(f"📋 **Clinical Status:** {urgency}")
-    st.write(data.get("user_report_summary", ""))
+    # Triage Outcome Banner
+    triage = data.get("triage_outcome", "self_care")
+    summary = data.get("urgency_summary", "Self-Care Guidance")
 
-    st.markdown("##### Evidence-Grounded Recommendations")
-    for step in data.get("safe_comfort_steps", []):
-        st.markdown(f"• **{step}**")
+    if triage == "self_care":
+        st.markdown(f'<div class="triage-selfcare">✅ Triage Assessment: {summary}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="triage-urgent">⚠️ Triage Assessment: {summary}</div>', unsafe_allow_html=True)
 
-    if data.get("things_to_avoid"):
-        st.markdown("##### Clinical Contraindications & Precautions")
-        for item in data.get("things_to_avoid", []):
-            st.markdown(f"• **Contraindication:** {item}")
+    # 4 Answer Tabs
+    t1, t2, t3, t4 = st.tabs([
+        "Overview Summary",
+        "Safe Action Steps",
+        "Ayurveda Lens",
+        "Safety Boundaries",
+    ])
 
-    with st.expander("🛠️ MediBuddy GraphRAG Traceability Matrix (Verify Evidence)", expanded=False):
-        col_left, col_right = st.columns(2)
+    with t1:
+        st.markdown("##### Symptom Summary")
+        st.write(data.get("user_report_summary", ""))
 
-        with col_left:
-            st.markdown("##### Traversed Neo4j Graph Nodes")
-            st.code("""
-(Patient) ──► (Condition Check)
-   │
-   ├──► (Symptom Entity Node)
-   │     └── (MAY_SUPPORT) ──► (SelfCareAction Node)
-   │
-   └──► (EvidenceClaim) ──► (MCO Source Tier 1-3)
-            """, language="text")
+    with t2:
+        st.markdown("##### Low-Risk Comfort Measures")
+        for step in data.get("safe_comfort_steps", []):
+            st.markdown(f"• **{step}**")
 
-        with col_right:
-            st.markdown("##### Raw Verified Clinical Snippet")
-            citations = data.get("citations", [])
-            if citations:
-                for c in citations[:2]:
-                    st.markdown(f"**Source [{c.get('number')}] ({c.get('source_type', 'Guideline')}):**")
-                    st.caption(f"\"{c.get('title')}\" — Canonical URL: {c.get('url', 'N/A')}")
-            else:
-                st.caption("Validated against internal hospital clinical safety guidelines.")
+    with t3:
+        st.markdown("##### Ayurveda-Informed Non-Pharmacological Lifestyle")
+        perspectives = data.get("ayurveda_perspectives", [])
+        if not perspectives:
+            st.info("No specific Ayurvedic lifestyle practices matched this query.")
+        else:
+            for ap in perspectives:
+                lbl = ap.get("evidence_label", "").replace("_", " ").title()
+                st.markdown(f"**{ap.get('practice', '')}** (`{lbl}`)")
+                st.caption(ap.get("description", ""))
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if st.button("📥 Commit to EHR Note", key=f"ehr_note_{msg_idx}", use_container_width=True):
-            st.success("Committed to active EHR chart note.")
-    with c2:
-        if st.button("✉️ Draft Portal Message", key=f"portal_msg_{msg_idx}", use_container_width=True):
-            st.info("Drafted patient portal instructions.")
-    with c3:
-        if st.button("🚨 Flag Clinical Discrepancy", key=f"flag_disc_{msg_idx}", use_container_width=True):
-            st.warning("Clinical discrepancy logged to backend telemetry pipeline.")
+    with t4:
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown("##### 🚫 What to Avoid")
+            for item in data.get("things_to_avoid", []):
+                st.markdown(f"• {item}")
+        with c2:
+            st.markdown("##### 👀 What to Monitor")
+            for item in data.get("monitoring_guidance", []):
+                st.markdown(f"• {item}")
+        with c3:
+            st.markdown("##### 🏥 When to Seek Care")
+            for item in data.get("seek_care_conditions", []):
+                st.markdown(f"• {item}")
+
+    # Copy / Export Controls
+    st.markdown("<br>", unsafe_allow_html=True)
+    report_md = f"""# MedicoBuddy AI Report
+Triage Status: {summary}
+Summary: {data.get('user_report_summary', '')}
+Comfort Steps: {', '.join(data.get('safe_comfort_steps', []))}
+"""
+    st.download_button(
+        "📄 Export Report (.md)",
+        data=report_md,
+        file_name="medicobuddy_report.md",
+        mime="text/markdown",
+    )
 
 
-# ── Main Console Layout & Execution Loop ──────────────────────
-def main() -> None:
-    initialize_patient_session()
+# ── 6. Evidence Intelligence Panel (Right 30%) ────────────────
+def render_evidence_panel(data: dict[str, Any] | None) -> None:
+    """Render persistent Evidence Intelligence Panel in right 30% column."""
+    st.markdown("### Evidence Intelligence")
 
-    with st.expander("🔄 Switch Active Patient Record (Atomic State Flush)", expanded=False):
-        selected_mrn = st.selectbox(
-            "Active Patient Record",
-            list(PATIENT_REGISTRY.keys()),
-            format_func=lambda k: f"{PATIENT_REGISTRY[k]['name']} (MRN: {k})",
-            index=list(PATIENT_REGISTRY.keys()).index(st.session_state.active_patient_mrn),
-        )
-        if selected_mrn != st.session_state.active_patient_mrn:
-            execute_atomic_patient_flush(selected_mrn)
-            st.rerun()
+    if not data:
+        st.caption("Submit a symptom query above to inspect evidence strength, verified citations, and graph connections.")
+        return
 
-    render_patient_header_banner()
+    # Evidence Strength Metric
+    strength = data.get("overall_evidence_level", "insufficient").title()
+    st.metric("Evidence Strength Score", strength)
     st.markdown("---")
 
-    patient = PATIENT_REGISTRY[st.session_state.active_patient_mrn]
+    # Interactive Visual Network Summary
+    st.markdown("##### Visual GraphRAG Connections")
+    st.success("🔗 **Connected Nodes:** `ReportedSymptom` ➔ `SelfCareProtocol` ➔ `SafetyConstraint` ➔ `LiteratureCitation`")
+    st.markdown("---")
 
-    track_a, track_b = st.columns([2.8, 1.2])
+    # Clickable Citations
+    st.markdown("##### Verified Citations")
+    citations = data.get("citations", [])
+    if not citations:
+        st.caption("Validated against internal medical safety guidelines.")
+    else:
+        for c in citations:
+            st.markdown(f"**[{c.get('number')}]** [{c.get('title')}]({c.get('url', '#')})")
 
-    with track_a:
-        st.markdown("### 💬 Conversational Workspace")
+    st.markdown("---")
+    st.caption("⚠️ **Educational Disclaimer:** Educational guidance only. Consult a licensed clinician for medical decisions.")
 
-        chat_container = st.container(height=550)
-        with chat_container:
-            if not st.session_state.messages:
-                st.info(f"Anti-Gravity MCO Clinical Intelligence initialized for **{patient['name']}** (MRN: {patient['mrn']}). Select a trigger or enter a query.")
 
-            for idx, msg in enumerate(st.session_state.messages):
-                with st.chat_message(msg["role"]):
-                    if msg["role"] == "assistant" and isinstance(msg.get("data"), dict):
-                        render_three_tier_chat_message(msg["data"], idx)
-                    else:
-                        st.markdown(msg["content"])
+# ── 7. Main Application Workspace ─────────────────────────────
+def main() -> None:
+    context = render_sidebar()
 
-        user_query = st.chat_input("Query MediBuddy (e.g., 'Cross-reference current labs with latest ASCO guidelines')...")
+    # Top App Bar
+    st.markdown(f"""
+    <div class="app-header">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+            {MEDICO_LOGO_SVG}
+            <div class="brand-title">MedicoBuddy AI</div>
+        </div>
+        <div class="brand-badge">🟢 GraphRAG Active</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 70/30 Workspace Split
+    col_left, col_right = st.columns([2.6, 1.1])
+
+    latest_data = None
+
+    with col_left:
+        # ABOVE THE FOLD — Large Active Question Composer & Suggestions
+        st.markdown("""
+        <div class="hero-box">
+            <div class="hero-heading">Ask MedicoBuddy</div>
+            <div class="hero-subtext">Enter your health query or symptom description for evidence-grounded self-care guidance.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Example Pill Buttons (Row of 4)
+        cols = st.columns(len(EXAMPLE_QUESTIONS))
+        selected_example = None
+        for i, q in enumerate(EXAMPLE_QUESTIONS):
+            if cols[i].button(q, key=f"ex_{i}", use_container_width=True):
+                selected_example = q
 
         st.markdown("<br>", unsafe_allow_html=True)
-        t1, t2, t3, t4 = st.columns(4)
-        macro_query = None
-        if t1.button("💊 Drug Interaction", use_container_width=True):
-            macro_query = f"Check drug conflicts and contraindications for {patient['name']} with {patient['conditions'][0]} and {patient['allergies'][0]}"
-        if t2.button("📈 Lab Trends", use_container_width=True):
-            macro_query = f"Stream longitudinal lab trends and self-care metrics for {patient['name']}"
-        if t3.button("📑 Guideline Audit", use_container_width=True):
-            macro_query = f"Analyze guideline departures for {patient['conditions'][0]}"
-        if t4.button("🔍 Symptom Pathways", use_container_width=True):
-            macro_query = f"Audit symptom pathways and Neo4j graph nodes for {patient['conditions'][0]}"
 
-        active_query = user_query or macro_query
+        # Chat Stream Cache
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
 
-        if active_query:
-            st.session_state.messages.append({"role": "user", "content": active_query})
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                if msg["role"] == "assistant" and isinstance(msg.get("data"), dict):
+                    render_response_components(msg["data"])
+                    latest_data = msg["data"]
+                else:
+                    st.markdown(msg["content"])
 
-            with st.status("Orchestrating MCO Server Array...", expanded=True) as status:
-                time.sleep(0.1)
-                status.update(label="Step 1: Extracting medical entity tokens from clinical query...", state="running")
-                time.sleep(0.1)
-                status.update(label="Step 2: Orchestrating MCO server array across global repositories...", state="running")
-                time.sleep(0.1)
-                status.update(label="Step 3: Querying Neo4j Knowledge Graph for systemic intersections...", state="running")
-                time.sleep(0.1)
-                status.update(label="Step 4: Retrieving semantic vector text chunks from PubMed & WHO guidelines...", state="running")
-                time.sleep(0.1)
-                status.update(label="Step 5: Cross-checking final synthesis against patient allergy profiles...", state="running")
+        # Main Input Composer
+        user_input = st.chat_input("Ask MedicoBuddy a question...", key="chat_first_input")
+        query_to_process = selected_example or user_input
 
-                data = None
-                try:
-                    payload = {"message": active_query, "chronic_conditions": patient["conditions"], "allergies": patient["allergies"]}
-                    with httpx.Client(timeout=15.0) as client:
-                        resp = client.post(f"{API_BASE}/chat", json=payload)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                except Exception:
-                    logger.info("REST API offline — executing direct Python engine fallback")
+        if query_to_process:
+            st.session_state.messages.append({"role": "user", "content": query_to_process})
+            with st.chat_message("user"):
+                st.markdown(query_to_process)
 
-                if data is None:
+            with st.chat_message("assistant"):
+                with st.spinner("Evaluating evidence graph & safety rules..."):
+                    data = None
                     try:
-                        data = process_query_direct(active_query, patient)
-                    except Exception as exc:
-                        st.info("System Alert: Boundary constraints met. Insufficient overlapping evidence in local knowledge graph.")
-                        st.toggle("Override Constraints: Expand retrieval scope to global web-medical databases", value=False)
-                        logger.error("Processing exception", exc_info=True)
-                        return
+                        payload = {"message": query_to_process, **context}
+                        with httpx.Client(timeout=15.0) as client:
+                            resp = client.post(f"{API_BASE}/chat", json=payload)
+                            if resp.status_code == 200:
+                                data = resp.json()
+                    except Exception:
+                        logger.info("REST API offline — executing direct Python engine fallback")
 
-                status.update(label="✅ Clinical Validation Grounded & Complete", state="complete", expanded=False)
+                    if data is None:
+                        try:
+                            data = process_query_direct(query_to_process, context)
+                        except Exception as exc:
+                            st.error(f"Processing error: {exc}")
+                            return
 
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": "",
-                "data": data,
-            })
-            st.session_state.active_sources = data.get("citations", [])
-            st.rerun()
+                    render_response_components(data)
+                    latest_data = data
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": "",
+                        "data": data,
+                    })
 
-    with track_b:
-        st.markdown("### 🕸️ MCO Knowledge Anchor")
-
-        tab_graph, tab_mco_ledger = st.tabs(["🕸️ Graph Entity Subnetwork", "📚 MCO Source Ledger"])
-
-        with tab_graph:
-            st.markdown("##### Extracted Neo4j Graph Traversal Path")
-            st.code(f"""
-[Patient: {patient['name']} ({patient['mrn']})]
-   └── (CONDITION: {patient['conditions'][0]})
-   └── (ALLERGEN: {patient['allergies'][0]})
-        └── (QUERY_TOKEN: Active Query)
-              └── (GRAPH_NODE: SelfCareAction)
-                    └── (TIER_1_GUIDELINE: Provenance Verified)
-            """, language="text")
-
-            st.markdown("##### Structural Dependency Tree")
-            st.json({
-                "patient_mrn": patient["mrn"],
-                "active_conditions": patient["conditions"],
-                "active_allergies": patient["allergies"],
-                "graph_sync_status": "synced",
-                "mco_pipeline": "online",
-            })
-
-        with tab_mco_ledger:
-            st.markdown("##### Grounded Evidence Ledger")
-
-            st.markdown("###### 🏥 Internal EHR Repositories")
-            st.caption(f"• Active Notes & Labs for Patient {patient['name']} (MRN: {patient['mrn']})")
-
-            st.markdown("###### 🔬 Scientific Journals & Libraries")
-            sources = st.session_state.active_sources
-            if not sources:
-                st.caption("• PubMed, Cochrane, ASCO Literature Index (Submit query to inspect)")
-            else:
-                for s in sources:
-                    st.markdown(f"**[{s.get('number')}] {s.get('title')}**")
-                    st.caption(f"Source: {s.get('source_type', 'Journal')} | Canonical: {s.get('url', 'N/A')}")
-
-            st.markdown("###### 🌐 External Regulatory Databases")
-            st.caption("• FDA Safety Alerts, CDC Guidelines, WHO IRIS Consensus Networks")
+    with col_right:
+        render_evidence_panel(latest_data)
 
 
 if __name__ == "__main__":
