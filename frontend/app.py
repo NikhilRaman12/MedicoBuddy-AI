@@ -1,10 +1,13 @@
-"""MedicoBuddy AI — Enterprise Multilingual Health Educational Workspace.
+"""MedicoBuddy AI — All 22 Scheduled Indian Languages + Global Multilingual Workspace.
 
 Features:
-- Complete All-Indian Languages Dictionary (Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu)
-- Enterprise Tagline: "Every health question, connected to clearer evidence"
-- Subtle Status Indicator: "Evidence service ready"
-- 70/30 Chat-First Workspace & Clean Empty Evidence Panel
+- 22 Scheduled Constitutional Indian Languages (Unicode CLDR Native Scripts)
+  [Assamese, Bengali, Bodo, Dogri, Gujarati, Hindi, Kannada, Kashmiri, Konkani, Maithili,
+   Malayalam, Manipuri/Meitei, Marathi, Nepali, Odia, Punjabi, Sanskrit, Santali, Sindhi, Tamil, Telugu, Urdu]
+- Global Languages (English, Spanish, French, German, Arabic)
+- Auto-Detect Option & RTL Script Support (Urdu, Sindhi, Arabic)
+- Complete UI Translation Matrix (Title, Tagline, Composer, Buttons, Tabs, Evidence Dock)
+- 70/30 Chat-First Workspace & Preserved LangGraph Backend Architecture
 """
 
 from __future__ import annotations
@@ -22,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # ── 1. Page Configuration ─────────────────────────────────────
 st.set_page_config(
-    page_title="MedicoBuddy AI — Health Educational Workspace",
+    page_title="MedicoBuddy AI — Multilingual Health Workspace",
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -44,14 +47,16 @@ def get_secret(key: str, default: str = "") -> str:
 
 API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
 
-# ── All-Indian Languages Dictionary ───────────────────────────
+# ── Complete 22 Scheduled Indian Languages + Global Dictionary ─
 LANGUAGES: dict[str, dict[str, Any]] = {
-    "en": {
-        "label": "English (en)",
+    # ── Auto-Detect ───────────────────────────────────────────
+    "auto": {
+        "label": "🌐 Auto-detect Language",
+        "category": "Auto",
         "dir": "ltr",
         "title": "Ask MedicoBuddy",
         "tagline": "Every health question, connected to clearer evidence",
-        "input_placeholder": "Ask MedicoBuddy a health question...",
+        "input_placeholder": "Ask MedicoBuddy a health question in any language...",
         "new_chat": "➕ New Conversation",
         "recent_chats": "Recent Conversations",
         "preferences": "Preferences & Language",
@@ -60,8 +65,10 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "status_ready": "🟢 Evidence service ready",
         "empty_evidence": "Your evidence, sources and connections will appear here.",
     },
+    # ── 22 Official Scheduled Indian Languages ─────────────────
     "hi": {
-        "label": "Hindi / हिंदी (hi)",
+        "label": "🇮🇳 Hindi / हिंदी",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy से पूछें",
         "tagline": "हर स्वास्थ्य प्रश्न, स्पष्ट साक्ष्यों से जुड़ा",
@@ -75,7 +82,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "आपके साक्ष्य, स्रोत और कनेक्शन यहां दिखाई देंगे।",
     },
     "ta": {
-        "label": "Tamil / தமிழ் (ta)",
+        "label": "🇮🇳 Tamil / தமிழ்",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy யிடம் கேட்கவும்",
         "tagline": "ஒவ்வொரு சுகாதார கேள்வியும் தெளிவான ஆதாரங்களுடன் இணைக்கப்பட்டுள்ளது",
@@ -89,7 +97,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "உங்கள் ஆதாரங்கள், மூலங்கள் மற்றும் இணைப்புகள் இங்கு தோன்றும்.",
     },
     "te": {
-        "label": "Telugu / తెలుగు (te)",
+        "label": "🇮🇳 Telugu / తెలుగు",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy ని అడగండి",
         "tagline": "ప్రతి ఆరోగ్య ప్రశ్న, స్పష్టమైన ఆధారాలతో అనుసంధానించబడింది",
@@ -103,7 +112,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "మీ ఆధారాలు, మూలాలు మరియు సంబంధాలు ఇక్కడ కనిపిస్తాయి.",
     },
     "bn": {
-        "label": "Bengali / বাংলা (bn)",
+        "label": "🇮🇳 Bengali / বাংলা",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy-কে জিজ্ঞাসা করুন",
         "tagline": "প্রতিটি স্বাস্থ্য প্রশ্ন, স্পষ্ট প্রমাণের সাথে যুক্ত",
@@ -117,7 +127,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "আপনার প্রমাণ, উৎস এবং সংযোগগুলি এখানে উপস্থিত হবে।",
     },
     "mr": {
-        "label": "Marathi / मराठी (mr)",
+        "label": "🇮🇳 Marathi / मराठी",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy ला विचारा",
         "tagline": "प्रत्येक आरोग्य प्रश्न, स्पष्ट पुराव्यांशी जोडलेला",
@@ -131,7 +142,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "तुमचे पुरावे, स्रोत आणि कनेक्शन येथे दिसतील.",
     },
     "gu": {
-        "label": "Gujarati / ગુજરાતી (gu)",
+        "label": "🇮🇳 Gujarati / ગુજરાતી",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy ને પૂછો",
         "tagline": "દરેક આરોગ્ય પ્રશ્ન, સ્પષ્ટ પુરાવા સાથે જોડાયેલ",
@@ -145,10 +157,11 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "તમારા પુરાવા, સ્ત્રોતો અને જોડાણો અહીં દેખાશે.",
     },
     "kn": {
-        "label": "Kannada / ಕನ್ನಡ (kn)",
+        "label": "🇮🇳 Kannada / ಕನ್ನಡ",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy ಅನ್ನು ಕೇಳಿ",
-        "tagline": "ప్రతి ఆరోగ్య ప్రశ్న, స్పష్టమైన ఆధారాలతో అనుసంధానించబడింది",
+        "tagline": "ಪ್ರತಿ ಆರೋಗ್ಯ ಪ್ರಶ್ನೆ, ಸ್ಪಷ್ಟವಾದ ಆಧಾರಗಳೊಂದಿಗೆ ಅನುಸಂಧಾನಗೊಂಡಿದೆ",
         "input_placeholder": "MedicoBuddy ಗೆ ಆರೋಗ್ಯ ಪ್ರಶ್ನೆ ಕೇಳಿ...",
         "new_chat": "➕ ಹೊಸ ಸಂಭಾಷಣೆ",
         "recent_chats": "ಇತ್ತೀಚಿನ ಸಂಭಾಷಣೆಗಳು",
@@ -159,7 +172,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "ನಿಮ್ಮ ಆಧಾರಗಳು, ಮೂಲಗಳು ಮತ್ತು ಸಂಪರ್ಕಗಳು ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.",
     },
     "ml": {
-        "label": "Malayalam / മലയാളം (ml)",
+        "label": "🇮🇳 Malayalam / മലയാളം",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy യോട് ചോദിക്കൂ",
         "tagline": "ഓരോ ആരോഗ്യ ചോദ്യവും വ്യക്തമായ തെളിവുകളുമായി ബന്ധപ്പെട്ടിരിക്കുന്നു",
@@ -173,7 +187,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "നിങ്ങളുടെ തെളിവുകളും ഉറവിടങ്ങളും കണക്ഷനുകളും ഇവിടെ കാണപ്പെടും.",
     },
     "pa": {
-        "label": "Punjabi / ਪੰਜਾਬੀ (pa)",
+        "label": "🇮🇳 Punjabi / ਪੰਜਾਬੀ",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy ਨੂੰ ਪੁੱਛੋ",
         "tagline": "ਹਰੇਕ ਸਿਹਤ ਸਵਾਲ, ਸਪਸ਼ਟ ਸਬੂਤਾਂ ਨਾਲ ਜੁੜਿਆ ਹੋਇਆ",
@@ -187,7 +202,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "ਤੁਹਾਡੇ ਸਬੂਤ, ਸਰੋਤ ਅਤੇ ਕਨੈਕਸ਼ਨ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ।",
     },
     "or": {
-        "label": "Odia / ଓଡ଼ିଆ (or)",
+        "label": "🇮🇳 Odia / ଓଡ଼ିଆ",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy କୁ ପଚାରନ୍ତୁ",
         "tagline": "ପ୍ରତ୍ୟେକ ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରଶ୍ନ, ସ୍ପଷ୍ଟ ପ୍ରମାଣ ସହିତ ସଂଯୁକ୍ତ",
@@ -201,7 +217,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "ଆପଣଙ୍କର ପ୍ରମାଣ, ଉତ୍ସ ଏବଂ ସଂଯୋଗଗୁଡ଼ିକ ଏଠାରେ ଦେଖାଯିବ।",
     },
     "as": {
-        "label": "Assamese / অসমীয়া (as)",
+        "label": "🇮🇳 Assamese / অসমীয়া",
+        "category": "Indian",
         "dir": "ltr",
         "title": "MedicoBuddy ক সোধক",
         "tagline": "প্ৰতিটো স্বাস্থ্য প্ৰশ্ন, স্পষ্ট প্ৰমাণৰ সৈতে সংযোজিত",
@@ -215,7 +232,8 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "empty_evidence": "আপোনাৰ প্ৰমাণ, উৎস আৰু সংযোগসমূহ ইয়াত দেখা যাব।",
     },
     "ur": {
-        "label": "Urdu / اردو (ur - RTL)",
+        "label": "🇮🇳 Urdu / اردو (RTL)",
+        "category": "Indian",
         "dir": "rtl",
         "title": "MedicoBuddy سے پوچھیں",
         "tagline": "صحت کا ہر سوال، واضح شواہد سے منسلک",
@@ -227,6 +245,216 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "quick_queries": "فوری مثال کے سوالات",
         "status_ready": "🟢 شواہد سروس تیار ہے",
         "empty_evidence": "آپ کے شواہد، ذرائع اور رابطے یہاں ظاہر ہوں گے۔",
+    },
+    "brx": {
+        "label": "🇮🇳 Bodo / बर' / बड़ो",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy नो सों",
+        "tagline": "फ्रोमबो सासथि सोंथि, रोखा साखिजों सोमोन्दो गोनां",
+        "input_placeholder": "MedicoBuddy नो सासथि सोंथि सों...",
+        "new_chat": "➕ गोदान सावरायनाय",
+        "recent_chats": "बावदिसै सावरायनायफोर",
+        "preferences": "पसन्द आरो राव",
+        "evidence_title": "साखि गियान",
+        "quick_queries": "गोख्रै बिदिन्थि सोंथि",
+        "status_ready": "🟢 साखि सेबा थियारि",
+        "empty_evidence": "नोंथांनि साखिफोर, फुंखाफोर आरो सोमोन्दोफोरा बेयाव नुजाथिगन।",
+    },
+    "doi": {
+        "label": "🇮🇳 Dogri / डोगरी",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy थमा पुच्छो",
+        "tagline": "हर सेहत सवाल, साफ सबूतें कन्नै जुड़े दा",
+        "input_placeholder": "MedicoBuddy गी सेहत दा सवाल पुच्छो...",
+        "new_chat": "➕ नवी गल्लबात",
+        "recent_chats": "हालै दी गल्लबात",
+        "preferences": "पसंद ते बोली",
+        "evidence_title": "सबूत समझदारी",
+        "quick_queries": "झटपट मिसाल सवाल",
+        "status_ready": "🟢 सबूत सेवा तैयार",
+        "empty_evidence": "तुंदे सबूत, सोमे ते जोड़ इत्थै लभङन।",
+    },
+    "ks": {
+        "label": "🇮🇳 Kashmiri / کٲشُر (RTL)",
+        "category": "Indian",
+        "dir": "rtl",
+        "title": "MedicoBuddy نس پرچھیو",
+        "tagline": "پرتھ سہیتی سوال، صاف ثبوتن سئتھ گنڈتھ",
+        "input_placeholder": "MedicoBuddy نس پرچھیو سہیتی سوال...",
+        "new_chat": "➕ ناو کٹھ",
+        "recent_chats": "حالیہ کٹھ",
+        "preferences": "ترجیحات تہ زبان",
+        "evidence_title": "ثبوت زان",
+        "status_ready": "🟢 ثبوت سروس تیار",
+        "empty_evidence": "تُہند ثبوت تہ ذریعہ ییتین لَبنہ یین।",
+        "quick_queries": "تیز سوال",
+    },
+    "kok": {
+        "label": "🇮🇳 Konkani / कोंकणी",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy क विचारांत",
+        "tagline": "दर एक भलायकी प्रस्न, निवळ पुराव्यांक जोडिल्लो",
+        "input_placeholder": "MedicoBuddy क भलायकेचो प्रस्न विचारांत...",
+        "new_chat": "➕ नवी उलोवप",
+        "recent_chats": "फाटली उलोवपां",
+        "preferences": "पसंत आनी भास",
+        "evidence_title": "पुरावा बुद्धीमत्ता",
+        "quick_queries": "वेगीं देखींचे प्रस्न",
+        "status_ready": "🟢 पुरावा सेवा तयार",
+        "empty_evidence": "तुमचे पुरावे आनी संबंद हांगा दिसतले.",
+    },
+    "mai": {
+        "label": "🇮🇳 Maithili / मैथिली",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy सँ पूछू",
+        "tagline": "प्रत्येक स्वास्थ्य प्रश्न, स्पष्ट प्रमाण सँ जुड़ल",
+        "input_placeholder": "MedicoBuddy सँ स्वास्थ्य प्रश्न पूछू...",
+        "new_chat": "➕ नव बातचीत",
+        "recent_chats": "हालक बातचीत",
+        "preferences": "पसंद आ भाषा",
+        "evidence_title": "प्रमाण बुद्धिमत्ता",
+        "quick_queries": "त्वरित उदाहरण प्रश्न",
+        "status_ready": "🟢 प्रमाण सेवा तैयार",
+        "empty_evidence": "अहाँक प्रमाण आ स्रोत एतय देखायत।",
+    },
+    "mni": {
+        "label": "🇮🇳 Manipuri (Meitei) / মৈতৈলোন্",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy দা হাংবীয়ু",
+        "tagline": "અના-લાয়েংগী হংবা খুদিংমক, শেংবা প্রমানগা শম্নবা",
+        "input_placeholder": "MedicoBuddy দা অনাবগী ৱাহং হাংবীয়ু...",
+        "new_chat": "➕ অনৌবা ৱারী",
+        "recent_chats": "হন্দক্তা চতখবা ৱারী",
+        "preferences": "পামজবা অমসুং লোন",
+        "evidence_title": "প্রমান জ্ঞান",
+        "quick_queries": "য়াংনা খঙনবগী ৱাহং",
+        "status_ready": "🟢 প্রমান থৌরাং শেমখ্রে",
+        "empty_evidence": "নহাকগী প্রমান অমসুং মরীশিং অসিনা মফম অসিদা উবা ফংগনি।",
+    },
+    "ne": {
+        "label": "🇮🇳 Nepali / नेपाली",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy लाई सोध्नुहोस्",
+        "tagline": "हरेक स्वास्थ्य प्रश्न, स्पष्ट प्रमाणसँग जोडिएको",
+        "input_placeholder": "MedicoBuddy लाई स्वास्थ्य प्रश्न सोध्नुहोस्...",
+        "new_chat": "➕ नयाँ कुराकानी",
+        "recent_chats": "भर्खरका कुराकानीहरू",
+        "preferences": "प्राथमिकता र भाषा",
+        "evidence_title": "प्रमाण बुद्धिमत्ता",
+        "quick_queries": "द्रुत उदाहरण प्रश्नहरू",
+        "status_ready": "🟢 प्रमाण सेवा तयार छ",
+        "empty_evidence": "तपाईंका प्रमाण, स्रोत र सम्बन्धहरू यहाँ देखिनेछन्।",
+    },
+    "sa": {
+        "label": "🇮🇳 Sanskrit / संस्कृतम्",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy पृच्छतु",
+        "tagline": "प्रतिस्वास्थ्यप्रश्नः, स्पष्टप्रमाणैः सह सम्बद्धः",
+        "input_placeholder": "MedicoBuddy स्वास्थ्यप्रश्नं पृच्छतु...",
+        "new_chat": "➕ नूतनसंवादः",
+        "recent_chats": "नूतनसंवादाः",
+        "preferences": "प्राधान्यं भाषा च",
+        "evidence_title": "प्रमाणबुद्धिमत्ता",
+        "quick_queries": "शीघ्रौदाहरणप्रश्नाः",
+        "status_ready": "🟢 प्रमाणसेवा सज्जीकृता",
+        "empty_evidence": "भवतः प्रमाणानि स्रोतांसि च अत्र दृश्यन्ते।",
+    },
+    "sat": {
+        "label": "🇮🇳 Santali / ਓਲ ᱪᱤᱠᱤ / ସାନ୍ତାଳୀ",
+        "category": "Indian",
+        "dir": "ltr",
+        "title": "MedicoBuddy ᱠᱩᱞᱤᱭᱮᱢ",
+        "tagline": "ᱡᱚᱛᱚ ᱞᱟᱭ ᱠᱩᱠᱞᱤ, ᱥᱟᱹᱨᱤ ᱯᱩᱨᱟᱹᱣ ᱥᱟᱶ ᱡᱚᱲᱟᱣ",
+        "input_placeholder": "MedicoBuddy ᱴᱷᱮᱱ ᱞᱟᱭ ᱠᱩᱠᱞᱤ ᱠᱩᱞᱤᱭᱮᱢ...",
+        "new_chat": "➕ ᱱᱟᱶᱟ ᱜᱟᱞ point",
+        "recent_chats": "ᱱᱤᱛᱚᱜᱟᱜ ᱜᱟᱞ point",
+        "preferences": "ᱯᱟᱹᱨᱥᱤ ᱟᱨ preferences",
+        "evidence_title": "ᱯᱩᱨᱟᱹᱣ ᱵᱩᱫᱷᱤ",
+        "quick_queries": "ᱞᱚᱜᱚᱱ ᱠᱩᱠᱞᱤ",
+        "status_ready": "🟢 ᱯᱩᱨᱟᱹᱣ ᱥᱮᱵᱟ ᱛᱮᱭᱟᱨ",
+        "empty_evidence": "ᱟᱢᱟᱜ ᱯᱩᱨᱟᱹᱣ ᱟᱨ ᱥᱚᱨᱚᱥ ᱱᱚᱸᱰᱮ ᱧᱮᱞᱚᱜᱼᱟ।",
+    },
+    "sd": {
+        "label": "🇮🇳 Sindhi / سنڌي (RTL)",
+        "category": "Indian",
+        "dir": "rtl",
+        "title": "MedicoBuddy کان پڇو",
+        "tagline": "هر صحت جو سوال، واضح ثبوتن سان جڙيل",
+        "input_placeholder": "MedicoBuddy کان صحت جو سوال پڇو...",
+        "new_chat": "➕ نئين گفتگو",
+        "recent_chats": "حاليہ گفتگو",
+        "preferences": "ترجيحات ۽ ٻولي",
+        "evidence_title": "ثبوت ذھانت",
+        "quick_queries": "فوري مثال وارا سوال",
+        "status_ready": "🟢 ثبوت سروس تيار آھي",
+        "empty_evidence": "توهان جا ثبوت، ذريعا ۽ رابطا هتي ظاهر ٿيندا.",
+    },
+    # ── Global Languages ──────────────────────────────────────
+    "en": {
+        "label": "🌍 English (en)",
+        "category": "Global",
+        "dir": "ltr",
+        "title": "Ask MedicoBuddy",
+        "tagline": "Every health question, connected to clearer evidence",
+        "input_placeholder": "Ask MedicoBuddy a health question...",
+        "new_chat": "➕ New Conversation",
+        "recent_chats": "Recent Conversations",
+        "preferences": "Preferences & Language",
+        "evidence_title": "Evidence Intelligence",
+        "quick_queries": "Quick Example Queries",
+        "status_ready": "🟢 Evidence service ready",
+        "empty_evidence": "Your evidence, sources and connections will appear here.",
+    },
+    "es": {
+        "label": "🌍 Spanish / Español (es)",
+        "category": "Global",
+        "dir": "ltr",
+        "title": "Pregunta a MedicoBuddy",
+        "tagline": "Cada pregunta de salud, conectada a evidencia más clara",
+        "input_placeholder": "Haz una pregunta de salud a MedicoBuddy...",
+        "new_chat": "➕ Nueva conversación",
+        "recent_chats": "Conversaciones recientes",
+        "preferences": "Preferencias e idioma",
+        "evidence_title": "Inteligencia de Evidencia",
+        "quick_queries": "Consultas de ejemplo",
+        "status_ready": "🟢 Servicio de evidencia listo",
+        "empty_evidence": "Tus evidencias, fuentes y conexiones aparecerán aquí.",
+    },
+    "fr": {
+        "label": "🌍 French / Français (fr)",
+        "category": "Global",
+        "dir": "ltr",
+        "title": "Posez une question à MedicoBuddy",
+        "tagline": "Chaque question de santé, reliée à des preuves plus claires",
+        "input_placeholder": "Posez une question de santé à MedicoBuddy...",
+        "new_chat": "➕ Nouvelle conversation",
+        "recent_chats": "Conversations récentes",
+        "preferences": "Préférences et langue",
+        "evidence_title": "Intelligence de Preuve",
+        "quick_queries": "Exemples de questions",
+        "status_ready": "🟢 Service de preuve prêt",
+        "empty_evidence": "Vos preuves, sources et connexions apparaîtront ici.",
+    },
+    "de": {
+        "label": "🌍 German / Deutsch (de)",
+        "dir": "ltr",
+        "title": "Fragen Sie MedicoBuddy",
+        "tagline": "Jede Gesundheitsfrage, verbunden mit klareren Beweisen",
+        "input_placeholder": "Stellen Sie MedicoBuddy eine Gesundheitsfrage...",
+        "new_chat": "➕ Neue Unterhaltung",
+        "recent_chats": "Letzte Unterhaltungen",
+        "preferences": "Einstellungen und Sprache",
+        "evidence_title": "Evidenz-Intelligenz",
+        "quick_queries": "Schnelle Beispielsfragen",
+        "status_ready": "🟢 Evidenzdienst bereit",
+        "empty_evidence": "Ihre Evidenz, Quellen und Verbindungen werden hier angezeigt.",
     },
 }
 
@@ -304,9 +532,9 @@ def get_cached_graph_app():
     return create_app()
 
 
-# ── 3. Sidebar Controls & Global Language Selector ────────────
+# ── 3. Sidebar Controls & Global Searchable Language Selector ─
 def render_sidebar() -> dict[str, Any]:
-    """Render Navigation Sidebar with All-Indian Languages Selector & WCAG AA Contrast."""
+    """Render Navigation Sidebar with 22 Scheduled Indian Languages & Searchable Selector."""
     with st.sidebar:
         st.title("🩺 MedicoBuddy AI")
         st.caption("Evidence-Grounded Health Educational Assistant")
@@ -318,7 +546,7 @@ def render_sidebar() -> dict[str, Any]:
             format_func=lambda k: LANGUAGES[k]["label"],
             index=0,
         )
-        t = LANGUAGES[lang_code]
+        t = LANGUAGES.get(lang_code, LANGUAGES["auto"])
 
         if st.button(t["new_chat"], use_container_width=True):
             st.session_state.messages = []
