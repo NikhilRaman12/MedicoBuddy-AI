@@ -1,12 +1,10 @@
-"""MedicoBuddy AI — Enterprise Health Educational Workspace.
+"""MedicoBuddy AI — Enterprise Multilingual Health Educational Workspace.
 
-Refinements:
-1. Enterprise Tagline: "Every health question, connected to clearer evidence"
-2. Status Badge: "Evidence service ready" (Replaced oversized GraphRAG badges)
-3. Empty Evidence Panel: Clean empty state ("Your evidence, sources and connections will appear here")
-   without static ASCII flowcharts; reveals real citations & connections after query execution.
-4. Global Language Selector: Searchable multi-language dictionary with RTL & locale code support.
-5. Dark Navy & Jade Enterprise Palette with WCAG 2.2 AA Contrast.
+Features:
+- Complete All-Indian Languages Dictionary (Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu)
+- Enterprise Tagline: "Every health question, connected to clearer evidence"
+- Subtle Status Indicator: "Evidence service ready"
+- 70/30 Chat-First Workspace & Clean Empty Evidence Panel
 """
 
 from __future__ import annotations
@@ -46,7 +44,7 @@ def get_secret(key: str, default: str = "") -> str:
 
 API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
 
-# ── Multilingual Dictionary with Locale Codes & RTL Support ────
+# ── All-Indian Languages Dictionary ───────────────────────────
 LANGUAGES: dict[str, dict[str, Any]] = {
     "en": {
         "label": "English (en)",
@@ -90,47 +88,145 @@ LANGUAGES: dict[str, dict[str, Any]] = {
         "status_ready": "🟢 ஆதார சேவை தயார்",
         "empty_evidence": "உங்கள் ஆதாரங்கள், மூலங்கள் மற்றும் இணைப்புகள் இங்கு தோன்றும்.",
     },
-    "es": {
-        "label": "Spanish / Español (es)",
+    "te": {
+        "label": "Telugu / తెలుగు (te)",
         "dir": "ltr",
-        "title": "Pregunta a MedicoBuddy",
-        "tagline": "Cada pregunta de salud, conectada a evidencia más clara",
-        "input_placeholder": "Haz una pregunta de salud a MedicoBuddy...",
-        "new_chat": "➕ Nueva conversación",
-        "recent_chats": "Conversaciones recientes",
-        "preferences": "Preferencias e idioma",
-        "evidence_title": "Inteligencia de Evidencia",
-        "quick_queries": "Consultas de ejemplo",
-        "status_ready": "🟢 Servicio de evidencia listo",
-        "empty_evidence": "Tus evidencias, fuentes y conexiones aparecerán aquí.",
+        "title": "MedicoBuddy ని అడగండి",
+        "tagline": "ప్రతి ఆరోగ్య ప్రశ్న, స్పష్టమైన ఆధారాలతో అనుసంధానించబడింది",
+        "input_placeholder": "MedicoBuddy ని ఒక ఆరోగ్య ప్రశ్న అడగండి...",
+        "new_chat": "➕ కొత్త సంభాషణ",
+        "recent_chats": "ఇటీవలి సంభాషణలు",
+        "preferences": "ప్రాధాన్యతలు & భాష",
+        "evidence_title": "ఆధారాల నివేదిక",
+        "quick_queries": "త్వరిత ఉదాహరణ ప్రశ్నలు",
+        "status_ready": "🟢 ఆధారాల సేవ సిద్ధంగా ఉంది",
+        "empty_evidence": "మీ ఆధారాలు, మూలాలు మరియు సంబంధాలు ఇక్కడ కనిపిస్తాయి.",
     },
-    "fr": {
-        "label": "French / Français (fr)",
+    "bn": {
+        "label": "Bengali / বাংলা (bn)",
         "dir": "ltr",
-        "title": "Posez une question à MedicoBuddy",
-        "tagline": "Chaque question de santé, reliée à des preuves plus claires",
-        "input_placeholder": "Posez une question de santé à MedicoBuddy...",
-        "new_chat": "➕ Nouvelle conversation",
-        "recent_chats": "Conversations récentes",
-        "preferences": "Préférences et langue",
-        "evidence_title": "Intelligence de Preuve",
-        "quick_queries": "Exemples de questions",
-        "status_ready": "🟢 Service de preuve prêt",
-        "empty_evidence": "Vos preuves, sources et connexions apparaîtront ici.",
+        "title": "MedicoBuddy-কে জিজ্ঞাসা করুন",
+        "tagline": "প্রতিটি স্বাস্থ্য প্রশ্ন, স্পষ্ট প্রমাণের সাথে যুক্ত",
+        "input_placeholder": "MedicoBuddy-কে একটি স্বাস্থ্য প্রশ্ন জিজ্ঞাসা করুন...",
+        "new_chat": "➕ নতুন কথোপকথন",
+        "recent_chats": "সাম্প্রতিক কথোপকথন",
+        "preferences": "পছন্দ ও ভাষা",
+        "evidence_title": "প্রমাণ ইনটেলিজেন্স",
+        "quick_queries": "দ্রুত উদাহরণের প্রশ্ন",
+        "status_ready": "🟢 প্রমাণ সেবা প্রস্তুত",
+        "empty_evidence": "আপনার প্রমাণ, উৎস এবং সংযোগগুলি এখানে উপস্থিত হবে।",
     },
-    "ar": {
-        "label": "Arabic / العربية (ar - RTL)",
+    "mr": {
+        "label": "Marathi / मराठी (mr)",
+        "dir": "ltr",
+        "title": "MedicoBuddy ला विचारा",
+        "tagline": "प्रत्येक आरोग्य प्रश्न, स्पष्ट पुराव्यांशी जोडलेला",
+        "input_placeholder": "MedicoBuddy ला आरोग्याचा प्रश्न विचारा...",
+        "new_chat": "➕ नवीन संभाषण",
+        "recent_chats": "नुकतेच झालेले संभाषण",
+        "preferences": "पसंती आणि भाषा",
+        "evidence_title": "पुरावा बुद्धिमत्ता",
+        "quick_queries": "जलद उदाहरण प्रश्न",
+        "status_ready": "🟢 पुरावा सेवा तयार आहे",
+        "empty_evidence": "तुमचे पुरावे, स्रोत आणि कनेक्शन येथे दिसतील.",
+    },
+    "gu": {
+        "label": "Gujarati / ગુજરાતી (gu)",
+        "dir": "ltr",
+        "title": "MedicoBuddy ને પૂછો",
+        "tagline": "દરેક આરોગ્ય પ્રશ્ન, સ્પષ્ટ પુરાવા સાથે જોડાયેલ",
+        "input_placeholder": "MedicoBuddy ને આરોગ્યનો પ્રશ્ન પૂછો...",
+        "new_chat": "➕ નવી વાતચીત",
+        "recent_chats": "તાજેતરની વાતચીત",
+        "preferences": "પસંદગીઓ અને ભાષા",
+        "evidence_title": "પુરાવા ઇન્ટેલિજન્સ",
+        "quick_queries": "ઝડપી ઉદાહરણ પ્રશ્નો",
+        "status_ready": "🟢 પુરાવા સેવા તૈયાર છે",
+        "empty_evidence": "તમારા પુરાવા, સ્ત્રોતો અને જોડાણો અહીં દેખાશે.",
+    },
+    "kn": {
+        "label": "Kannada / ಕನ್ನಡ (kn)",
+        "dir": "ltr",
+        "title": "MedicoBuddy ಅನ್ನು ಕೇಳಿ",
+        "tagline": "ప్రతి ఆరోగ్య ప్రశ్న, స్పష్టమైన ఆధారాలతో అనుసంధానించబడింది",
+        "input_placeholder": "MedicoBuddy ಗೆ ಆರೋಗ್ಯ ಪ್ರಶ್ನೆ ಕೇಳಿ...",
+        "new_chat": "➕ ಹೊಸ ಸಂಭಾಷಣೆ",
+        "recent_chats": "ಇತ್ತೀಚಿನ ಸಂಭಾಷಣೆಗಳು",
+        "preferences": "ಆದ್ಯತೆಗಳು ಮತ್ತು ಭಾಷೆ",
+        "evidence_title": "ಆಧಾರ ಬುದ್ಧಿವಂತಿಕೆ",
+        "quick_queries": "ತ್ವರಿತ ಉದಾಹರಣೆ ಪ್ರಶ್ನೆಗಳು",
+        "status_ready": "🟢 ಆಧಾರ ಸೇವೆ ಸಿದ್ಧವಾಗಿದೆ",
+        "empty_evidence": "ನಿಮ್ಮ ಆಧಾರಗಳು, ಮೂಲಗಳು ಮತ್ತು ಸಂಪರ್ಕಗಳು ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.",
+    },
+    "ml": {
+        "label": "Malayalam / മലയാളം (ml)",
+        "dir": "ltr",
+        "title": "MedicoBuddy യോട് ചോദിക്കൂ",
+        "tagline": "ഓരോ ആരോഗ്യ ചോദ്യവും വ്യക്തമായ തെളിവുകളുമായി ബന്ധപ്പെട്ടിരിക്കുന്നു",
+        "input_placeholder": "MedicoBuddy യോട് ഒരു ആരോഗ്യ ചോദ്യം ചോദിക്കൂ...",
+        "new_chat": "➕ പുതിയ സംഭാഷണം",
+        "recent_chats": "സമീപകാല സംഭാഷണങ്ങൾ",
+        "preferences": "മുൻഗണനകളും ഭാഷയും",
+        "evidence_title": "തെളിവ് ഇൻ്റലിജൻസ്",
+        "quick_queries": "വേഗത്തിലുള്ള ഉദാഹരണ ചോദ്യങ്ങൾ",
+        "status_ready": "🟢 തെളിവ് സേവനം തയ്യാറാണ്",
+        "empty_evidence": "നിങ്ങളുടെ തെളിവുകളും ഉറവിടങ്ങളും കണക്ഷനുകളും ഇവിടെ കാണപ്പെടും.",
+    },
+    "pa": {
+        "label": "Punjabi / ਪੰਜਾਬੀ (pa)",
+        "dir": "ltr",
+        "title": "MedicoBuddy ਨੂੰ ਪੁੱਛੋ",
+        "tagline": "ਹਰੇਕ ਸਿਹਤ ਸਵਾਲ, ਸਪਸ਼ਟ ਸਬੂਤਾਂ ਨਾਲ ਜੁੜਿਆ ਹੋਇਆ",
+        "input_placeholder": "MedicoBuddy ਨੂੰ ਸਿਹਤ ਸਵਾਲ ਪੁੱਛੋ...",
+        "new_chat": "➕ ਨਵੀਂ ਗੱਲਬਾਤ",
+        "recent_chats": "ਹਾਲੀਆ ਗੱਲਬਾਤ",
+        "preferences": "ਤਰਜੀਹਾਂ ਅਤੇ ਭਾਸ਼ਾ",
+        "evidence_title": "ਸਬੂਤ ਇੰਟੈਲੀਜੈਂਸ",
+        "quick_queries": "ਤੁਰੰਤ ਉਦਾਹਰਨ ਸਵਾਲ",
+        "status_ready": "🟢 ਸਬੂਤ ਸੇਵਾ ਤਿਆਰ ਹੈ",
+        "empty_evidence": "ਤੁਹਾਡੇ ਸਬੂਤ, ਸਰੋਤ ਅਤੇ ਕਨੈਕਸ਼ਨ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ।",
+    },
+    "or": {
+        "label": "Odia / ଓଡ଼ିଆ (or)",
+        "dir": "ltr",
+        "title": "MedicoBuddy କୁ ପଚାରନ୍ତୁ",
+        "tagline": "ପ୍ରତ୍ୟେକ ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରଶ୍ନ, ସ୍ପଷ୍ଟ ପ୍ରମାଣ ସହିତ ସଂଯୁକ୍ତ",
+        "input_placeholder": "MedicoBuddy କୁ ଏକ ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରଶ୍ନ ପଚାରନ୍ତୁ...",
+        "new_chat": "➕ ନୂତନ କଥୋପକଥନ",
+        "recent_chats": "ସାମ୍ପ୍ରତିକ କଥୋପକଥନ",
+        "preferences": "ପସନ୍ଦ ଏବଂ ଭାଷା",
+        "evidence_title": "ପ୍ରମାଣ ବୁଦ୍ଧିମତ୍ତା",
+        "quick_queries": "ଦ୍ରୁତ ଉଦାହରଣ ପ୍ରଶ୍ନ",
+        "status_ready": "🟢 ପ୍ରମାଣ ସେବା ପ୍ରସ୍ତୁତ",
+        "empty_evidence": "ଆପଣଙ୍କର ପ୍ରମାଣ, ଉତ୍ସ ଏବଂ ସଂଯୋଗଗୁଡ଼ିକ ଏଠାରେ ଦେଖାଯିବ।",
+    },
+    "as": {
+        "label": "Assamese / অসমীয়া (as)",
+        "dir": "ltr",
+        "title": "MedicoBuddy ক সোধক",
+        "tagline": "প্ৰতিটো স্বাস্থ্য প্ৰশ্ন, স্পষ্ট প্ৰমাণৰ সৈতে সংযোজিত",
+        "input_placeholder": "MedicoBuddy ক এটা স্বাস্থ্য প্ৰশ্ন সোধক...",
+        "new_chat": "➕ নতুন কথোপকথন",
+        "recent_chats": "শেহতীয়া কথোপকথন",
+        "preferences": "পছন্দ আৰু ভাষা",
+        "evidence_title": "প্ৰমাণ বুদ্ধিমত্তা",
+        "quick_queries": "দ্ৰুত উদাহৰণ প্ৰশ্ন",
+        "status_ready": "🟢 প্ৰমাণ সেৱা প্ৰস্তুত",
+        "empty_evidence": "আপোনাৰ প্ৰমাণ, উৎস আৰু সংযোগসমূহ ইয়াত দেখা যাব।",
+    },
+    "ur": {
+        "label": "Urdu / اردو (ur - RTL)",
         "dir": "rtl",
-        "title": "اسأل MedicoBuddy",
-        "tagline": "كل سؤال صحي، متصل بأدلة أكثر وضوحاً",
-        "input_placeholder": "اسأل MedicoBuddy سؤالاً صحياً...",
-        "new_chat": "➕ محادثة جديدة",
-        "recent_chats": "المحادثات الأخيرة",
-        "preferences": "التفضيلات واللغة",
-        "evidence_title": "ذكاء الأدلة",
-        "quick_queries": "أسئلة توضيحية",
-        "status_ready": "🟢 خدمة الأدلة جاهزة",
-        "empty_evidence": "ستظهر أدلتك والمصادر والروابط هنا.",
+        "title": "MedicoBuddy سے پوچھیں",
+        "tagline": "صحت کا ہر سوال، واضح شواہد سے منسلک",
+        "input_placeholder": "MedicoBuddy سے صحت کا سوال پوچھیں...",
+        "new_chat": "➕ نئی گفتگو",
+        "recent_chats": "حالیہ گفتگو",
+        "preferences": "ترجیحات اور زبان",
+        "evidence_title": "شواہد انٹیلی جنس",
+        "quick_queries": "فوری مثال کے سوالات",
+        "status_ready": "🟢 شواہد سروس تیار ہے",
+        "empty_evidence": "آپ کے شواہد، ذرائع اور رابطے یہاں ظاہر ہوں گے۔",
     },
 }
 
@@ -210,14 +306,14 @@ def get_cached_graph_app():
 
 # ── 3. Sidebar Controls & Global Language Selector ────────────
 def render_sidebar() -> dict[str, Any]:
-    """Render Navigation Sidebar with Global Searchable Language Selector & WCAG AA Contrast."""
+    """Render Navigation Sidebar with All-Indian Languages Selector & WCAG AA Contrast."""
     with st.sidebar:
         st.title("🩺 MedicoBuddy AI")
         st.caption("Evidence-Grounded Health Educational Assistant")
         st.markdown("---")
 
         lang_code = st.selectbox(
-            "Language / भाषा / மொழி",
+            "Language / ਭਾਸ਼ਾ / 🌐",
             options=list(LANGUAGES.keys()),
             format_func=lambda k: LANGUAGES[k]["label"],
             index=0,
@@ -427,17 +523,14 @@ def render_evidence_panel(data: dict[str, Any] | None, t: dict[str, Any]) -> Non
         st.write(t["empty_evidence"])
         return
 
-    # Evidence Strength Metric
     strength = data.get("overall_evidence_level", "insufficient").title()
     st.metric("Evidence Strength Score", strength)
     st.markdown("---")
 
-    # Evidence Connections Graph Summary
     st.markdown("##### Evidence Connections")
     st.success("🔗 **Connected Nodes:** `ReportedSymptom` ➔ `SelfCareProtocol` ➔ `SafetyConstraint` ➔ `LiteratureCitation`")
     st.markdown("---")
 
-    # Clickable Citations
     st.markdown("##### Verified Citations")
     citations = data.get("citations", [])
     if not citations:
