@@ -1,11 +1,10 @@
-"""MedicoBuddy AI — Enterprise GraphRAG Assistant.
+"""MedicoBuddy AI — Enterprise Multilingual GraphRAG Health Assistant.
 
-100% Native Streamlit Rendering — Fixes:
-1. Escaped brand-title HTML -> Converted to native st.title(), st.caption(), st.success()
-2. Sidebar WCAG AA Contrast -> High contrast bright primary & muted text in sidebar
-3. Compact Header & Composer -> Active question composer immediately visible above the fold
-4. Consistent Suggestion Chips -> Clean pills layout without text wrapping bugs
-5. Readable Evidence Intelligence Panel -> Graph-preview illustration & clear explanations
+Updates:
+1. Removed technical terms ("Neo4j", "PubMed") from tagline -> Replaced with:
+   "Evidence-grounded self-care guidance powered by GraphRAG clinical intelligence"
+2. Multilingual Support: English, Hindi (हिंदी), and Tamil (தமிழ்) with reactive UI label updates
+3. Preserved 70/30 Chat-First UI & Native Streamlit Layout
 """
 
 from __future__ import annotations
@@ -45,6 +44,43 @@ def get_secret(key: str, default: str = "") -> str:
 
 API_BASE = get_secret("API_BASE", "http://localhost:8000/api/v1")
 
+# ── Multilingual Dictionary (English, Hindi, Tamil) ────────────
+TRANSLATIONS: dict[str, dict[str, str]] = {
+    "English": {
+        "title": "Ask MedicoBuddy",
+        "tagline": "Evidence-grounded self-care guidance powered by GraphRAG clinical intelligence",
+        "input_placeholder": "Ask MedicoBuddy a health question...",
+        "new_chat": "➕ New Conversation",
+        "recent_chats": "Recent Conversations",
+        "preferences": "Preferences & Language",
+        "evidence_title": "Evidence Intelligence",
+        "quick_queries": "Quick Example Queries",
+        "graph_active": "🟢 GraphRAG Active",
+    },
+    "Hindi (हिंदी)": {
+        "title": "MedicoBuddy से पूछें",
+        "tagline": "ग्राफ-आरएजी क्लिनिकल इंटेलिजेंस द्वारा संचालित साक्ष्य-आधारित स्व-देखभाल मार्गदर्शन",
+        "input_placeholder": "MedicoBuddy से स्वास्थ्य प्रश्न पूछें...",
+        "new_chat": "➕ नई बातचीत",
+        "recent_chats": "हाल की बातचीत",
+        "preferences": "प्राथमिकताएं और भाषा",
+        "evidence_title": "साक्ष्य इंटेलिजेंस",
+        "quick_queries": "त्वरित उदाहरण प्रश्न",
+        "graph_active": "🟢 ग्राफ-आरएजी सक्रिय",
+    },
+    "Tamil (தமிழ்)": {
+        "title": "MedicoBuddy யிடம் கேட்கவும்",
+        "tagline": "GraphRAG மருத்துவ நுண்ணறிவால் இயங்கும் ஆதார அடிப்படையிலான சுயபராமரிப்பு வழிகாட்டுதல்",
+        "input_placeholder": "MedicoBuddy யிடம் சுகாதார கேள்வி கேட்கவும்...",
+        "new_chat": "➕ புதிய உரையாடல்",
+        "recent_chats": "சமீபத்திய உரையாடல்கள்",
+        "preferences": "விருப்பத்தேர்வுகள் & மொழி",
+        "evidence_title": "ஆதார நுண்ணறிவு",
+        "quick_queries": "வேகமான உதாரண கேள்விகள்",
+        "graph_active": "🟢 GraphRAG செயலில் உள்ளது",
+    },
+}
+
 SUGGESTION_OPTIONS = [
     "Mild headache since morning",
     "Temporary fatigue after work",
@@ -62,13 +98,11 @@ html, body, [class*="css"] {
     font-size: 14px !important;
 }
 
-/* Base Canvas Dark Navy */
 .stApp {
     background-color: #090d16 !important;
     color: #f8fafc !important;
 }
 
-/* Sidebar WCAG AA Contrast Rules */
 section[data-testid="stSidebar"] {
     background-color: #0f172a !important;
     border-right: 1px solid #334155 !important;
@@ -91,12 +125,10 @@ section[data-testid="stSidebar"] .stTextInput input {
     border: 1px solid #475569 !important;
 }
 
-/* Hide Streamlit Header/Footer Chrome */
 header[data-testid="stHeader"] { visibility: hidden; height: 0; }
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 
-/* Micro Pill Buttons */
 .stButton>button {
     border-radius: 12px !important;
     font-weight: 600 !important;
@@ -123,29 +155,31 @@ def get_cached_graph_app():
     return create_app()
 
 
-# ── 3. Sidebar Controls & Progressive Safety Drawer ───────────
+# ── 3. Sidebar Controls & Language Selector ───────────────────
 def render_sidebar() -> dict[str, Any]:
-    """Render Left Navigation Sidebar with High-Contrast WCAG AA Styling."""
+    """Render Navigation Sidebar with Multilingual Support & High-Contrast WCAG AA Styling."""
     with st.sidebar:
         st.title("🩺 MedicoBuddy AI")
         st.caption("Evidence-Grounded Health Educational Assistant")
         st.markdown("---")
 
-        if st.button("➕ New Conversation", use_container_width=True):
+        lang = st.selectbox("Language / भाषा / மொழி", ["English", "Hindi (हिंदी)", "Tamil (தமிழ்)"], index=0)
+        t = TRANSLATIONS.get(lang, TRANSLATIONS["English"])
+
+        if st.button(t["new_chat"], use_container_width=True):
             st.session_state.messages = []
             st.rerun()
 
         st.markdown("---")
-        st.markdown("### Recent Conversations")
+        st.markdown(f"### {t['recent_chats']}")
         st.write("• **Mild Headache** *(Today)*")
         st.write("• **Indigestion & Gas** *(Yesterday)*")
         st.write("• **Temporary Fatigue** *(Jul 22)*")
 
         st.markdown("---")
-        st.markdown("### Preferences & Language")
-        lang = st.selectbox("Language", ["English", "Hindi (हिंदी)", "Tamil (தமிழ்)"], index=0)
-        high_contrast = st.checkbox("High Contrast Mode", value=True)
-        scrub_pii = st.checkbox("Scrub PII from logs", value=True)
+        st.markdown(f"### {t['preferences']}")
+        st.checkbox("High Contrast Mode", value=True)
+        st.checkbox("Scrub PII from logs", value=True)
 
         st.markdown("---")
         with st.expander("👤 Patient Context Parameters", expanded=False):
@@ -171,6 +205,8 @@ def render_sidebar() -> dict[str, Any]:
         st.caption("🔒 **Privacy Guarantee:** Zero PII collected. Automated regex PII scrubbing active.")
 
     return {
+        "lang": lang,
+        "translations": t,
         "age_range": age_range,
         "pregnancy_status": preg_status,
         "is_immunocompromised": is_immuno,
@@ -249,7 +285,6 @@ def process_query_direct(user_input: str, context: dict[str, Any]) -> dict[str, 
 # ── 5. Response Component Matrix ──────────────────────────────
 def render_response_components(data: dict[str, Any]) -> None:
     """Render structured response cards in left 70% workspace."""
-    # Emergency Escalation State
     if data.get("emergency_message"):
         contact = data.get("emergency_contact") or {}
         num = contact.get("number", "112")
@@ -260,7 +295,6 @@ def render_response_components(data: dict[str, Any]) -> None:
         )
         return
 
-    # Triage Outcome Banner
     triage = data.get("triage_outcome", "self_care")
     summary = data.get("urgency_summary", "Self-Care Guidance")
 
@@ -269,7 +303,6 @@ def render_response_components(data: dict[str, Any]) -> None:
     else:
         st.error(f"⚠️ **Triage Assessment:** {summary}")
 
-    # 4 Answer Tabs
     t1, t2, t3, t4 = st.tabs([
         "Overview Summary",
         "Safe Action Steps",
@@ -312,7 +345,6 @@ def render_response_components(data: dict[str, Any]) -> None:
             for item in data.get("seek_care_conditions", []):
                 st.markdown(f"• {item}")
 
-    # Copy / Export Controls
     st.markdown("---")
     report_md = f"""# MedicoBuddy AI Report
 Triage Status: {summary}
@@ -328,15 +360,14 @@ Comfort Steps: {', '.join(data.get('safe_comfort_steps', []))}
 
 
 # ── 6. Evidence Intelligence Panel (Right 30%) ────────────────
-def render_evidence_panel(data: dict[str, Any] | None) -> None:
+def render_evidence_panel(data: dict[str, Any] | None, t: dict[str, str]) -> None:
     """Render persistent Evidence Intelligence Panel in right 30% column."""
-    st.markdown("### Evidence Intelligence")
+    st.markdown(f"### {t['evidence_title']}")
 
     if not data:
         st.info("💡 **GraphRAG Validation Engine**")
         st.caption("Submit a symptom query to inspect evidence strength, verified literature citations, and knowledge graph connections.")
         
-        # High-contrast Graph Preview Illustration
         st.markdown("##### Graph Network Preview")
         st.code("""
 (User Query) ──► (Symptom Entity)
@@ -347,17 +378,14 @@ def render_evidence_panel(data: dict[str, Any] | None) -> None:
         """, language="text")
         return
 
-    # Evidence Strength Metric
     strength = data.get("overall_evidence_level", "insufficient").title()
     st.metric("Evidence Strength Score", strength)
     st.markdown("---")
 
-    # Graph Connections
     st.markdown("##### Visual GraphRAG Connections")
     st.success("🔗 **Active Path:** `ReportedSymptom` ➔ `SelfCareProtocol` ➔ `SafetyConstraint` ➔ `LiteratureCitation`")
     st.markdown("---")
 
-    # Clickable Citations
     st.markdown("##### Verified Citations")
     citations = data.get("citations", [])
     if not citations:
@@ -373,14 +401,15 @@ def render_evidence_panel(data: dict[str, Any] | None) -> None:
 # ── 7. Main Application Workspace ─────────────────────────────
 def main() -> None:
     context = render_sidebar()
+    t = context["translations"]
 
-    # Top App Header Bar (Native Streamlit Rendering — ZERO HTML Leaks!)
-    h_col1, h_col2 = st.columns([3, 1])
+    # Top App Header Bar
+    h_col1, h_col2 = st.columns([3.2, 1.2])
     with h_col1:
-        st.title("Ask MedicoBuddy")
-        st.caption("Evidence-grounded self-care guidance powered by Neo4j & PubMed GraphRAG")
+        st.title(t["title"])
+        st.caption(t["tagline"])
     with h_col2:
-        st.success("🟢 GraphRAG Active")
+        st.success(t["graph_active"])
 
     # 70/30 Workspace Split
     col_left, col_right = st.columns([2.7, 1.1])
@@ -388,9 +417,8 @@ def main() -> None:
     latest_data = None
 
     with col_left:
-        # Quick Suggestion Dropdown (Prevents awkward button wrapping!)
         selected_suggestion = st.selectbox(
-            "Quick Example Queries",
+            t["quick_queries"],
             ["Type custom question below..."] + SUGGESTION_OPTIONS,
             index=0,
             key="quick_suggestion_select",
@@ -398,7 +426,6 @@ def main() -> None:
 
         st.markdown("---")
 
-        # Chat Stream Container
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
@@ -410,8 +437,7 @@ def main() -> None:
                 else:
                     st.markdown(msg["content"])
 
-        # Main Input Composer (Visually active above the fold!)
-        user_input = st.chat_input("Ask MedicoBuddy a health question...", key="main_chat_composer")
+        user_input = st.chat_input(t["input_placeholder"], key="main_chat_composer")
         
         query_to_process = None
         if user_input:
@@ -452,7 +478,7 @@ def main() -> None:
                     })
 
     with col_right:
-        render_evidence_panel(latest_data)
+        render_evidence_panel(latest_data, t)
 
 
 if __name__ == "__main__":
