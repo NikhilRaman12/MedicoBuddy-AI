@@ -24,10 +24,13 @@ PERMITTED_SYMPTOMS: set[str] = {
     "mild fever", "low grade fever", "slight fever", "low fever",
     "digestive discomfort", "bloating", "gas", "acidity",
     "body ache", "body pain", "mild body pain",
-    "mild cold", "runny nose", "stuffy nose", "nasal congestion",
-    "sore throat", "mild sore throat",
+    "mild cold", "uncomplicated cold", "runny nose", "stuffy nose", "nasal congestion",
+    "sinus congestion", "mild sinus congestion",
+    "allergy", "mild allergy", "seasonal allergy",
+    "sore throat", "scratchy throat", "mild sore throat",
     "mild cough", "dry cough",
-    "difficulty sleeping", "trouble sleeping", "mild insomnia",
+    "sleep", "sleep hygiene", "hydration", "water intake",
+    "hair care", "skin care", "body care", "hygiene",
 }
 
 # ── Out-of-scope request patterns ────────────────────────────

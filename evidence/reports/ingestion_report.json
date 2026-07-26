@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-07-26T14:01:18.579534+00:00",
+  "total_manifest_sources": 5,
+  "total_documents_parsed": 5,
+  "total_chunks_generated": 5,
+  "valid_normalized_chunks": 5,
+  "quarantined_chunks": 0,
+  "failures_count": 0,
+  "failures": [],
+  "status": "success"
+}

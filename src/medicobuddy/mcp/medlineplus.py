@@ -1,8 +1,9 @@
-"""MedlinePlus / NLM consumer-health MCP connector."""
+"""MedlinePlus / NLM consumer-health MCP connector with robust XML parsing."""
 
 from __future__ import annotations
 
 import logging
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 from medicobuddy.mcp.base import MCPConnector
@@ -20,15 +21,15 @@ class MedlinePlusConnector(MCPConnector):
 
     async def is_available(self) -> bool:
         try:
-            params = {"db": "healthTopics", "term": "test", "retmax": "1"}
-            await self._get(f"{MEDLINEPLUS_BASE}/query", params=params)
-            return True
+            params = {"db": "healthTopics", "term": "headache", "retmax": "1"}
+            xml_str = await self._get_xml(f"{MEDLINEPLUS_BASE}/query", params=params)
+            return "<nlmSearchResult" in xml_str or "<document" in xml_str
         except Exception:
             logger.warning("MedlinePlus connector unavailable")
             return False
 
     async def search(self, query: str, max_results: int = 5) -> list[MCPResult]:
-        """Search MedlinePlus health topics."""
+        """Search MedlinePlus health topics parsing official NLM XML format."""
         params = {
             "db": "healthTopics",
             "term": query,
@@ -36,34 +37,52 @@ class MedlinePlusConnector(MCPConnector):
         }
 
         try:
-            data = await self._get(f"{MEDLINEPLUS_BASE}/query", params=params)
+            xml_text = await self._get_xml(f"{MEDLINEPLUS_BASE}/query", params=params)
         except Exception:
-            logger.warning("MedlinePlus search failed for query: %s", query)
+            logger.warning("MedlinePlus XML search failed for query: %s", query)
             return []
 
         results: list[MCPResult] = []
-        nlm_results = data.get("nlmSearchResult", {})
-        items = nlm_results.get("list", [])
 
-        for item in items[:max_results]:
-            title = item.get("title", "")
-            snippet = item.get("snippet", "")
-            url = item.get("knowledgeUrl", "") or item.get("url", "")
+        try:
+            root = ET.fromstring(xml_text)
+            # MedlinePlus XML returns <document url="..."> tags under <list>
+            docs = root.findall(".//document")
+            for doc in docs[:max_results]:
+                url = doc.get("url", "")
+                title = ""
+                snippet = ""
 
-            results.append(
-                MCPResult(
-                    title=title,
-                    authors=[],
-                    issuing_organization="National Library of Medicine",
-                    canonical_url=url,
-                    study_type="consumer_health_resource",
-                    supporting_passage=snippet,
-                    source_quality_tier=1,
-                    source_connector=self.connector_name,
-                    raw_id=url,
-                    search_query=query,
-                    retrieval_timestamp=datetime.now(timezone.utc),
-                )
-            )
+                for child in doc.findall("content"):
+                    name = child.get("name")
+                    if name == "title" and child.text:
+                        # Clean XML markup inside title
+                        title = child.text.replace("<span>", "").replace("</span>", "").replace("<b>", "").replace("</b>", "").strip()
+                    elif name == "FullSummary" and child.text:
+                        snippet = child.text.replace("<span>", "").replace("</span>", "").replace("<b>", "").replace("</b>", "").strip()
+
+                if not snippet:
+                    snippet_elem = doc.find(".//snippet")
+                    if snippet_elem is not None and snippet_elem.text:
+                        snippet = snippet_elem.text.strip()
+
+                if title or snippet:
+                    results.append(
+                        MCPResult(
+                            title=title or "MedlinePlus Health Topic",
+                            authors=["National Library of Medicine"],
+                            issuing_organization="National Library of Medicine (NLM)",
+                            canonical_url=url or "https://medlineplus.gov",
+                            study_type="consumer_health_resource",
+                            supporting_passage=snippet[:500] if snippet else title,
+                            source_quality_tier=1,
+                            source_connector=self.connector_name,
+                            raw_id=url,
+                            search_query=query,
+                            retrieval_timestamp=datetime.now(timezone.utc),
+                        )
+                    )
+        except Exception as exc:
+            logger.warning("Failed to parse MedlinePlus XML output: %s", exc)
 
         return results

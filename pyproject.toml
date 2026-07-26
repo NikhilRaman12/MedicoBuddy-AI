@@ -20,11 +20,11 @@ dependencies = [
     "langchain>=0.3.0,<1.0",
     "langchain-groq>=0.2.0,<1.0",
     "langchain-community>=0.3.0,<1.0",
-    # Databases & Vector Stores
+    # Model Context Protocol (MCP) & Databases
+    "mcp>=1.2.0,<2.0",
     "neo4j>=5.27.0,<6.0",
     "pymilvus>=2.5.0,<3.0",
     "pgvector>=0.3.0,<1.0",
-    "qdrant-client>=1.13.0,<2.0",
     "asyncpg>=0.30.0,<1.0",
     "sqlalchemy[asyncio]>=2.0.36,<3.0",
     "redis>=5.2.0,<6.0",
@@ -68,6 +68,7 @@ frontend = [
 packages = ["src/medicobuddy"]
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [

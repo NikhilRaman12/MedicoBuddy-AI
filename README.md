@@ -1,93 +1,51 @@
-# MedicoBuddy AI — Authentic Evidence Source Pack
+---
+title: MedicoBuddy AI
+emoji: 🩺
+colorFrom: blue
+colorTo: cyan
+sdk: docker
+app_port: 7860
+pinned: false
+---
 
-Validated: 2026-07-26
+# MedicoBuddy AI — Everyday health questions, connected to clearer evidence.
 
-This pack is a production-oriented source registry for MedicoBuddy AI. It does
-not contain pirated journal papers or copied website content. It provides direct
-official downloads where automated reuse is allowed, official access pages where
-licensing must be checked, and live APIs for current evidence.
+MedicoBuddy AI is an evidence-grounded, safety-first preventive self-care education assistant for adults aged 18–65. Built with LangGraph, Neo4j, Milvus, PostgreSQL pgvector, Groq LLM inference, and Model Context Protocol (MCP) data connectors.
 
-## Start here
+## Architecture
 
-1. Use the downloadable **MedlinePlus Health Topic XML** as the consumer-health
-   seed corpus.
-2. Use **PubMed E-utilities** for metadata and abstracts.
-3. Retrieve full text only from the **PMC Open Access Subset**, after checking
-   the article-level licence.
-4. Add WHO, NICE, CDC, NCCIH, AAD and Government of India sources using the
-   policy in `source_manifest.csv`.
-5. Store the original source URL, publisher, publication/update date, retrieval
-   date, licence, evidence tier and exact supporting passage with every chunk.
+- **Orchestration**: LangGraph 13-Node Evidence & Entailment State Machine
+- **Knowledge Graph**: Neo4j Graph Database
+- **Vector DB**: Milvus (Primary) + PostgreSQL `pgvector` (Failover)
+- **Embeddings**: `Qwen/Qwen3-Embedding-8B`
+- **LLM Engine**: Groq API (`ChatGroq` with `llama-3.3-70b-versatile`)
+- **Protocol**: Official Model Context Protocol (MCP) Server & Client Adapter
+- **Data Connectors**: PubMed, MedlinePlus XML, ClinicalTrials.gov, Crossref, Local Evidence Registry
+- **Frontend**: Streamlit Multilingual Enterprise Workstation (22 Scheduled Indian Languages + BCP-47 Global Auto-detect)
 
-Run:
+## Required Environment Variables
+
+To deploy on Hugging Face Spaces or run locally, configure these secrets:
+
+- `GROQ_API_KEY`: Groq API Key
+- `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`: Neo4j connection
+- `MILVUS_URI`, `MILVUS_TOKEN`: Milvus Standalone connection
+- `POSTGRES_DSN`: PostgreSQL pgvector DSN
+- `NCBI_API_KEY`, `NCBI_EMAIL`, `NCBI_TOOL_NAME`: NCBI MCP parameters
+- `QWEN_EMBEDDING_ENDPOINT`, `HF_TOKEN`: Managed Qwen embedding inference
+
+## Local Development & Ingestion
 
 ```bash
-python download_sources.py --output ./downloaded
+# 1. Install package in editable mode
+pip install -e .
+
+# 2. Run evidence ingestion pipeline
+python scripts/ingest_sources.py
+
+# 3. Execute unit & safety test suite
+python -m pytest tests/ -v
+
+# 4. Launch full container environment
+docker-compose up --build
 ```
-
-The downloader fetches only records marked `download_allowed`. Web/API sources
-remain in the manifest for MCP retrieval. It creates a SHA-256 download report.
-
-## Evidence tiers
-
-| Tier | Meaning | Permitted use |
-|---|---|---|
-| A | Current official guideline, government dataset or high-quality review | Primary grounding and safety |
-| B | Official consumer-health or professional-organization guidance | Plain-language self-care and escalation |
-| T | Government-published traditional Ayurveda source | Traditional-context lane only |
-| S | Safety, fraud or interaction source | Contraindications and claim blocking |
-
-`T` does **not** mean scientifically proven. A traditional recommendation must
-be labelled “traditional use”, must not be converted into a cure claim, and must
-not be presented without a contemporary safety/evidence check.
-
-## Critical ingestion rules
-
-- Do not ingest ResearchGate pages, random blogs, scraped paywalled articles or
-  unlicensed PDFs.
-- Do not bulk-download all PubMed results. PubMed is primarily bibliographic;
-  use PMC's Open Access services for reusable full text.
-- For a public/commercial deployment, prefer PMC records whose licence permits
-  commercial reuse. Store the article-level licence with every chunk.
-- Do not copy or redistribute NICE or AAD content unless their terms permit it.
-  Use their pages as live/link-only evidence sources.
-- Treat the CCRAS Ayurveda documents as traditional context. Block internal
-  herbs, supplements, nasal instillation, dosage, disease-treatment protocols,
-  surgery and “cure” claims from user-facing output.
-- Never represent an MCP connection as evidence. Evidence exists only after a
-  real record has been returned, normalized and attached to a citation.
-
-## Minimum GraphRAG schema
-
-Nodes:
-
-`Source`, `Document`, `Passage`, `Claim`, `Symptom`, `SelfCareAction`,
-`TraditionalPractice`, `Contraindication`, `RedFlag`, `Population`,
-`Organization`, `EvidenceGrade`.
-
-Required relationships:
-
-`PUBLISHED_BY`, `HAS_PASSAGE`, `SUPPORTS`, `CONTRADICTS`, `APPLIES_TO`,
-`MAY_HELP_WITH`, `HAS_CAUTION`, `HAS_RED_FLAG`, `TRADITIONALLY_USED_FOR`,
-`UPDATED_BY`, `RETRACTED_BY`.
-
-Every `Claim` must connect to at least one `Passage` and one `Source`. The UI
-must never display a graph node that cannot be traced to retrieved source text.
-
-## Recommended refresh schedule
-
-- MedlinePlus XML: daily or weekly
-- PubMed/PMC evidence: per query plus weekly cached refresh
-- WHO/NICE/CDC/NCCIH/AAD/FDA pages: weekly change detection
-- CCRAS documents: monthly metadata check
-- Retraction/correction status: at ingestion and before serving cached evidence
-
-## Files
-
-- `source_manifest.csv` — authoritative source and licence registry
-- `download_sources.py` — allow-listed downloader
-- `download_report.json` — generated after download, with URLs and checksums
-
-This pack supports general education and low-risk self-care only. It does not
-make MedicoBuddy a diagnostic device or establish regulatory, clinical or HIPAA
-compliance.

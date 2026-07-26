@@ -1,0 +1,23 @@
+{
+  "chunk_id": "CHK_SEED_SRC_1",
+  "doc_id": "DOC_SEED_SRC005",
+  "text": "Official Guidance from PubMed Central: PMC Open Access Biomedical Literature. For adults aged 18 to 65 with mild, short-duration symptoms, non-pharmacological self-care measures such as adequate rest, gentle hydration, cool or warm compresses, and small bland meals support natural recovery. Seek medical advice if fever exceeds 102\u00b0F (39\u00b0C), severe pain occurs, or symptoms worsen beyond 48 hours.",
+  "section_title": "Overview",
+  "page_number": null,
+  "paragraph_number": 1,
+  "source_url": "https://www.ncbi.nlm.nih.gov/pmc/",
+  "publisher": "PubMed Central",
+  "authors": "PubMed Central",
+  "publication_date": "2026-03-01",
+  "retrieval_date": "2026-07-26",
+  "licence": "CC-BY",
+  "language": "en",
+  "document_type": "Journal Article",
+  "study_type": "Clinical Trial",
+  "population": "adults_18_65",
+  "evidence_tier": 1,
+  "retraction_status": "active",
+  "checksum": "SEED_SRC005",
+  "quarantined": false,
+  "quarantine_reason": ""
+}

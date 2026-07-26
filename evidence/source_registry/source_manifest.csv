@@ -1,0 +1,6 @@
+source_id,publisher,title,url,licence,document_type,study_type,evidence_tier,language,target_population,retraction_status,last_updated
+SRC001,National Library of Medicine,MedlinePlus Health Topics,https://wsearch.nlm.nih.gov/ws/query,Public Domain,Consumer Health,Guideline Review,1,en,adults_18_65,active,2026-01-15
+SRC002,World Health Organization,WHO Guideline on Self-Care Interventions,https://www.who.int/publications/i/item/9789240052192,CC-BY-NC-SA-3.0,Clinical Guideline,Systematic Review,1,en,adults_18_65,active,2025-11-20
+SRC003,Ministry of AYUSH India,AYUSH Preventive Self-Care Guidelines,https://ayush.gov.in/guidelines,Open Access,Traditional Practice,Observational,2,en,adults_18_65,active,2025-08-10
+SRC004,Cochrane Collaboration,Cochrane Systematic Reviews on Common Cold and Headaches,https://www.cochranelibrary.com,Open Access,Systematic Review,Meta Analysis,1,en,adults_18_65,active,2026-02-01
+SRC005,PubMed Central,PMC Open Access Biomedical Literature,https://www.ncbi.nlm.nih.gov/pmc/,CC-BY,Journal Article,Clinical Trial,1,en,adults_18_65,active,2026-03-01

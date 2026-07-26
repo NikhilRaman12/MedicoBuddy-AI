@@ -16,10 +16,11 @@ class KnowledgeGraphQueries:
     async def get_safe_actions_for_symptom(
         self, symptom_name: str
     ) -> list[dict[str, Any]]:
-        """Retrieve self-care actions linked to a symptom with evidence levels."""
+        """Retrieve self-care actions linked to a normalized symptom."""
         query = """
-        MATCH (s:Symptom)-[:ACTION_MAY_SUPPORT_SYMPTOM]-(a:SelfCareAction)
-        WHERE toLower(s.name) CONTAINS toLower($symptom_name)
+        MATCH (s:Symptom)
+        WHERE toLower(s.name) CONTAINS toLower($symptom_name) OR toLower($symptom_name) CONTAINS toLower(s.name)
+        MATCH (a:SelfCareAction)-[:ACTION_MAY_SUPPORT_SYMPTOM|MAY_HELP_WITH]->(s)
         OPTIONAL MATCH (a)-[:ACTION_CONTRAINDICATED_FOR]->(ci:Contraindication)
         RETURN a.action_id AS action_id,
                a.name AS action_name,
@@ -31,13 +32,39 @@ class KnowledgeGraphQueries:
         """
         return await self._client.execute_read(query, {"symptom_name": symptom_name})
 
+    async def get_evidence_trail(self, symptom_name: str) -> list[dict[str, Any]]:
+        """Traverse grounded evidence chain for Evidence Trail drawer.
+
+        Traversal: User concern -> normalized symptom -> eligible self-care action -> supporting claim -> passage -> source
+        """
+        query = """
+        MATCH (s:Symptom)
+        WHERE toLower(s.name) CONTAINS toLower($symptom_name) OR toLower($symptom_name) CONTAINS toLower(s.name)
+        OPTIONAL MATCH (a:SelfCareAction)-[:MAY_HELP_WITH|ACTION_MAY_SUPPORT_SYMPTOM]->(s)
+        OPTIONAL MATCH (c:Claim)-[:APPLIES_TO]->(s)
+        OPTIONAL MATCH (pas:Passage)-[:MAKES_CLAIM]->(c)
+        OPTIONAL MATCH (doc:Document)-[:HAS_PASSAGE]->(pas)
+        OPTIONAL MATCH (src:Source)-[:HAS_DOCUMENT]->(doc)
+        OPTIONAL MATCH (src)-[:PUBLISHED_BY]->(org:Organization)
+        RETURN s.name AS symptom,
+               a.name AS self_care_action,
+               c.text AS claim,
+               pas.text AS passage,
+               src.name AS source_name,
+               src.url AS source_url,
+               org.name AS organization
+        LIMIT 5
+        """
+        return await self._client.execute_read(query, {"symptom_name": symptom_name})
+
     async def get_red_flags_for_symptom(
         self, symptom_name: str
     ) -> list[dict[str, Any]]:
-        """Retrieve red flags associated with a symptom."""
+        """Retrieve red flags associated with a normalized symptom."""
         query = """
-        MATCH (s:Symptom)-[:SYMPTOM_HAS_RED_FLAG]->(rf:RedFlag)
-        WHERE toLower(s.name) CONTAINS toLower($symptom_name)
+        MATCH (s:Symptom)
+        WHERE toLower(s.name) CONTAINS toLower($symptom_name) OR toLower($symptom_name) CONTAINS toLower(s.name)
+        MATCH (s)-[:SYMPTOM_HAS_RED_FLAG|HAS_RED_FLAG]->(rf:RedFlag)
         RETURN rf.flag_id AS flag_id,
                rf.name AS flag_name,
                rf.description AS description,
@@ -58,35 +85,14 @@ class KnowledgeGraphQueries:
         """
         return await self._client.execute_read(query, {"condition_name": condition_name})
 
-    async def get_evidence_for_action(
-        self, action_id: str
-    ) -> list[dict[str, Any]]:
-        """Retrieve evidence claims supporting a self-care action."""
-        query = """
-        MATCH (a:SelfCareAction {action_id: $action_id})
-        OPTIONAL MATCH (ec:EvidenceClaim)-[:CLAIM_SUPPORTED_BY]->(st:Study)
-        WHERE (ec)-[:EVIDENCE_FOR]->(a) OR (st)-[:STUDY_INVESTIGATES]->(a)
-        RETURN ec.claim_id AS claim_id,
-               ec.claim_text AS claim_text,
-               ec.evidence_level AS evidence_level,
-               ec.confidence AS confidence,
-               st.study_id AS study_id,
-               st.title AS study_title,
-               st.study_design AS study_design,
-               st.publication_date AS publication_date,
-               st.retraction_status AS retraction_status
-        """
-        return await self._client.execute_read(query, {"action_id": action_id})
-
     async def get_ayurvedic_concepts_for_symptom(
         self, symptom_name: str
     ) -> list[dict[str, Any]]:
         """Retrieve Ayurvedic lifestyle concepts relevant to a symptom."""
         query = """
-        MATCH (s:Symptom)<-[:ACTION_MAY_SUPPORT_SYMPTOM]-(a:SelfCareAction)
-        WHERE toLower(s.name) CONTAINS toLower($symptom_name)
+        MATCH (s:Symptom)
+        WHERE toLower(s.name) CONTAINS toLower($symptom_name) OR toLower($symptom_name) CONTAINS toLower(s.name)
         OPTIONAL MATCH (ac:AyurvedicConcept)-[:CONCEPT_LINKED_TO_PRACTICE]->(lp:LifestylePractice)
-        WHERE lp.name = a.name OR ac.name CONTAINS a.category
         RETURN ac.concept_id AS concept_id,
                ac.name AS concept_name,
                ac.description AS description,
@@ -94,52 +100,3 @@ class KnowledgeGraphQueries:
                lp.name AS linked_practice
         """
         return await self._client.execute_read(query, {"symptom_name": symptom_name})
-
-    async def check_ingredient_safety(
-        self, ingredient_name: str, conditions: list[str]
-    ) -> list[dict[str, Any]]:
-        """Check if an ingredient has risks for given conditions."""
-        query = """
-        MATCH (i:Ingredient)-[:INGREDIENT_HAS_RISK]->(ae:AdverseEffect)
-        WHERE toLower(i.name) CONTAINS toLower($ingredient_name)
-        OPTIONAL MATCH (i)-[:INGREDIENT_INTERACTS_WITH]->(ix:Interaction)
-        RETURN i.name AS ingredient,
-               ae.name AS adverse_effect,
-               ae.severity AS effect_severity,
-               ix.description AS interaction_description
-        """
-        return await self._client.execute_read(
-            query, {"ingredient_name": ingredient_name}
-        )
-
-    async def get_full_evidence_chain(
-        self, claim_id: str
-    ) -> list[dict[str, Any]]:
-        """Traverse the full evidence chain: claim → study → source → org."""
-        query = """
-        MATCH (ec:EvidenceClaim {claim_id: $claim_id})
-        OPTIONAL MATCH (ec)-[:CLAIM_SUPPORTED_BY]->(st:Study)
-        OPTIONAL MATCH (ec)-[:CLAIM_CONTRADICTED_BY]->(contra_st:Study)
-        OPTIONAL MATCH (st)<-[:SOURCE_PUBLISHED_BY]-(src:Source)
-        OPTIONAL MATCH (src)-[:SOURCE_PUBLISHED_BY]->(org:Organization)
-        RETURN ec.claim_text AS claim,
-               ec.evidence_level AS evidence_level,
-               ec.limitations AS limitations,
-               collect(DISTINCT {
-                   study_id: st.study_id,
-                   title: st.title,
-                   design: st.study_design,
-                   retraction: st.retraction_status
-               }) AS supporting_studies,
-               collect(DISTINCT {
-                   study_id: contra_st.study_id,
-                   title: contra_st.title
-               }) AS contradicting_studies,
-               collect(DISTINCT {
-                   source: src.title,
-                   tier: src.tier,
-                   url: src.url,
-                   org: org.name
-               }) AS sources
-        """
-        return await self._client.execute_read(query, {"claim_id": claim_id})

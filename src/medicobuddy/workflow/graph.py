@@ -144,7 +144,11 @@ def build_workflow() -> StateGraph:
     return workflow
 
 
+from langgraph.checkpoint.memory import MemorySaver
+
+
 def create_app() -> Any:
-    """Create and compile the LangGraph application."""
+    """Create and compile the LangGraph application with MemorySaver checkpointer."""
     workflow = build_workflow()
-    return workflow.compile()
+    checkpointer = MemorySaver()
+    return workflow.compile(checkpointer=checkpointer)
