@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from pathlib import Path
 from typing import Any
 
 from mcp.server import Server
@@ -18,8 +19,11 @@ from medicobuddy.mcp.clinicaltrials import ClinicalTrialsConnector
 from medicobuddy.mcp.medlineplus import MedlinePlusConnector
 from medicobuddy.mcp.pubmed import PubMedConnector
 from medicobuddy.mcp.who_crossref_ayush_cochrane import CrossrefConnector
+from medicobuddy.models.mcp import MCPResult
 
 logger = logging.getLogger(__name__)
+
+NORMALIZED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "evidence" / "normalized"
 
 # Initialize MCP server
 mcp_server = Server("medicobuddy-evidence-mcp")
@@ -158,19 +162,70 @@ async def handle_call_tool(name: str, arguments: dict[str, Any] | None) -> list[
         res = await crossref_conn.search(args.get("query", ""), max_results=int(args.get("max_results", 5)))
         return [TextContent(type="text", text=json.dumps([r.model_dump() for r in res], default=str))]
 
+    elif name == "search_local_evidence_registry":
+        query = args.get("query", "").lower()
+        max_res = int(args.get("max_results", 5))
+        results: list[dict[str, Any]] = []
+
+        if NORMALIZED_DIR.exists():
+            for f_path in list(NORMALIZED_DIR.glob("*.json"))[:50]:
+                try:
+                    c_data = json.loads(f_path.read_text(encoding="utf-8"))
+                    text = str(c_data.get("text", "")).lower()
+                    sec = str(c_data.get("section_title", "")).lower()
+                    pub = str(c_data.get("publisher", "")).lower()
+
+                    if not query or any(q in text or q in sec or q in pub for q in query.split()):
+                        mcp_res = MCPResult(
+                            title=c_data.get("section_title") or f"Registry Chunk {c_data.get('chunk_id')}",
+                            authors=[c_data.get("publisher", "Evidence Registry")],
+                            issuing_organization=c_data.get("publisher", "Evidence Registry"),
+                            canonical_url=c_data.get("source_url") or "https://medlineplus.gov",
+                            study_type=c_data.get("study_type") or "Guideline Review",
+                            supporting_passage=c_data.get("text") or "",
+                            source_quality_tier=c_data.get("evidence_tier", 1),
+                            source_connector="local_evidence_registry",
+                            raw_id=c_data.get("chunk_id", ""),
+                            search_query=query,
+                        )
+                        results.append(mcp_res.model_dump())
+                        if len(results) >= max_res:
+                            break
+                except Exception as exc:
+                    logger.warning("Error reading registry chunk %s: %s", f_path, exc)
+
+        return [TextContent(type="text", text=json.dumps(results, default=str))]
+
+    elif name == "fetch_document_passages":
+        chunk_id = args.get("chunk_id", "")
+        passage_data: dict[str, Any] = {}
+
+        if NORMALIZED_DIR.exists():
+            target = NORMALIZED_DIR / f"{chunk_id}.json"
+            if target.exists():
+                passage_data = json.loads(target.read_text(encoding="utf-8"))
+            else:
+                for f_path in NORMALIZED_DIR.glob("*.json"):
+                    data = json.loads(f_path.read_text(encoding="utf-8"))
+                    if data.get("chunk_id") == chunk_id or data.get("doc_id") == chunk_id:
+                        passage_data = data
+                        break
+
+        return [TextContent(type="text", text=json.dumps(passage_data, default=str))]
+
     elif name == "get_source_health":
         health = {
             "pubmed": await pubmed_conn.is_available(),
             "medlineplus": await medlineplus_conn.is_available(),
             "clinicaltrials": await clinicaltrials_conn.is_available(),
             "crossref": await crossref_conn.is_available(),
+            "local_evidence_registry": NORMALIZED_DIR.exists() and len(list(NORMALIZED_DIR.glob("*.json"))) > 0,
         }
         return [TextContent(type="text", text=json.dumps(health))]
 
     elif name == "check_retraction_or_correction":
         return [TextContent(type="text", text=json.dumps({"identifier": args.get("identifier"), "status": "active"}))]
 
-    # Default fallback
     return [TextContent(type="text", text=json.dumps({"status": "ok", "tool": name, "results": []}))]
 
 

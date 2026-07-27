@@ -1,0 +1,371 @@
+[
+  {
+    "raw_query": "Mild headache since this morning after work",
+    "normalized_query": "headache",
+    "extracted_entities": [
+      "headache"
+    ],
+    "top_10_raw_vector_results": [
+      {
+        "rank": 1,
+        "score": 0.6785,
+        "source_file": "nice_cg150_headache_management.pdf",
+        "page_number": 4,
+        "title": "Page 1 Guidance",
+        "snippet": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National Medication-Overuse Headache Prevention Frequent use of acute pain medications can cause m...",
+        "full_text": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National\nMedication-Overuse Headache Prevention\nFrequent use of acute pain medications can cause medication-overuse\nheadache. Prevention Advice: - Track pain medication frequency in a\nheadache diary. - Consult a doctor if acute treatments are needed more\nthan twice a week.\nPage 4 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 2,
+        "score": 0.676,
+        "source_file": "cdc_common_cold_selfcare.pdf",
+        "page_number": 1,
+        "title": "Cdc Common Cold Selfcare",
+        "snippet": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease  Understanding Cold Symptoms & Recovery Symptoms of a common cold usually peak within 2 to...",
+        "full_text": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease \nUnderstanding Cold Symptoms & Recovery\nSymptoms of a common cold usually peak within 2 to 3 days and include sore\nthroat, runny nose, coughing, sneezing, headaches, and body aches.\nSelf-Care Recovery Steps: - Rest: Get plenty of rest to help your body\nfight off the virus. - Fluids: Drink fluids like water, clear broths, or\nwarm lemon water to prevent dehydration. - Humidity: Use a clean cool-mist\nhumidifier or steam from a warm shower to relieve congestion.\nAntibiotic Awareness: Antibiotics do NOT treat viral colds. Taking\nantibiotics when not needed increases antibiotic resistance risks.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 3,
+        "score": 0.661,
+        "source_file": "nice_cg150_headache_management.pdf",
+        "page_number": 1,
+        "title": "Page 1 Guidance",
+        "snippet": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National Tension-Type Headache Self-Care and Management Tension-type headache is the most common p...",
+        "full_text": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National\nTension-Type Headache Self-Care and Management\nTension-type headache is the most common primary headache disorder,\ncharacterized by a dull, aching band-like pain across the forehead or back\nof the head.\nSelf-Care & Non-Pharmacological Management: - Stress Management: Cognitive\nrelaxation, biofeedback, and regular physical rest. - Hydration:\nMaintaining adequate fluid intake throughout the workday. - Posture &\nErgonomics: Ensure proper screen height and chair support to prevent neck\nmuscle strain. - Limit Medication Use: Avoid taking acute pain medicines\nfor more than 10-15 days per month to prevent medication-overuse headache\n(MOH).\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 4,
+        "score": 0.6569,
+        "source_file": "medlineplus_headache_guidance.pdf",
+        "page_number": 3,
+        "title": "Medlineplus Headache Guidance",
+        "snippet": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of Ergonomics & Screen-Time Management Preventing strain-induced headaches during work: - Po...",
+        "full_text": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of\nErgonomics & Screen-Time Management\nPreventing strain-induced headaches during work: - Position computer\nscreens at eye level 20-24 inches away. - Follow the 20-20-20 rule: Every\n20 minutes, look at an object 20 feet away for 20 seconds.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 5,
+        "score": 0.6558,
+        "source_file": "who_selfcare_interventions_guideline.pdf",
+        "page_number": 3,
+        "title": "Page 1 Guidance",
+        "snippet": "WHO Guideline on Self-Care Interventions for Health and Well-Being | Publisher: World Heal Chapter 3: Non-Pharmacological Self-Care Strategies Non-pharmacological self-care strateg...",
+        "full_text": "WHO Guideline on Self-Care Interventions for Health and Well-Being | Publisher: World Heal\nChapter 3: Non-Pharmacological Self-Care Strategies\nNon-pharmacological self-care strategies form the primary foundation for\nmanaging everyday mild discomforts. Key Recommended Interventions: -\nEnvironmental Rest: Reduce light and noise exposure during acute mild\nheadache or fatigue episodes. Rest in a well-ventilated space for 15-30\nminutes. - Fluid Balance: Sip plain or warm fluids regularly to prevent\ndehydration and support cellular recovery. - Physical Activity Adjustment:\nTemporarily modify intense exertion when experiencing mild acute tiredness\nor low energy. - Monitoring Log: Maintain a brief log of symptom onset,\nintensity, and duration to share with a physician if care becomes\nnecessary.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 6,
+        "score": 0.6446,
+        "source_file": "nice_cg150_headache_management.pdf",
+        "page_number": 2,
+        "title": "Page 1 Guidance",
+        "snippet": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National Headache Red Flags Requiring Immediate Emergency Referral Urgent Red Flags (SNOOP Criteri...",
+        "full_text": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National\nHeadache Red Flags Requiring Immediate Emergency Referral\nUrgent Red Flags (SNOOP Criteria): - Sudden onset severe headache reaching\npeak intensity within seconds ('thunderclap' headache). - Headache\naccompanied by fever, stiff neck, confusion, seizure, or focal\nneurological deficits (weakness, numbness, vision loss). - New headache in\npatients with history of cancer or immunocompromise. - Headache associated\nwith recent head trauma or worsening with coughing/straining. -\nProgressive headache worsening over days or weeks in adults over 50.\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 7,
+        "score": 0.6426,
+        "source_file": "medlineplus_headache_guidance.pdf",
+        "page_number": 1,
+        "title": "Medlineplus Headache Guidance",
+        "snippet": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of Tension Headache Relief & Prevention Tension headaches are often triggered by muscle tigh...",
+        "full_text": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of\nTension Headache Relief & Prevention\nTension headaches are often triggered by muscle tightness in the neck,\nshoulders, or jaw, stress, or eye strain.\nSelf-Care Comfort Measures: - Heat or Ice Therapy: Apply a warm compress\nor heating pad to neck muscles, or a cold pack to the forehead. - Muscle\nRelaxation: Perform gentle neck stretches and shoulder rolls. - Hydration:\nSip water steadily, especially after long work sessions or hot weather. -\nRest: Take a break from computer screens every 30-45 minutes.\nAyurveda Context: Traditional Ayurvedic approaches suggest warm forehead\ncompresses and temple massage with suitable carrier oils for mild tension\nrelief.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 8,
+        "score": 0.6421,
+        "source_file": "who_selfcare_interventions_guideline.pdf",
+        "page_number": 2,
+        "title": "Page 1 Guidance",
+        "snippet": "WHO Guideline on Self-Care Interventions for Health and Well-Being | Publisher: World Heal Chapter 2: Escalation Guidelines & Safety Thresholds Escalation Criteria for Self-Care: -...",
+        "full_text": "WHO Guideline on Self-Care Interventions for Health and Well-Being | Publisher: World Heal\nChapter 2: Escalation Guidelines & Safety Thresholds\nEscalation Criteria for Self-Care: - Symptoms that rapidly worsen or fail\nto show improvement within 48 to 72 hours. - Presence of red flags:\nshortness of breath, unexplained weight loss, fainting, persistent\nvomiting, severe sudden headache (thunderclap). - High-risk populations:\npregnant or lactating individuals, infants, elderly adults (over 65), and\nimmunocompromised individuals should consult healthcare professionals\nbefore initiating self-care routines.\nEvidence Quality & Governance: Recommendations in this guideline are\ngraded based on systematic evidence reviews. Interventions supporting\ngeneral health, adequate hydration, balanced nutrition, and structured\nsleep hygiene have high quality supporting evidence for maintaining\nbaseline health.\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 9,
+        "score": 0.6361,
+        "source_file": "medlineplus_headache_guidance.pdf",
+        "page_number": 4,
+        "title": "Medlineplus Headache Guidance",
+        "snippet": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of Stress Relief Techniques for Headaches Mind-body practices for headache frequency reducti...",
+        "full_text": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of\nStress Relief Techniques for Headaches\nMind-body practices for headache frequency reduction: - Deep diaphragmatic\nbreathing exercises for 5-10 minutes. - Gentle yoga or walking in natural\nlight.\nPage 4 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 10,
+        "score": 0.6324,
+        "source_file": "who_stress_management_guide.pdf",
+        "page_number": 1,
+        "title": "Page 1 Guidance",
+        "snippet": "WHO Guide: Doing What Matters in Times of Stress | Publisher: World Health Organization |  Grounding & Managing Stress Stress is a normal physical and emotional reaction to demandi...",
+        "full_text": "WHO Guide: Doing What Matters in Times of Stress | Publisher: World Health Organization | \nGrounding & Managing Stress\nStress is a normal physical and emotional reaction to demanding life\nsituations. High stress can manifest as muscle tension, fatigue, mild\nheadache, or difficulty concentrating.\nPractical Stress Grounding Techniques: - Grounding: Focus on your\nsurroundings\u00b7notice 5 things you can see, 4 things you can touch, 3 things\nyou can hear, 2 things you can smell, and 1 thing you can taste. - Slow\nBreathing: Breathe in slowly for 4 seconds, hold for 4 seconds, and exhale\nslowly for 4 seconds. - Physical Unhooking: Notice difficult thoughts\nwithout fighting them, and refocus attention on physical activities.\nPage 1 of 4 | Official Educational Resource"
+      }
+    ],
+    "filtered_results_count": 10,
+    "graph_expansion_paths": [
+      {
+        "path": "Symptom:headache -> MAY_SUPPORT -> SelfCareAction:Page 1 Guidance -> SUPPORTED_BY -> Passage:CHK_85f29b1f_4 -> EXTRACTED_FROM -> SourceDocument:nice_cg150_headache_management.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:headache -> MAY_SUPPORT -> SelfCareAction:Cdc Common Cold Selfcare -> SUPPORTED_BY -> Passage:CHK_a3d67f24_1 -> EXTRACTED_FROM -> SourceDocument:cdc_common_cold_selfcare.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:headache -> MAY_SUPPORT -> SelfCareAction:Page 1 Guidance -> SUPPORTED_BY -> Passage:CHK_85f29b1f_1 -> EXTRACTED_FROM -> SourceDocument:nice_cg150_headache_management.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:headache -> MAY_SUPPORT -> SelfCareAction:Medlineplus Headache Guidance -> SUPPORTED_BY -> Passage:CHK_9604be6c_3 -> EXTRACTED_FROM -> SourceDocument:medlineplus_headache_guidance.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:headache -> MAY_SUPPORT -> SelfCareAction:Page 1 Guidance -> SUPPORTED_BY -> Passage:CHK_44618bed_3 -> EXTRACTED_FROM -> SourceDocument:who_selfcare_interventions_guideline.pdf",
+        "provenance_valid": true
+      }
+    ],
+    "provenance_verified": true
+  },
+  {
+    "raw_query": "Uncomplicated cold symptoms and mild cough",
+    "normalized_query": "cold",
+    "extracted_entities": [
+      "cold"
+    ],
+    "top_10_raw_vector_results": [
+      {
+        "rank": 1,
+        "score": 0.7099,
+        "source_file": "cdc_common_cold_selfcare.pdf",
+        "page_number": 1,
+        "title": "Cdc Common Cold Selfcare",
+        "snippet": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease  Understanding Cold Symptoms & Recovery Symptoms of a common cold usually peak within 2 to...",
+        "full_text": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease \nUnderstanding Cold Symptoms & Recovery\nSymptoms of a common cold usually peak within 2 to 3 days and include sore\nthroat, runny nose, coughing, sneezing, headaches, and body aches.\nSelf-Care Recovery Steps: - Rest: Get plenty of rest to help your body\nfight off the virus. - Fluids: Drink fluids like water, clear broths, or\nwarm lemon water to prevent dehydration. - Humidity: Use a clean cool-mist\nhumidifier or steam from a warm shower to relieve congestion.\nAntibiotic Awareness: Antibiotics do NOT treat viral colds. Taking\nantibiotics when not needed increases antibiotic resistance risks.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 2,
+        "score": 0.6863,
+        "source_file": "who_respiratory_cold_cough_guide.pdf",
+        "page_number": 2,
+        "title": "Page 1 Guidance",
+        "snippet": "WHO Clinical Guidelines on Common Cold and Upper Respiratory Self-Care | Publisher: World  Section 2: Respiratory Red Flags and Medical Escalation Red Flag Symptoms Requiring Immed...",
+        "full_text": "WHO Clinical Guidelines on Common Cold and Upper Respiratory Self-Care | Publisher: World \nSection 2: Respiratory Red Flags and Medical Escalation\nRed Flag Symptoms Requiring Immediate Medical Attention: - Difficulty\nbreathing, wheezing, or shortness of breath. - Persistent high fever\n(>38.5\u00b0C or 101.3\u00b0F) lasting more than 3 days. - Chest pain or pressure\nduring breathing or coughing. - Coughing up blood or thick discolored\nsputum. - Bluish lips or face (cyanosis).\nSpecial Considerations: Children, elderly individuals, and adults with\nasthma or COPD should seek early medical advice for respiratory symptoms.\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 3,
+        "score": 0.672,
+        "source_file": "cdc_seasonal_allergies_guide.pdf",
+        "page_number": 4,
+        "title": "Cdc Seasonal Allergies Guide",
+        "snippet": "CDC Consumer Guide: Managing Seasonal Allergies | Publisher: Centers for Disease Control a Differentiating Allergies from Colds Allergies typically cause itchy eyes/nose and last f...",
+        "full_text": "CDC Consumer Guide: Managing Seasonal Allergies | Publisher: Centers for Disease Control a\nDifferentiating Allergies from Colds\nAllergies typically cause itchy eyes/nose and last for weeks without\nfever. Colds often include body aches, fever, and resolve in 7-10 days.\nPage 4 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 4,
+        "score": 0.6671,
+        "source_file": "medlineplus_headache_guidance.pdf",
+        "page_number": 1,
+        "title": "Medlineplus Headache Guidance",
+        "snippet": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of Tension Headache Relief & Prevention Tension headaches are often triggered by muscle tigh...",
+        "full_text": "MedlinePlus Consumer Guide: Managing Tension Headaches | Publisher: US National Library of\nTension Headache Relief & Prevention\nTension headaches are often triggered by muscle tightness in the neck,\nshoulders, or jaw, stress, or eye strain.\nSelf-Care Comfort Measures: - Heat or Ice Therapy: Apply a warm compress\nor heating pad to neck muscles, or a cold pack to the forehead. - Muscle\nRelaxation: Perform gentle neck stretches and shoulder rolls. - Hydration:\nSip water steadily, especially after long work sessions or hot weather. -\nRest: Take a break from computer screens every 30-45 minutes.\nAyurveda Context: Traditional Ayurvedic approaches suggest warm forehead\ncompresses and temple massage with suitable carrier oils for mild tension\nrelief.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 5,
+        "score": 0.6669,
+        "source_file": "ccras_ayurveda_science_of_life.pdf",
+        "page_number": 2,
+        "title": "Ccras Ayurveda Science Of Life",
+        "snippet": "CCRAS Guideline: Fundamentals of Ayurvedic Preventive Health (Dinacharya) | Publisher: Cen Agni (Digestive Fire) and Mild Indigestion In Ayurvedic tradition, mild digestive discomf...",
+        "full_text": "CCRAS Guideline: Fundamentals of Ayurvedic Preventive Health (Dinacharya) | Publisher: Cen\nAgni (Digestive Fire) and Mild Indigestion\nIn Ayurvedic tradition, mild digestive discomfort or heaviness is\nassociated with temporary low Agni (digestive fire). Traditional Lifestyle\nContext: - Avoid cold, icy drinks immediately after meals. - Allow 3-4\nhours between meals to permit complete digestion. - Engage in gentle\n100-step post-meal walks (Shatapadi).\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 6,
+        "score": 0.6658,
+        "source_file": "cdc_common_cold_selfcare.pdf",
+        "page_number": 3,
+        "title": "Cdc Common Cold Selfcare",
+        "snippet": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease  Nasal Congestion & Sinus Pressure Relief Non-pharmacological measures for nasal discomfor...",
+        "full_text": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease \nNasal Congestion & Sinus Pressure Relief\nNon-pharmacological measures for nasal discomfort: - Saline Spray: Use\nsterile saline nasal sprays to keep nasal passages moist. - Warm Compress:\nApply a warm washcloth over your nose and forehead to ease sinus pressure.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 7,
+        "score": 0.6606,
+        "source_file": "cdc_common_cold_selfcare.pdf",
+        "page_number": 4,
+        "title": "Cdc Common Cold Selfcare",
+        "snippet": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease  Preventing Viral Spread at Home Simple daily steps to keep cold viruses from spreading: -...",
+        "full_text": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease \nPreventing Viral Spread at Home\nSimple daily steps to keep cold viruses from spreading: - Disinfect\nfrequently touched surfaces like doorknobs and light switches. - Stay home\nfrom work or public places when actively coughing or sneezing.\nPage 4 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 8,
+        "score": 0.6558,
+        "source_file": "who_respiratory_cold_cough_guide.pdf",
+        "page_number": 3,
+        "title": "Page 1 Guidance",
+        "snippet": "WHO Clinical Guidelines on Common Cold and Upper Respiratory Self-Care | Publisher: World  Section 3: Sore Throat & Cough Relief Interventions Mild cough and throat irritation can ...",
+        "full_text": "WHO Clinical Guidelines on Common Cold and Upper Respiratory Self-Care | Publisher: World \nSection 3: Sore Throat & Cough Relief Interventions\nMild cough and throat irritation can be managed with non-pharmacological\ncomfort steps. Supportive Care Measures: - Warm Salt Water Gargle:\nDissolve 1/2 teaspoon of salt in warm water and gargle 2-3 times daily to\nrelieve throat soreness. - Honey (for adults and children over 1 year):\n1-2 teaspoons of natural honey can soothe cough fits. Never give honey to\ninfants under 1 year due to botulism risk. - Elevating the Head: Use an\nextra pillow during sleep to reduce nighttime coughing caused by\npost-nasal drip.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 9,
+        "score": 0.6554,
+        "source_file": "nice_cg150_headache_management.pdf",
+        "page_number": 2,
+        "title": "Page 1 Guidance",
+        "snippet": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National Headache Red Flags Requiring Immediate Emergency Referral Urgent Red Flags (SNOOP Criteri...",
+        "full_text": "NICE Guideline CG150: Headaches in Over 12s Diagnosis and Management | Publisher: National\nHeadache Red Flags Requiring Immediate Emergency Referral\nUrgent Red Flags (SNOOP Criteria): - Sudden onset severe headache reaching\npeak intensity within seconds ('thunderclap' headache). - Headache\naccompanied by fever, stiff neck, confusion, seizure, or focal\nneurological deficits (weakness, numbness, vision loss). - New headache in\npatients with history of cancer or immunocompromise. - Headache associated\nwith recent head trauma or worsening with coughing/straining. -\nProgressive headache worsening over days or weeks in adults over 50.\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 10,
+        "score": 0.6496,
+        "source_file": "cdc_common_cold_selfcare.pdf",
+        "page_number": 2,
+        "title": "Cdc Common Cold Selfcare",
+        "snippet": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease  Symptom Timeline and Clinical Evaluation Cold symptoms typically improve within 7 to 10 d...",
+        "full_text": "CDC Consumer Guide: Common Cold Prevention and Self-Care | Publisher: Centers for Disease \nSymptom Timeline and Clinical Evaluation\nCold symptoms typically improve within 7 to 10 days. When to Call a\nDoctor: - Symptoms that worsen or fail to improve after 10 days. - Severe\nor unusual symptoms, such as sudden high fever or severe chest pain. -\nSymptoms in individuals at high risk for flu complications.\nPage 2 of 4 | Official Educational Resource"
+      }
+    ],
+    "filtered_results_count": 10,
+    "graph_expansion_paths": [
+      {
+        "path": "Symptom:cold -> MAY_SUPPORT -> SelfCareAction:Cdc Common Cold Selfcare -> SUPPORTED_BY -> Passage:CHK_a3d67f24_1 -> EXTRACTED_FROM -> SourceDocument:cdc_common_cold_selfcare.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:cold -> MAY_SUPPORT -> SelfCareAction:Page 1 Guidance -> SUPPORTED_BY -> Passage:CHK_027e901f_2 -> EXTRACTED_FROM -> SourceDocument:who_respiratory_cold_cough_guide.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:cold -> MAY_SUPPORT -> SelfCareAction:Cdc Seasonal Allergies Guide -> SUPPORTED_BY -> Passage:CHK_4ec58826_4 -> EXTRACTED_FROM -> SourceDocument:cdc_seasonal_allergies_guide.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:cold -> MAY_SUPPORT -> SelfCareAction:Medlineplus Headache Guidance -> SUPPORTED_BY -> Passage:CHK_9604be6c_1 -> EXTRACTED_FROM -> SourceDocument:medlineplus_headache_guidance.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:cold -> MAY_SUPPORT -> SelfCareAction:Ccras Ayurveda Science Of Life -> SUPPORTED_BY -> Passage:CHK_73fb1f8d_2 -> EXTRACTED_FROM -> SourceDocument:ccras_ayurveda_science_of_life.pdf",
+        "provenance_valid": true
+      }
+    ],
+    "provenance_verified": true
+  },
+  {
+    "raw_query": "Mild indigestion and bloating after eating",
+    "normalized_query": "Mild indigestion and bloating after eating",
+    "extracted_entities": [
+      "Mild indigestion and bloating after eating"
+    ],
+    "top_10_raw_vector_results": [
+      {
+        "rank": 1,
+        "score": 0.6689,
+        "source_file": "ccras_ayurveda_science_of_life.pdf",
+        "page_number": 2,
+        "title": "Ccras Ayurveda Science Of Life",
+        "snippet": "CCRAS Guideline: Fundamentals of Ayurvedic Preventive Health (Dinacharya) | Publisher: Cen Agni (Digestive Fire) and Mild Indigestion In Ayurvedic tradition, mild digestive discomf...",
+        "full_text": "CCRAS Guideline: Fundamentals of Ayurvedic Preventive Health (Dinacharya) | Publisher: Cen\nAgni (Digestive Fire) and Mild Indigestion\nIn Ayurvedic tradition, mild digestive discomfort or heaviness is\nassociated with temporary low Agni (digestive fire). Traditional Lifestyle\nContext: - Avoid cold, icy drinks immediately after meals. - Allow 3-4\nhours between meals to permit complete digestion. - Engage in gentle\n100-step post-meal walks (Shatapadi).\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 2,
+        "score": 0.6635,
+        "source_file": "medlineplus_digestive_health.pdf",
+        "page_number": 1,
+        "title": "Medlineplus Digestive Health",
+        "snippet": "MedlinePlus Consumer Guide to Digestive Health and Self-Care | Publisher: US National Libr Daily Digestive Wellness Essentials Digestive health is essential for overall well-being....",
+        "full_text": "MedlinePlus Consumer Guide to Digestive Health and Self-Care | Publisher: US National Libr\nDaily Digestive Wellness Essentials\nDigestive health is essential for overall well-being. Common mild\ndigestive complaints include temporary gas, bloating, and occasional\nindigestion.\nHealthy Digestive Habits: - Fiber Intake: Gradually increase dietary fiber\nfrom oats, beans, fruits, and vegetables to support regular bowel\nmovements. - Hydration: Drink plenty of water alongside increased fiber to\nprevent constipation. - Regular Physical Activity: Daily walking helps\nstimulate intestinal motility. - Stress Reduction: High stress can affect\ngut motility; practicing relaxation techniques supports digestive balance.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 3,
+        "score": 0.6613,
+        "source_file": "niddk_indigestion_dyspepsia_guide.pdf",
+        "page_number": 2,
+        "title": "Niddk Indigestion Dyspepsia Guide",
+        "snippet": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit Red Flags for Gastrointestinal Conditions Seek Emergency Medical Care Immediately If You ...",
+        "full_text": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit\nRed Flags for Gastrointestinal Conditions\nSeek Emergency Medical Care Immediately If You Experience: - Severe,\nsharp, or sudden abdominal pain. - Vomiting blood or material that looks\nlike coffee grounds. - Black, tarry, or bloody stools. - Difficulty\nswallowing (dysphagia) or painful swallowing. - Unintentional significant\nweight loss. - Persistent vomiting preventing fluid intake.\nPage 2 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 4,
+        "score": 0.6536,
+        "source_file": "niddk_indigestion_dyspepsia_guide.pdf",
+        "page_number": 3,
+        "title": "Niddk Indigestion Dyspepsia Guide",
+        "snippet": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit Lifestyle Interventions for Upper GI Comfort Practical lifestyle habits to support health...",
+        "full_text": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit\nLifestyle Interventions for Upper GI Comfort\nPractical lifestyle habits to support healthy digestion: - Elevate the\nhead of your bed by 6 inches if experiencing night-time indigestion or\nacid reflux. - Maintain a comfortable, upright posture during and after\nmeals. - Avoid heavy late-night snacks within 3 hours of bedtime.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 5,
+        "score": 0.6397,
+        "source_file": "niddk_indigestion_dyspepsia_guide.pdf",
+        "page_number": 1,
+        "title": "Niddk Indigestion Dyspepsia Guide",
+        "snippet": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit Understanding Mild Indigestion and Dyspepsia Indigestion (dyspepsia) involves feeling ful...",
+        "full_text": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit\nUnderstanding Mild Indigestion and Dyspepsia\nIndigestion (dyspepsia) involves feeling full early during a meal,\nuncomfortable fullness after eating, or burning in the upper abdomen.\nMild Self-Care Strategies: - Eat smaller, more frequent meals rather than\nlarge heavy meals. - Eat slowly and chew food thoroughly. - Avoid lying\ndown for at least 2 to 3 hours after eating. - Limit trigger foods such as\nhighly greasy, spicy, acidic, or fried items. - Avoid tight-fitting\nclothing around the abdomen.\nAyurvedic Dietary Context: In traditional Ayurveda, warm water (Ushnodaka)\nand ginger tea are traditionally used to aid digestive fire (Agni) after\nlight meals.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 6,
+        "score": 0.6206,
+        "source_file": "niddk_indigestion_dyspepsia_guide.pdf",
+        "page_number": 4,
+        "title": "Niddk Indigestion Dyspepsia Guide",
+        "snippet": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit Dietary Record & Symptom Tracking Keeping a food and symptom journal can identify specifi...",
+        "full_text": "NIDDK Clinical Guidance on Indigestion & Dyspepsia Management | Publisher: National Instit\nDietary Record & Symptom Tracking\nKeeping a food and symptom journal can identify specific dietary triggers.\nJournal Guidelines: - Note the time, food types, and portion sizes of each\nmeal. - Record any mild discomfort, bloating, or fullness experienced\nafter eating.\nPage 4 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 7,
+        "score": 0.0292,
+        "source_file": "us_physical_activity_guidelines.pdf",
+        "page_number": 1,
+        "title": "Us Physical Activity Guidelines",
+        "snippet": "US Physical Activity Guidelines for Americans (2nd Edition) | Publisher: US Department of  Physical Activity Guidelines for Adults Regular physical activity is one of the most impo...",
+        "full_text": "US Physical Activity Guidelines for Americans (2nd Edition) | Publisher: US Department of \nPhysical Activity Guidelines for Adults\nRegular physical activity is one of the most important things adults can\ndo to improve their overall health.\nAdult Recommendations (Aged 18-64): - Aerobic Activity: At least 150 to\n300 minutes of moderate-intensity aerobic physical activity (such as brisk\nwalking) per week. - Muscle Strengthening: Engage in muscle-strengthening\nactivities of moderate intensity involving all major muscle groups 2 or\nmore days a week. - Reduce Sedentary Time: Move more and sit less\nthroughout the day.\nSafety Guidelines: Start slowly and gradually increase activity level over\ntime. Listen to your body and rest if experiencing joint pain or extreme\nshortness of breath.\nPage 1 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 8,
+        "score": 0.026,
+        "source_file": "medlineplus_general_wellness_guide.pdf",
+        "page_number": 3,
+        "title": "Medlineplus General Wellness Guide",
+        "snippet": "MedlinePlus Consumer Guidance on Daily Wellness & Preventive Health | Publisher: US Nation Nutrition Essentials for Energy & Vitality Balanced nutrition supports sustained energy l...",
+        "full_text": "MedlinePlus Consumer Guidance on Daily Wellness & Preventive Health | Publisher: US Nation\nNutrition Essentials for Energy & Vitality\nBalanced nutrition supports sustained energy levels throughout the day.\nDietary Guidelines: - Consume whole grains, lean proteins, and plenty of\nfresh vegetables and fruits. - Limit processed sugars and sodium intake. -\nStay hydrated with water or natural herbal infusions without added sugar.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 9,
+        "score": 0.0238,
+        "source_file": "who_stress_management_guide.pdf",
+        "page_number": 3,
+        "title": "Page 1 Guidance",
+        "snippet": "WHO Guide: Doing What Matters in Times of Stress | Publisher: World Health Organization |  Physical Movement for Stress Reduction Gentle physical exercise releases endorphins and r...",
+        "full_text": "WHO Guide: Doing What Matters in Times of Stress | Publisher: World Health Organization | \nPhysical Movement for Stress Reduction\nGentle physical exercise releases endorphins and reduces muscle tightness\nassociated with stress.\nPage 3 of 4 | Official Educational Resource"
+      },
+      {
+        "rank": 10,
+        "score": 0.0228,
+        "source_file": "medlineplus_general_wellness_guide.pdf",
+        "page_number": 1,
+        "title": "Medlineplus General Wellness Guide",
+        "snippet": "MedlinePlus Consumer Guidance on Daily Wellness & Preventive Health | Publisher: US Nation Daily Health Essentials & Self-Monitoring Maintaining daily health requires a balanced ro...",
+        "full_text": "MedlinePlus Consumer Guidance on Daily Wellness & Preventive Health | Publisher: US Nation\nDaily Health Essentials & Self-Monitoring\nMaintaining daily health requires a balanced routine combining adequate\nhydration, nutritious food choices, physical activity, and stress\nmanagement.\nKey Daily Practices: - Hydration: Drink 8-10 glasses of clean water daily\nunless restricted by a medical condition (such as heart failure or kidney\ndisease). - Rest: Adults should target 7-9 hours of uninterrupted sleep\nper night. - Physical Movement: Engage in 30 minutes of moderate activity,\nsuch as walking, most days of the week. - Hygiene: Wash hands frequently\nwith soap and water for at least 20 seconds to prevent common infections.\nWhen to Seek Care: Self-care is appropriate for temporary mild fatigue,\nminor muscle stiffness, or low-grade stress. If you experience persistent\nlethargy, unexplained dizziness, or chest discomfort, contact a healthcare\nprofessional.\nPage 1 of 4 | Official Educational Resource"
+      }
+    ],
+    "filtered_results_count": 6,
+    "graph_expansion_paths": [
+      {
+        "path": "Symptom:Mild indigestion and bloating after eating -> MAY_SUPPORT -> SelfCareAction:Ccras Ayurveda Science Of Life -> SUPPORTED_BY -> Passage:CHK_73fb1f8d_2 -> EXTRACTED_FROM -> SourceDocument:ccras_ayurveda_science_of_life.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:Mild indigestion and bloating after eating -> MAY_SUPPORT -> SelfCareAction:Medlineplus Digestive Health -> SUPPORTED_BY -> Passage:CHK_fc696404_1 -> EXTRACTED_FROM -> SourceDocument:medlineplus_digestive_health.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:Mild indigestion and bloating after eating -> MAY_SUPPORT -> SelfCareAction:Niddk Indigestion Dyspepsia Gu -> SUPPORTED_BY -> Passage:CHK_53a61e5b_2 -> EXTRACTED_FROM -> SourceDocument:niddk_indigestion_dyspepsia_guide.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:Mild indigestion and bloating after eating -> MAY_SUPPORT -> SelfCareAction:Niddk Indigestion Dyspepsia Gu -> SUPPORTED_BY -> Passage:CHK_53a61e5b_3 -> EXTRACTED_FROM -> SourceDocument:niddk_indigestion_dyspepsia_guide.pdf",
+        "provenance_valid": true
+      },
+      {
+        "path": "Symptom:Mild indigestion and bloating after eating -> MAY_SUPPORT -> SelfCareAction:Niddk Indigestion Dyspepsia Gu -> SUPPORTED_BY -> Passage:CHK_53a61e5b_1 -> EXTRACTED_FROM -> SourceDocument:niddk_indigestion_dyspepsia_guide.pdf",
+        "provenance_valid": true
+      }
+    ],
+    "provenance_verified": true
+  }
+]

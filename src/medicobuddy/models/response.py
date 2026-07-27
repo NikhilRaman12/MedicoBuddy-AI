@@ -12,13 +12,18 @@ from medicobuddy.models.symptom import TriageOutcome
 class Citation(BaseModel):
     """Claim-linked citation with exact passage location and limitation."""
 
-    number: int
-    title: str
+    number: int = 1
+    citation_id: str = ""
+    title: str = ""
     authors: str = ""
+    publisher: str = ""
     publication_date: str = ""
+    retrieved_at: str = ""
     url: str = ""
     doi: str = ""
     pmid: str = ""
+    passage_id: str = ""
+    evidence_type: str = ""
     source_type: str = ""
     supporting_passage: str = ""
     retrieval_date: str = ""
@@ -38,15 +43,29 @@ class AyurvedaPerspective(BaseModel):
 
 
 class ActionTableRow(BaseModel):
-    """Row in the required Action Table matching exact 7 columns."""
+    """Row in the required Action Table matching exact 7 columns + citation IDs."""
 
-    guidance_lens: str = Field(description="Natural supportive care / Ayurveda-informed lifestyle/traditional context / General medical self-care education")
+    guidance_lens: str = Field(description="Natural self-care / Ayurveda-informed wellness / General medical self-care")
     what_may_help: str
     how_to_follow: str
-    frequency_duration: str
-    evidence_level: str
-    important_cautions: str
-    stop_and_seek_care_if: str
+    frequency_duration: str = ""
+    frequency_or_duration: str = ""
+    evidence_level: str = "Moderate"
+    important_cautions: str = ""
+    cautions: str = ""
+    stop_and_seek_care_if: str = ""
+    citation_ids: list[str] = Field(default_factory=list)
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.frequency_duration and self.frequency_or_duration:
+            self.frequency_duration = self.frequency_or_duration
+        elif not self.frequency_or_duration and self.frequency_duration:
+            self.frequency_or_duration = self.frequency_duration
+
+        if not self.important_cautions and self.cautions:
+            self.important_cautions = self.cautions
+        elif not self.cautions and self.important_cautions:
+            self.cautions = self.important_cautions
 
 
 class ImplementationPlan(BaseModel):
@@ -60,10 +79,23 @@ class ImplementationPlan(BaseModel):
 class AvoidAndMonitorRow(BaseModel):
     """Row in the Avoid and Monitor table."""
 
-    what_to_avoid: str
-    why_avoid: str
-    what_to_monitor: str
-    monitoring_frequency: str
+    what_to_avoid: str = ""
+    why_avoid: str = ""
+    what_to_monitor: str = ""
+    monitoring_frequency: str = ""
+
+
+class MedicoBuddyResponseDraft(BaseModel):
+    """Pydantic draft response model for ChatGroq structured output."""
+
+    what_this_applies_to: str = Field(description="Exact scope and symptom summary")
+    summary: str = Field(default="", description="Plain-language evidence-grounded summary")
+    action_table: list[ActionTableRow] = Field(default_factory=list, description="Evidence-backed non-pharmacological self-care action rows")
+    implementation_plan: ImplementationPlan = Field(default_factory=ImplementationPlan, description="Step-by-step timeline (now, next 6-12h, next 24-48h)")
+    avoid_and_monitor: list[AvoidAndMonitorRow] = Field(default_factory=list, description="What to avoid and what symptoms to monitor")
+    when_to_seek_care: list[str] = Field(default_factory=list, description="Red flag thresholds when to seek professional care")
+    targeted_follow_up: str = Field(default="Are you experiencing any other symptoms?", description="One targeted follow-up question")
+    follow_up_question: str = Field(default="", description="One relevant follow-up question")
 
 
 class MedicoBuddyResponse(BaseModel):
@@ -77,6 +109,9 @@ class MedicoBuddyResponse(BaseModel):
 
     # 2. What this information applies to
     what_this_applies_to: str = ""
+
+    # Summary
+    summary: str = ""
 
     # 3. Action table
     action_table: list[ActionTableRow] = Field(default_factory=list)
@@ -96,6 +131,7 @@ class MedicoBuddyResponse(BaseModel):
 
     # 8. One targeted follow-up question
     targeted_follow_up: str = ""
+    follow_up_question: str = ""
 
     # 9. Educational-use statement
     educational_statement: str = Field(

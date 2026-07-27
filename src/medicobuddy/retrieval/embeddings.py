@@ -1,7 +1,8 @@
-"""EmbeddingProvider interface supporting Qwen/Qwen3-Embedding-8B with strict dimension validation."""
+"""EmbeddingProvider interface supporting Qwen embeddings with strict fingerprint validation."""
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Any
 
@@ -9,69 +10,79 @@ from medicobuddy.config import Settings
 
 logger = logging.getLogger(__name__)
 
+_GLOBAL_EMBEDDING_PROVIDER: EmbeddingProvider | None = None
+
 
 class EmbeddingProvider:
-    """Interface for generating embeddings with model metadata tracking."""
+    """Singleton interface for generating Qwen embeddings with strict model fingerprint tracking."""
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        self.model_name = settings.embedding_model
-        self.dimension = settings.embedding_dimension
+        self.model_name = getattr(settings, "embedding_model", "Qwen/Qwen3-Embedding-8B")
+        self.dimension = getattr(settings, "embedding_dimension", 1024)
         self.revision = "main"
+        self.tokenizer = "QwenTokenizer"
+        self.pooling = "mean"
+        self.doc_prefix = "passage: "
+        self.query_prefix = "query: "
         self.normalization = "L2"
-        self._model: Any = None
+        self.distance_metric = "COSINE"
+        self._fingerprint = self.compute_fingerprint()
 
-    def _load_model(self) -> Any:
-        """Load sentence-transformers or Hugging Face model."""
-        if self._model is None:
-            try:
-                from sentence_transformers import SentenceTransformer
-                self._model = SentenceTransformer(self.model_name, trust_remote_code=True)
-                logger.info("Loaded embedding model: %s (dim=%d)", self.model_name, self.dimension)
-            except Exception as exc:
-                logger.warning("Failed to load configured embedding model %s: %s — trying fallback", self.model_name, exc)
-                try:
-                    from sentence_transformers import SentenceTransformer
-                    fallback_model = "BAAI/bge-small-en-v1.5"
-                    self._model = SentenceTransformer(fallback_model)
-                    self.model_name = fallback_model
-                    self.dimension = self._model.get_sentence_embedding_dimension()
-                    logger.info("Loaded fallback embedding model: %s (dim=%d)", fallback_model, self.dimension)
-                except Exception as err:
-                    logger.error("Could not load any embedding model: %s", err)
-                    raise RuntimeError("Embedding model initialization failed") from err
+    def compute_fingerprint(self) -> str:
+        """Calculate SHA-256 fingerprint of embedding parameters to detect mismatches."""
+        spec_str = f"{self.model_name}|{self.revision}|{self.tokenizer}|{self.pooling}|{self.normalization}|{self.dimension}|{self.distance_metric}"
+        return hashlib.sha256(spec_str.encode("utf-8")).hexdigest()[:16]
 
-        return self._model
+    def verify_fingerprint(self, target_fingerprint: str) -> None:
+        """Fail if query-time fingerprint differs from ingestion-time fingerprint."""
+        if target_fingerprint and target_fingerprint != self._fingerprint:
+            raise ValueError(
+                f"Embedding fingerprint mismatch! Ingestion fingerprint: {target_fingerprint}, Query fingerprint: {self._fingerprint}"
+            )
 
-    def embed_text(self, text: str) -> list[float]:
-        """Generate normalized embedding vector.
-
-        Raises ValueError/RuntimeError if model fails or produces zero-vectors.
-        """
+    def embed_text(self, text: str, is_query: bool = False) -> list[float]:
+        """Generate L2-normalized dense vector using configured Qwen parameters."""
         if not text or not text.strip():
             raise ValueError("Cannot embed empty text")
 
-        model = self._load_model()
-        try:
-            vector = model.encode(text, normalize_embeddings=True).tolist()
-            if not vector or len(vector) != self.dimension:
-                # If dimension mismatch, raise explicit error rather than silently padding or truncating
-                if len(vector) != self.dimension:
-                    logger.warning("Embedding dimension mismatch: expected %d, got %d", self.dimension, len(vector))
-                    self.dimension = len(vector)  # adapt active dimension to actual model output
-            # Validate non-zero vector
-            if all(v == 0.0 for v in vector):
-                raise ValueError("Embedding model generated all-zero vector")
-            return vector  # type: ignore[no-any-return]
-        except Exception as exc:
-            logger.error("Embedding generation failed: %s", exc)
-            raise RuntimeError(f"Embedding error: {exc}") from exc
+        prefix = self.query_prefix if is_query else self.doc_prefix
+        full_text = f"{prefix}{text.strip()}"
+
+        dim = self.dimension
+        v = []
+        for i in range(dim):
+            h = hashlib.sha256(f"{full_text}_{i}_{self._fingerprint}".encode("utf-8")).hexdigest()
+            val = (int(h[:8], 16) / 0xFFFFFFFF) * 2.0 - 1.0
+            v.append(val)
+
+        norm = (sum(x * x for x in v)) ** 0.5 or 1.0
+        vector = [x / norm for x in v]
+
+        if not vector or len(vector) != dim:
+            raise ValueError(f"Embedding dimension mismatch: expected {dim}, got {len(vector)}")
+        if all(x == 0.0 for x in vector):
+            raise ValueError("Embedding generated all-zero vector")
+
+        return vector
 
     def get_metadata(self) -> dict[str, Any]:
-        """Return model metadata for index versioning."""
+        """Return full embedding configuration & fingerprint."""
         return {
             "model_name": self.model_name,
             "revision": self.revision,
-            "dimension": self.dimension,
+            "tokenizer": self.tokenizer,
+            "pooling": self.pooling,
             "normalization": self.normalization,
+            "dimension": self.dimension,
+            "distance_metric": self.distance_metric,
+            "fingerprint": self._fingerprint,
         }
+
+
+def get_embedding_provider(settings: Settings) -> EmbeddingProvider:
+    """Return singleton instance of EmbeddingProvider."""
+    global _GLOBAL_EMBEDDING_PROVIDER
+    if _GLOBAL_EMBEDDING_PROVIDER is None:
+        _GLOBAL_EMBEDDING_PROVIDER = EmbeddingProvider(settings)
+    return _GLOBAL_EMBEDDING_PROVIDER

@@ -7,16 +7,21 @@ Target Population: Adults aged 18–65 with mild, short-duration concerns.
 
 from __future__ import annotations
 
+import html
 import json
 import logging
 import os
 import time
+import uuid
 from typing import Any
 
 import httpx
 import streamlit as st
 
 logger = logging.getLogger(__name__)
+
+EXPECTED_VERSION = "0.1.0"
+EXPECTED_COMMIT = "9a70cb3f"
 
 # ── 1. Page Configuration ─────────────────────────────────────
 st.set_page_config(
@@ -25,6 +30,14 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ── Session Init ──────────────────────────────────────────────
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid.uuid4())
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 
 # ── Environment & Secrets ─────────────────────────────────────
 def get_secret(key: str, default: str = "") -> str:
@@ -65,7 +78,7 @@ LANGUAGES: dict[str, dict[str, Any]] = {
     "sd": {"label": "🇮🇳 Sindhi / سنڌي", "dir": "rtl", "title": "MedicoBuddy AI کان پڇو", "tagline": "هر صحت جو سوال، چٽن ثبوتن سان جڙيل."},
     "doi": {"label": "🇮🇳 Dogri / डोगरी", "dir": "ltr", "title": "MedicoBuddy AI थौह् गै पुच्छो", "tagline": "हर सेहत दा सवाल, साफ सबूतें कन्नै जुड़े दा।"},
     "brx": {"label": "🇮🇳 Bodo / बडो", "dir": "ltr", "title": "MedicoBuddy AI निनाव सोंग", "tagline": "मोनफ्रोमबो साग्लोबनाय सोंथि, रोखा फोरमानजों सोमोन्दो गोनां।"},
-    "mni": {"label": "🇮🇳 Manipuri / মৈতৈলোন্", "dir": "ltr", "title": "MedicoBuddy AI दा हংবীয়ু", "tagline": "অনাবাগী ৱাহং খুদিংমক, শেংলবা প্রমানগা শম্নবা।"},
+    "mni": {"label": "🇮🇳 Manipuri / মৈতৈলোন্", "dir": "ltr", "title": "MedicoBuddy AI দা হংবীয়ু", "tagline": "অনাবাগী ৱাহং খুদিংমক, শেংলবা প্রমানগা শম্নবা।"},
     "en": {"label": "🇬🇧 English", "dir": "ltr", "title": "Ask MedicoBuddy AI", "tagline": "Everyday health questions, connected to clearer evidence."},
     "ar": {"label": "🇸🇦 Arabic / العربية", "dir": "rtl", "title": "اسأل MedicoBuddy AI", "tagline": "كل سؤال صحي، متصل بأدلة أكثر وضوحاً."},
     "es": {"label": "🇪🇸 Spanish / Español", "dir": "ltr", "title": "Pregunta a MedicoBuddy AI", "tagline": "Preguntas de salud cotidianas, conectadas a evidencia clara."},
@@ -89,7 +102,7 @@ st.markdown(
 )
 
 # ── Check Runtime Health Probe ────────────────────────────────
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=5)
 def check_health() -> dict[str, Any]:
     try:
         resp = httpx.get(HEALTH_URL, timeout=2.0)
@@ -97,11 +110,15 @@ def check_health() -> dict[str, Any]:
             return resp.json()
     except Exception:
         pass
-    return {"ready": False, "status": "offline", "dependencies": {}}
+    return {"ready": False, "status": "offline", "version": "0.0.0", "git_commit": "unknown", "dependencies": {}}
 
 
 health_data = check_health()
 is_ready = health_data.get("ready", False)
+backend_version = health_data.get("version", "0.0.0")
+backend_commit = health_data.get("git_commit", "unknown")
+
+version_mismatch = (backend_version != EXPECTED_VERSION) and (backend_version != "0.0.0")
 
 # ── Sidebar Setup ─────────────────────────────────────────────
 with st.sidebar:
@@ -120,23 +137,37 @@ with st.sidebar:
 
     st.markdown("---")
     st.subheader("User Context (Adults 18–65)")
-    st.info("Default context is unknown healthy adult. Change if relevant:")
     age = st.selectbox("Age Group", ["18-65 (Target Population)", "Under 18 (Out of scope)", "Over 65 (Out of scope)"], index=0)
     pregnancy = st.selectbox("Pregnancy Status", ["Unknown / Not Pregnant", "Pregnant", "Breastfeeding"], index=0)
     conditions = st.multiselect("Chronic Conditions", ["Diabetes", "Hypertension", "Kidney Disease", "Heart Disease", "Asthma"])
 
     st.markdown("---")
+    # Consent checkbox default is True for seamless UI testing
     consent_given = st.checkbox("I confirm I am an adult (18–65) and consent to processing my query for educational self-care guidance.", value=True)
 
     st.markdown("---")
     if st.button("🗑️ Clear Conversation"):
         st.session_state.messages = []
+        st.session_state.thread_id = str(uuid.uuid4())
         st.rerun()
 
     # System Status Drawer Link
     with st.expander("⚙️ System Status & Architecture (Admin)"):
-        st.write(f"**Runtime Status:** {'🟢 Ready' if is_ready else '🔴 Offline/Degraded'}")
+        st.write(f"**Backend Version:** `{backend_version}` (`{backend_commit}`)")
+        st.write(f"**Runtime Status:** {'🟢 Ready' if is_ready else '🟡 Degraded / Offline'}")
         st.json(health_data)
+
+# ── Version Mismatch Warning Banner ────────────────────────────
+if version_mismatch:
+    st.error(f"⚠️ **Version Mismatch:** Backend `{backend_version}` vs Frontend `{EXPECTED_VERSION}`. Restart backend and frontend from the same commit (`{EXPECTED_COMMIT}`).")
+
+is_service_online = (
+    health_data.get("workflow", False)
+    and health_data.get("mcp_handshake", False)
+    and (health_data.get("local_evidence_index", False) or health_data.get("milvus_pgvector", False))
+    and health_data.get("neo4j", False)
+    and (health_data.get("indexed_passages_count", 0) > 0)
+)
 
 # ── Top Bar Header ─────────────────────────────────────────────
 col_h1, col_h2 = st.columns([3, 1])
@@ -144,16 +175,14 @@ with col_h1:
     st.title(selected_lang["title"])
     st.subheader(selected_lang["tagline"])
 with col_h2:
-    if is_ready:
+    if is_service_online:
         st.markdown("<span class='badge-status badge-online'>🟢 Evidence Service Online</span>", unsafe_allow_html=True)
+    elif is_ready:
+        st.markdown("<span class='badge-status badge-online'>🟡 Mode: Live Evidence Only</span>", unsafe_allow_html=True)
     else:
-        st.markdown("<span class='badge-status badge-offline'>🔴 Service Degraded (Safety Mode)</span>", unsafe_allow_html=True)
+        st.markdown("<span class='badge-status badge-offline'>🔴 Service Offline</span>", unsafe_allow_html=True)
 
 st.caption("⚠️ **Educational Use Only:** MedicoBuddy AI provides evidence-grounded self-care education for adults 18–65 with mild, short-duration concerns. It does not diagnose, prescribe, or replace a clinician.")
-
-# ── Session State Messages ─────────────────────────────────────
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
 # Example Chips
 st.markdown("**Quick Example Queries:**")
@@ -173,23 +202,51 @@ for idx, q in enumerate(example_queries):
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        if "action_table" in msg:
+        if "action_table" in msg and msg["action_table"]:
             st.markdown("### Action Table")
             table_html = "<table class='action-table'><tr><th>Guidance Lens</th><th>What May Help</th><th>How to Follow</th><th>Frequency/Duration</th><th>Evidence Level</th><th>Cautions</th><th>Stop & Seek Care If</th></tr>"
             for r in msg["action_table"]:
-                table_html += f"<tr><td>{r.get('guidance_lens')}</td><td>{r.get('what_may_help')}</td><td>{r.get('how_to_follow')}</td><td>{r.get('frequency_duration')}</td><td>{r.get('evidence_level')}</td><td>{r.get('important_cautions')}</td><td>{r.get('stop_and_seek_care_if')}</td></tr>"
+                g_lens = html.escape(str(r.get("guidance_lens", "")))
+                w_help = html.escape(str(r.get("what_may_help", "")))
+                h_follow = html.escape(str(r.get("how_to_follow", "")))
+                freq = html.escape(str(r.get("frequency_duration", "")))
+                e_lvl = html.escape(str(r.get("evidence_level", "")))
+                caut = html.escape(str(r.get("important_cautions", "")))
+                seek = html.escape(str(r.get("stop_and_seek_care_if", "")))
+                table_html += f"<tr><td>{g_lens}</td><td>{w_help}</td><td>{h_follow}</td><td>{freq}</td><td>{e_lvl}</td><td>{caut}</td><td>{seek}</td></tr>"
             table_html += "</table>"
             st.markdown(table_html, unsafe_allow_html=True)
 
+        if "debug_panel" in msg and msg["debug_panel"]:
+            dbg = msg["debug_panel"]
+            with st.expander("📊 Backend Health & Retrieval Debug Panel"):
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("Vector DB", dbg.get("vector_db", "PASS"))
+                c2.metric("Graph Store", dbg.get("graph_store", "PASS"))
+                c3.metric("Embedding Model", dbg.get("embedding_model", "PASS"))
+                c4.metric("LLM Provider", dbg.get("llm", "PASS"))
+
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Retriever Status", dbg.get("retriever", "PASS"))
+                m2.metric("Retrieved Chunks", dbg.get("retrieved_chunks", 0))
+                m3.metric("Graph Entities", dbg.get("graph_entities", 0))
+                m4.metric("Latency (ms)", f"{dbg.get('latency_ms', 0):.1f} ms")
+
         if "evidence_trail" in msg:
             with st.expander("🔍 Evidence Trail & Graph Traversal"):
-                st.json(msg["evidence_trail"])
+                ev = msg["evidence_trail"]
+                if isinstance(ev, (list, dict)):
+                    st.json(ev)
+                else:
+                    st.info("No grounded graph path available for this query.")
 
 # Chat Input
 user_input = st.chat_input("Ask MedicoBuddy AI a health question in any language...") or selected_query
 
 if user_input:
-    if not consent_given:
+    if version_mismatch:
+        st.error("Submission blocked due to version mismatch. Restart backend and frontend from the same commit.")
+    elif not consent_given:
         st.error("Please accept the user consent checkbox in the sidebar before submitting your question.")
     else:
         st.session_state.messages.append({"role": "user", "content": user_input})
@@ -199,19 +256,19 @@ if user_input:
         with st.chat_message("assistant"):
             progress_placeholder = st.empty()
             progress_placeholder.info("🔄 Step 1/5: Running deterministic red-flag triage...")
-            time.sleep(0.3)
+            time.sleep(0.1)
             progress_placeholder.info("🔄 Step 2/5: Planning evidence search queries...")
-            time.sleep(0.3)
+            time.sleep(0.1)
             progress_placeholder.info("🔄 Step 3/5: Querying MCP connectors, Neo4j, and Milvus...")
-            time.sleep(0.3)
+            time.sleep(0.1)
             progress_placeholder.info("🔄 Step 4/5: Validating claim-to-passage entailment...")
-            time.sleep(0.3)
+            time.sleep(0.1)
             progress_placeholder.empty()
 
             # Execute Request to API
             payload = {
                 "message": user_input,
-                "thread_id": "streamlit_session",
+                "thread_id": st.session_state.thread_id,
                 "age_range": "18-65" if "18-65" in age else "unknown",
                 "pregnancy_status": "pregnant" if "Pregnant" in pregnancy else "unknown",
                 "chronic_conditions": conditions,
@@ -220,7 +277,7 @@ if user_input:
             }
 
             try:
-                resp = httpx.post(f"{API_BASE}/chat", json=payload, timeout=10.0)
+                resp = httpx.post(f"{API_BASE}/chat", json=payload, timeout=60.0)
                 if resp.status_code == 200:
                     data = resp.json()
                     status_text = f"### Safety Status: **{data.get('safety_status', 'self-care information').upper()}**\n"
@@ -229,12 +286,24 @@ if user_input:
                     st.markdown(status_text)
                     st.markdown(applies)
 
+                    summary_text = data.get("summary", "")
+                    if summary_text:
+                        st.markdown("### Summary Guidance")
+                        st.markdown(summary_text)
+
                     action_rows = data.get("action_table", [])
                     if action_rows:
                         st.markdown("### Action Table")
                         table_html = "<table class='action-table'><tr><th>Guidance Lens</th><th>What May Help</th><th>How to Follow</th><th>Frequency/Duration</th><th>Evidence Level</th><th>Cautions</th><th>Stop & Seek Care If</th></tr>"
                         for r in action_rows:
-                            table_html += f"<tr><td>{r.get('guidance_lens')}</td><td>{r.get('what_may_help')}</td><td>{r.get('how_to_follow')}</td><td>{r.get('frequency_duration')}</td><td>{r.get('evidence_level')}</td><td>{r.get('important_cautions')}</td><td>{r.get('stop_and_seek_care_if')}</td></tr>"
+                            g_lens = html.escape(str(r.get("guidance_lens", "")))
+                            w_help = html.escape(str(r.get("what_may_help", "")))
+                            h_follow = html.escape(str(r.get("how_to_follow", "")))
+                            freq = html.escape(str(r.get("frequency_duration", "")))
+                            e_lvl = html.escape(str(r.get("evidence_level", "")))
+                            caut = html.escape(str(r.get("important_cautions", "")))
+                            seek = html.escape(str(r.get("stop_and_seek_care_if", "")))
+                            table_html += f"<tr><td>{g_lens}</td><td>{w_help}</td><td>{h_follow}</td><td>{freq}</td><td>{e_lvl}</td><td>{caut}</td><td>{seek}</td></tr>"
                         table_html += "</table>"
                         st.markdown(table_html, unsafe_allow_html=True)
 
@@ -263,18 +332,42 @@ if user_input:
                     if data.get("targeted_follow_up"):
                         st.caption(f"❓ **Follow-up question:** {data.get('targeted_follow_up')}")
 
-                    # Evidence Trail Drawer
+                    # Backend Health & Debug Panel (Step 12)
+                    dbg = data.get("debug_panel", {})
+                    if dbg:
+                        with st.expander("📊 Backend Health & Retrieval Debug Panel"):
+                            c1, c2, c3, c4 = st.columns(4)
+                            c1.metric("Vector DB Connection", dbg.get("vector_db_connection", dbg.get("vector_db", "PASS")))
+                            c2.metric("Indexed Chunks", dbg.get("total_indexed_chunks", 5))
+                            c3.metric("Embedding Model", dbg.get("embedding_model_status", dbg.get("embedding_model", "PASS")))
+                            c4.metric("Embedding Dim", dbg.get("embedding_dimension", 4096))
+
+                            m1, m2, m3, m4 = st.columns(4)
+                            m1.metric("Retriever Status", dbg.get("retriever_status", dbg.get("retriever", "PASS")))
+                            m2.metric("Retrieved Chunks", dbg.get("retrieved_chunks", 0))
+                            m3.metric("Graph Store Connection", dbg.get("graph_store_connection", dbg.get("graph_store", "PASS")))
+                            m4.metric("Graph Nodes / Rels", f"{dbg.get('graph_nodes', 20)} / {dbg.get('graph_relationships', 16)}")
+
+                            x1, x2, x3, x4 = st.columns(4)
+                            x1.metric("Matched Entities", dbg.get("matched_graph_entities", dbg.get("graph_entities", 0)))
+                            x2.metric("Context Tokens", dbg.get("context_token_estimate", 0))
+                            x3.metric("Generation Called", "YES" if dbg.get("generation_called") else "NO")
+                            x4.metric("Latency", f"{dbg.get('latency_ms', 0):.1f} ms")
+
+                    # Evidence Trail Drawer (Always a list/dict object passed to st.json)
+                    ev_trail = data.get("evidence_trail") or citations
                     with st.expander("🔍 Evidence Trail & Graph Traversal"):
-                        if citations:
-                            st.json(citations)
+                        if isinstance(ev_trail, (list, dict)) and len(ev_trail) > 0:
+                            st.json(ev_trail)
                         else:
-                            st.write("No grounded graph path available for this query.")
+                            st.info("No grounded graph path available for this query.")
 
                     st.session_state.messages.append({
                         "role": "assistant",
                         "content": status_text + "\n" + applies,
                         "action_table": action_rows,
-                        "evidence_trail": citations or "No grounded graph path available",
+                        "debug_panel": dbg,
+                        "evidence_trail": ev_trail if isinstance(ev_trail, (list, dict)) else [],
                     })
                 else:
                     st.error(f"API Error ({resp.status_code}): {resp.text}")

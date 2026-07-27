@@ -34,6 +34,7 @@ class MCPResult(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc)
     )
     supporting_passage: str = ""
+    passage_id: str = ""
     usage_licence: str = ""
 
     # ── Connector metadata ───────────────────────────────────

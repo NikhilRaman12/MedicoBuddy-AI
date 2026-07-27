@@ -16,8 +16,22 @@ class AgeRange(StrEnum):
     AGE_36_45 = "36_45"
     AGE_46_55 = "46_55"
     AGE_56_65 = "56_65"
+    ADULT_18_65 = "18_65"
     OVER_65 = "over_65"
     UNKNOWN = "unknown"
+
+    @classmethod
+    def parse_age(cls, value: str) -> AgeRange:
+        """Parse age string from UI or API safely, supporting '18-65' and '18_65'."""
+        if not value:
+            return cls.UNKNOWN
+        val = value.strip().lower().replace("-", "_")
+        if "18" in val and "65" in val:
+            return cls.ADULT_18_65
+        for item in cls:
+            if item.value == val or item.name.lower() == val:
+                return item
+        return cls.ADULT_18_65 if "18" in val or "adult" in val else cls.UNKNOWN
 
 
 class PregnancyStatus(StrEnum):
@@ -36,7 +50,7 @@ class UserContext(BaseModel):
     Stores NO personally identifiable information (no name, address, ID).
     """
 
-    age_range: AgeRange = AgeRange.UNKNOWN
+    age_range: AgeRange = AgeRange.ADULT_18_65
     pregnancy_status: PregnancyStatus = PregnancyStatus.UNKNOWN
     is_immunocompromised: bool | None = None
 
@@ -64,7 +78,7 @@ class UserContext(BaseModel):
 
     def is_in_target_population(self) -> bool:
         """Check if user falls within the target adult population (18-65)."""
-        excluded_ages = {AgeRange.UNDER_18, AgeRange.OVER_65, AgeRange.UNKNOWN}
+        excluded_ages = {AgeRange.UNDER_18, AgeRange.OVER_65}
         if self.age_range in excluded_ages:
             return False
         if self.pregnancy_status in {PregnancyStatus.PREGNANT, PregnancyStatus.BREASTFEEDING}:

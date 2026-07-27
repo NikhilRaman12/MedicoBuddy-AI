@@ -41,8 +41,14 @@ def _scope_check(state: GraphState) -> str:
 
 
 def _needs_clarification(state: GraphState) -> str:
-    """Route based on whether clarification is needed."""
-    if state.get("needs_clarification"):
+    """Route based on whether clarification is needed.
+
+    If a query has a valid symptom report, proceed to full GraphRAG retrieval
+    and include the clarification question as a follow-up rather than terminating early.
+    """
+    symptom = state.get("symptom_report")
+    has_symptom = bool(symptom and symptom.main_symptom and len(symptom.main_symptom.strip()) >= 3)
+    if state.get("needs_clarification") and not has_symptom:
         return "clarify"
     return "proceed"
 
