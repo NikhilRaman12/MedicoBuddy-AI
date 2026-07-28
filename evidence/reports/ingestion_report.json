@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T18:36:04.885947+00:00",
+  "timestamp": "2026-07-28T16:03:05.597944+00:00",
   "pdfs_discovered": 15,
   "pdfs_successful": 15,
   "pdfs_quarantined": 0,
@@ -8,10 +8,10 @@
   "characters_extracted": 31916,
   "chunks_created": 60,
   "vectors_written": 60,
-  "graph_nodes_written": 240,
+  "graph_nodes_written": 258,
   "graph_relationships_written": 180,
   "quarantined_chunks": 0,
-  "embedding_fingerprint": "6c6c00773ebfd5ca",
+  "embedding_fingerprint": "229d69e75ed1e3b1",
   "indexed_chunks_valid": true,
   "per_pdf_reports": [
     {

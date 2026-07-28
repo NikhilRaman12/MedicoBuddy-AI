@@ -1,0 +1,12 @@
+{
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "revision": "main",
+  "dimension": 384,
+  "pooling": "mean",
+  "normalization": "L2",
+  "distance_metric": "COSINE",
+  "fingerprint": "229d69e75ed1e3b1",
+  "backend": "LOCAL_DEVELOPMENT_FALLBACK",
+  "is_local_fallback": true,
+  "written_at": "2026-07-28T16:28:11Z"
+}

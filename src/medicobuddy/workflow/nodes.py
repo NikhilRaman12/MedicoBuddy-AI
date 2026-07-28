@@ -381,7 +381,7 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
         neo4j = Neo4jClient(settings)
         vector_store = VectorStoreClient(settings)
 
-        total_indexed_chunks = vector_store.get_total_indexed_chunks()
+        total_indexed_chunks = vector_store.get_backend_status().get("local_chunks_available", 0)
 
         if await neo4j.connect() and neo4j._driver is not None:
             g_queries = KnowledgeGraphQueries(neo4j)
@@ -626,19 +626,17 @@ async def response_composer_node(state: GraphState) -> dict[str, Any]:
                 )
             )
 
-    # Ensure action_table ALWAYS has at least 2 rows
-    while len(action_table) < 2:
-        idx_lbl = len(action_table) + 1
+    if not action_table:
         action_table.append(
             ActionTableRow(
-                guidance_lens="General medical self-care education" if idx_lbl == 1 else "Natural supportive care",
-                what_may_help=f"Symptom Monitoring & Rest for {symptom_name.title()}" if idx_lbl == 1 else f"Hydration & Comfort Steps for {symptom_name.title()}",
-                how_to_follow="Rest in a quiet well-ventilated space and track symptom progress." if idx_lbl == 1 else "Sip plain water regularly and avoid bright screens or noise.",
-                frequency_duration="Monitor every 6–12 hours",
-                evidence_level="High",
+                guidance_lens="Natural supportive care",
+                what_may_help="Symptom Monitoring & Rest",
+                how_to_follow="Rest in a quiet well-ventilated space and track symptom progress.",
+                frequency_duration="Monitor regularly",
+                evidence_level="General Guidance",
                 important_cautions="Do not self-prescribe unverified oral formulations or OTC drugs.",
-                stop_and_seek_care_if="Fever rises above 102°F (39°C) or severe pain occurs.",
-                citation_ids=["CIT-001"] if citations else [],
+                stop_and_seek_care_if="Symptoms worsen or red flags appear.",
+                citation_ids=[],
             )
         )
 
@@ -764,33 +762,6 @@ async def citation_validator_node(state: GraphState) -> dict[str, Any]:
                         limitation="Evidence grounded in local vector registry",
                     )
                 )
-
-    if len(citations) < 2:
-        default_titles = [
-            ("WHO Guideline on Self-Care Interventions", "https://official.health.gov/who_selfcare_interventions_guideline.pdf"),
-            ("MedlinePlus Consumer Guidance on Daily Wellness", "https://official.health.gov/medlineplus_general_wellness_guide.pdf"),
-        ]
-        while len(citations) < 2:
-            idx = len(citations) + 1
-            title_info = default_titles[idx - 1] if idx <= 2 else ("Clinical Self-Care Reference", "https://official.health.gov")
-            citations.append(
-                Citation(
-                    number=idx,
-                    citation_id=f"CIT-{idx:03d}",
-                    title=title_info[0],
-                    authors="World Health Organization / NIH MedlinePlus",
-                    publisher="Official Health Agency",
-                    publication_date="2026",
-                    retrieved_at="2026-07-27T00:00:00Z",
-                    url=title_info[1],
-                    passage_id=f"CHK_DEF_{idx}",
-                    evidence_type="Guideline Review",
-                    source_type="Clinical Guideline",
-                    supporting_passage="General evidence-grounded health and wellness guidelines for self-care education.",
-                    retrieval_date="2026-07-27",
-                    limitation="Baseline educational reference",
-                )
-            )
 
     return {"citations": citations, "citation_warnings": []}
 

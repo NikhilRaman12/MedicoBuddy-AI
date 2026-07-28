@@ -6,6 +6,16 @@ import logging
 from typing import Any
 
 from medicobuddy.config import Settings
+from medicobuddy.knowledge_graph.schema import (
+    LABEL_PASSAGE,
+    LABEL_SELF_CARE_ACTION,
+    LABEL_SOURCE_DOCUMENT,
+    LABEL_SYMPTOM,
+    REL_EXTRACTED_FROM,
+    REL_MAY_SUPPORT,
+    REL_SUPPORTED_BY,
+    get_constraint_statements,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +48,15 @@ class Neo4jClient:
 
         return self._is_connected
 
+    async def create_constraints(self) -> None:
+        """Create canonical schema constraints on Neo4j startup."""
+        if self._driver is None:
+            return
+        
+        for statement in get_constraint_statements():
+            await self.execute_write(statement)
+        logger.info("Neo4j schema constraints enforced")
+
     async def is_ready(self) -> bool:
         """Check Neo4j client connection state."""
         return self._is_connected
@@ -63,6 +82,27 @@ class Neo4jClient:
             except Exception as exc:
                 logger.warning("Neo4j read failed: %s", exc)
         return []
+
+    async def traverse_evidence_paths(self, symptom_name: str) -> list[dict[str, Any]]:
+        """Traverse the canonical schema from a symptom to source documents."""
+        cypher = f"""
+        MATCH (sym:{LABEL_SYMPTOM} {{name: $symptom}})<-[:{REL_MAY_SUPPORT}]-(act:{LABEL_SELF_CARE_ACTION})
+        MATCH (act)-[:{REL_SUPPORTED_BY}]->(pas:{LABEL_PASSAGE})
+        MATCH (pas)-[:{REL_EXTRACTED_FROM}]->(src:{LABEL_SOURCE_DOCUMENT})
+        RETURN sym.name AS symptom,
+               act.action_name AS action,
+               act.evidence_level AS action_evidence_level,
+               pas.passage_id AS chunk_id,
+               pas.text AS text,
+               pas.section_title AS section_title,
+               pas.page_number AS page_number,
+               src.source_file AS source_file,
+               src.title AS title,
+               src.publisher AS publisher,
+               src.url AS url
+        """
+        params = {"symptom": symptom_name}
+        return await self.execute_read(cypher, params)
 
     async def get_graph_counts(self) -> tuple[int, int]:
         """Return total node and relationship counts in graph."""

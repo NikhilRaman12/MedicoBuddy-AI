@@ -1,0 +1,543 @@
+[
+  {
+    "source_id": "medlineplus_topics",
+    "title": "MedlinePlus Health Topic XML",
+    "publisher": "US National Library of Medicine",
+    "scope": "General consumer health; symptoms; prevention; escalation",
+    "evidence_tier": "A",
+    "access_mode": "download",
+    "format": "ZIP/XML",
+    "primary_url": "https://medlineplus.gov/xml.html",
+    "download_url": "AUTO_DISCOVER_MEDLINEPLUS",
+    "ingestion_policy": "download_allowed",
+    "licence_note": "Attribute MedlinePlus.gov; follow NLM usage guidance",
+    "refresh_policy": "daily",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "medlineplus_search",
+    "title": "MedlinePlus Web Service",
+    "publisher": "US National Library of Medicine",
+    "scope": "Live consumer-health topic retrieval",
+    "evidence_tier": "A",
+    "access_mode": "api",
+    "format": "XML",
+    "primary_url": "https://medlineplus.gov/about/developers/webservices/",
+    "download_url": "",
+    "ingestion_policy": "api_allowed",
+    "licence_note": "Free; attribution required; maximum 85 requests/minute/IP; cache 12-24 hours",
+    "refresh_policy": "daily",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "INTERNAL_SUMMARY",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "pubmed_eutils",
+    "title": "Entrez Programming Utilities for PubMed",
+    "publisher": "US National Library of Medicine",
+    "scope": "Bibliographic metadata and abstracts",
+    "evidence_tier": "A",
+    "access_mode": "api",
+    "format": "XML/JSON",
+    "primary_url": "https://www.ncbi.nlm.nih.gov/books/NBK25497/",
+    "download_url": "",
+    "ingestion_policy": "api_allowed",
+    "licence_note": "Follow NCBI usage policy; PubMed metadata is not automatically reusable full text",
+    "refresh_policy": "per_query",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "INTERNAL_SUMMARY",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "pmc_oa_api",
+    "title": "PMC Open Access Web Service",
+    "publisher": "US National Library of Medicine",
+    "scope": "Licensed open-access full-text discovery",
+    "evidence_tier": "A",
+    "access_mode": "api",
+    "format": "XML",
+    "primary_url": "https://pmc.ncbi.nlm.nih.gov/tools/oa-service/",
+    "download_url": "",
+    "ingestion_policy": "api_allowed",
+    "licence_note": "Check and store each article licence; restrict commercial deployment to compatible licences",
+    "refresh_policy": "per_query",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "INTERNAL_SUMMARY",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "pmc_oai",
+    "title": "PMC OAI-PMH API",
+    "publisher": "US National Library of Medicine",
+    "scope": "Reusable full text and metadata when licence permits",
+    "evidence_tier": "A",
+    "access_mode": "api",
+    "format": "XML",
+    "primary_url": "https://pmc.ncbi.nlm.nih.gov/tools/oai/",
+    "download_url": "",
+    "ingestion_policy": "api_allowed",
+    "licence_note": "Only content with licence or usage rights allowing reuse",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "INTERNAL_SUMMARY",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "clinicaltrials_api",
+    "title": "ClinicalTrials.gov API",
+    "publisher": "US National Library of Medicine",
+    "scope": "Study status and trial metadata; not treatment recommendations",
+    "evidence_tier": "A",
+    "access_mode": "api",
+    "format": "JSON",
+    "primary_url": "https://clinicaltrials.gov/data-api/api",
+    "download_url": "",
+    "ingestion_policy": "api_allowed",
+    "licence_note": "Cite study status and update date; trial registration is not proof of effectiveness",
+    "refresh_policy": "per_query",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "INTERNAL_SUMMARY",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "who_tm_strategy",
+    "title": "Global Traditional Medicine Strategy 2025-2034",
+    "publisher": "World Health Organization",
+    "scope": "Governance; evidence; safety and responsible traditional-medicine integration",
+    "evidence_tier": "A",
+    "access_mode": "official_page",
+    "format": "PDF",
+    "primary_url": "https://www.who.int/publications/i/item/9789240113176",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Use official download page; verify WHO publication terms",
+    "refresh_policy": "monthly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "who_selfcare_guideline",
+    "title": "WHO Guideline on Self-Care Interventions for Health and Well-Being 2022 Revision",
+    "publisher": "World Health Organization",
+    "scope": "Self-care governance; implementation and safety framework",
+    "evidence_tier": "A",
+    "access_mode": "download",
+    "format": "PDF",
+    "primary_url": "https://www.who.int/publications/i/item/9789240052192",
+    "download_url": "https://iris.who.int/bitstream/handle/10665/356986/9789240052215-eng.pdf",
+    "ingestion_policy": "download_allowed",
+    "licence_note": "WHO publication; retain attribution and licence notice",
+    "refresh_policy": "annual",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "who_selfcare_toolkit_2026",
+    "title": "Self-Care Interventions Communications Toolkit 2026",
+    "publisher": "World Health Organization",
+    "scope": "Current self-care language and implementation resources",
+    "evidence_tier": "B",
+    "access_mode": "download",
+    "format": "PDF",
+    "primary_url": "https://www.who.int/health-topics/self-care",
+    "download_url": "https://cdn.who.int/media/docs/default-source/reproductive-health/self-care/self-care-communications-toolkit-2026.pdf?download=true&sfvrsn=f4d99e81_3",
+    "ingestion_policy": "download_allowed",
+    "licence_note": "Do not use WHO logo to imply product endorsement",
+    "refresh_policy": "annual",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "who_healthy_diet",
+    "title": "Healthy Diet Fact Sheet",
+    "publisher": "World Health Organization",
+    "scope": "Preventive nutrition guidance",
+    "evidence_tier": "A",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.who.int/news-room/fact-sheets/detail/healthy-diet",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Retrieve through authorized web/MCP method and retain update date",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nccih_ayurveda",
+    "title": "Ayurvedic Medicine In Depth",
+    "publisher": "US National Center for Complementary and Integrative Health",
+    "scope": "Ayurveda evidence limitations and safety",
+    "evidence_tier": "S",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.nccih.nih.gov/health/ayurvedic-medicine-in-depth",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Use as mandatory safety evidence for Ayurveda outputs",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nccih_herbs",
+    "title": "Herbs at a Glance",
+    "publisher": "US National Center for Complementary and Integrative Health",
+    "scope": "Evidence and cautions for herbs and botanicals",
+    "evidence_tier": "S",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.nccih.nih.gov/health/herbsataglance",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Do not infer effectiveness beyond the named fact sheet",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nccih_natural_safety",
+    "title": "Natural Does Not Necessarily Mean Safer or Better",
+    "publisher": "US National Center for Complementary and Integrative Health",
+    "scope": "Natural-remedy safety and claim control",
+    "evidence_tier": "S",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.nccih.nih.gov/health/know-science/natural-doesnt-mean-better",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Mandatory claim-safety context",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nccih_interactions",
+    "title": "Herb-Drug Interactions",
+    "publisher": "US National Center for Complementary and Integrative Health",
+    "scope": "Herb interaction and contamination risks",
+    "evidence_tier": "S",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.nccih.nih.gov/health/providers/digest/herb-drug-interactions",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Safety-only; no medication modification advice",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nice_headache",
+    "title": "Headaches in Over 12s Diagnosis and Management CG150",
+    "publisher": "National Institute for Health and Care Excellence",
+    "scope": "Headache assessment; red flags; management boundaries",
+    "evidence_tier": "A",
+    "access_mode": "official_page",
+    "format": "PDF",
+    "primary_url": "https://www.nice.org.uk/guidance/cg150",
+    "download_url": "https://www.nice.org.uk/guidance/cg150/resources/headaches-in-over-12s-diagnosis-and-management-pdf-35109624582853",
+    "ingestion_policy": "link_only",
+    "licence_note": "NICE copyright applies; link/retrieve only under applicable terms; do not redistribute",
+    "refresh_policy": "monthly",
+    "symptom_categories": [
+      "headache"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nice_dyspepsia",
+    "title": "Gastro-Oesophageal Reflux Disease and Dyspepsia in Adults CG184",
+    "publisher": "National Institute for Health and Care Excellence",
+    "scope": "Adult dyspepsia; escalation and clinical boundaries",
+    "evidence_tier": "A",
+    "access_mode": "official_page",
+    "format": "HTML/PDF",
+    "primary_url": "https://www.nice.org.uk/guidance/cg184",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "NICE copyright applies; do not redistribute; exclude prescribing/dosage from MedicoBuddy output",
+    "refresh_policy": "monthly",
+    "symptom_categories": [
+      "dyspepsia"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "nice_acne",
+    "title": "Acne Vulgaris Management NG198",
+    "publisher": "National Institute for Health and Care Excellence",
+    "scope": "Acne assessment; skin-care boundaries and referral",
+    "evidence_tier": "A",
+    "access_mode": "official_page",
+    "format": "PDF",
+    "primary_url": "https://www.nice.org.uk/guidance/ng198",
+    "download_url": "https://www.nice.org.uk/guidance/ng198/resources/acne-vulgaris-management-pdf-66142088866501",
+    "ingestion_policy": "link_only",
+    "licence_note": "NICE copyright applies; link/retrieve only under applicable terms; exclude prescriptions",
+    "refresh_policy": "monthly",
+    "symptom_categories": [
+      "skin",
+      "acne"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "cdc_water",
+    "title": "About Water and Healthier Drinks",
+    "publisher": "US Centers for Disease Control and Prevention",
+    "scope": "Hydration and preventive health",
+    "evidence_tier": "B",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.cdc.gov/healthy-weight-growth/water-healthy-drinks/index.html",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Retain page date; avoid universal fluid-volume advice for restricted populations",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "cdc_sleep",
+    "title": "About Sleep",
+    "publisher": "US Centers for Disease Control and Prevention",
+    "scope": "Sleep duration and sleep-health basics",
+    "evidence_tier": "B",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.cdc.gov/sleep/about/index.html",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Retain page date and age group",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "sleep"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "cdc_activity",
+    "title": "Physical Activity and Your Weight and Health",
+    "publisher": "US Centers for Disease Control and Prevention",
+    "scope": "General adult physical-activity guidance",
+    "evidence_tier": "B",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.cdc.gov/healthy-weight-growth/physical-activity/index.html",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Apply population and contraindication filters",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "us_activity_guideline",
+    "title": "Physical Activity Guidelines for Americans Second Edition",
+    "publisher": "US Department of Health and Human Services",
+    "scope": "Preventive physical activity",
+    "evidence_tier": "A",
+    "access_mode": "download",
+    "format": "PDF",
+    "primary_url": "https://health.gov/our-work/nutrition-physical-activity/physical-activity-guidelines/current-guidelines",
+    "download_url": "https://www.cdc.gov/physical-activity/media/pdfs/Physical_Activity_Guidelines_2nd_edition.pdf",
+    "ingestion_policy": "download_allowed",
+    "licence_note": "US Government publication; retain provenance",
+    "refresh_policy": "annual",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "aad_hair",
+    "title": "Tips for Healthy Hair",
+    "publisher": "American Academy of Dermatology",
+    "scope": "General hair-care practices and prevention",
+    "evidence_tier": "B",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.aad.org/public/everyday-care/hair-scalp-care/hair/healthy-hair-tips",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "AAD copyright applies; link and summarize within applicable terms",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "aad_skin",
+    "title": "Basic Skin Care",
+    "publisher": "American Academy of Dermatology",
+    "scope": "General skin-care and sun-protection practices",
+    "evidence_tier": "B",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.aad.org/public/everyday-care/skin-care-basics/care",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "AAD copyright applies; link and summarize within applicable terms",
+    "refresh_policy": "weekly",
+    "symptom_categories": [
+      "skin"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "fda_health_fraud",
+    "title": "Health Fraud Product Database",
+    "publisher": "US Food and Drug Administration",
+    "scope": "Unapproved products; hidden ingredients; cure-claim blocking",
+    "evidence_tier": "S",
+    "access_mode": "official_page",
+    "format": "HTML",
+    "primary_url": "https://www.fda.gov/consumers/health-fraud-scams/health-fraud-product-database",
+    "download_url": "",
+    "ingestion_policy": "link_only",
+    "licence_note": "Use for product-risk alerts; absence from database does not establish safety",
+    "refresh_policy": "daily",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "ccras_science_life",
+    "title": "Ayurveda The Science of Life Dossier",
+    "publisher": "Central Council for Research in Ayurvedic Sciences Ministry of AYUSH Government of India",
+    "scope": "Ayurveda principles and preventive context",
+    "evidence_tier": "T",
+    "access_mode": "download",
+    "format": "PDF",
+    "primary_url": "https://ccras.nic.in/",
+    "download_url": "https://ccras.nic.in/wp-content/uploads/2024/07/AYURVEDA_The_Science_of_LifeDossier.pdf",
+    "ingestion_policy": "download_allowed",
+    "licence_note": "Traditional-context lane; cross-check every actionable claim against contemporary evidence and safety",
+    "refresh_policy": "annual",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "ccras_health_promotion",
+    "title": "Ayurvedic Advocacy for Health Promotion",
+    "publisher": "Central Council for Research in Ayurvedic Sciences Ministry of AYUSH Government of India",
+    "scope": "Traditional diet lifestyle and home-remedy claims",
+    "evidence_tier": "T",
+    "access_mode": "download",
+    "format": "PDF",
+    "primary_url": "https://ccras.nic.in/",
+    "download_url": "https://ccras.nic.in/wp-content/uploads/2024/07/Ayurvedic-Advocacy-for-Health-Promotion.pdf",
+    "ingestion_policy": "download_allowed_restricted",
+    "licence_note": "Do not surface internal remedies dosages nasal instillation disease treatment or cure claims; traditional-context only",
+    "refresh_policy": "annual",
+    "symptom_categories": [
+      "general_health"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  },
+  {
+    "source_id": "ccras_skin_lifestyle",
+    "title": "Ayurveda Based Diet and Lifestyle Guidelines for Prevention and Management of Skin Diseases",
+    "publisher": "Central Council for Research in Ayurvedic Sciences Ministry of AYUSH Government of India",
+    "scope": "Traditional skin-health context",
+    "evidence_tier": "T",
+    "access_mode": "download",
+    "format": "PDF",
+    "primary_url": "https://ccras.nic.in/",
+    "download_url": "https://ccras.nic.in/wp-content/uploads/2024/06/Ayurveda-Based-diet-lifeStyle-Guidelines-Skin-Diseases.pdf",
+    "ingestion_policy": "download_allowed_restricted",
+    "licence_note": "Traditional-context only; exclude internal medicines procedures and unsupported efficacy claims",
+    "refresh_policy": "annual",
+    "symptom_categories": [
+      "skin"
+    ],
+    "document_authenticity": "EXTERNAL_AUTHENTICATED",
+    "retrieval_date": "2026-07-27",
+    "checksum": ""
+  }
+]

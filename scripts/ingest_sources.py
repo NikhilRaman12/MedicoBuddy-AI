@@ -12,6 +12,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,15 @@ from medicobuddy.config import get_settings
 from medicobuddy.evidence.chunker import DocumentChunker
 from medicobuddy.evidence.parser import DocumentParser
 from medicobuddy.knowledge_graph.client import Neo4jClient
+from medicobuddy.knowledge_graph.schema import (
+    LABEL_PASSAGE,
+    LABEL_SELF_CARE_ACTION,
+    LABEL_SOURCE_DOCUMENT,
+    LABEL_SYMPTOM,
+    REL_EXTRACTED_FROM,
+    REL_MAY_SUPPORT,
+    REL_SUPPORTED_BY,
+)
 from medicobuddy.retrieval.embeddings import get_embedding_provider
 from medicobuddy.retrieval.vector_store import VectorStoreClient
 
@@ -64,6 +74,8 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
 
     await vector_store.connect()
     neo4j_active = await neo4j.connect()
+    if neo4j_active:
+        await neo4j.create_constraints()
 
     # Recursive discovery of genuine source files
     raw_files = [
@@ -151,27 +163,54 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
 
                 # 2. Build Neo4j evidence graph nodes & relationships
                 try:
-                    publisher_clean = chunk.publisher.replace(" ", "_").replace("'", "")
+                    # Extract symptoms to connect this passage correctly, not just 'general_symptom'
+                    chunk_text_lower = chunk.text.lower()
+                    matched_symptoms = [s for s in ["headache", "cold", "fever", "cough", "nausea", "indigestion", "fatigue", "allergy"] if s in chunk_text_lower]
+                    if not matched_symptoms:
+                        matched_symptoms = ["general_symptom"]
+
+                    # Parameterized Cypher query using canonical schema constants
                     cypher_merge = f"""
-                    MERGE (src:SourceDocument {{source_file: '{chunk.source_file}'}})
-                    SET src.title = '{chunk.title.replace("'", "''")}', src.publisher = '{chunk.publisher.replace("'", "''")}', src.url = '{chunk.source_url}'
+                    MERGE (src:{LABEL_SOURCE_DOCUMENT} {{source_file: $source_file}})
+                    SET src.title = $title, src.publisher = $publisher, src.url = $url
 
-                    MERGE (pas:Passage {{passage_id: '{chunk.chunk_id}'}})
-                    SET pas.text = '{chunk.text.replace("'", "''")}', pas.section_title = '{chunk.section_title.replace("'", "''")}', pas.page_number = {chunk.page_number or 1}, pas.evidence_lane = '{chunk.evidence_lane}'
+                    MERGE (pas:{LABEL_PASSAGE} {{passage_id: $passage_id}})
+                    SET pas.text = $text, pas.section_title = $section_title, pas.page_number = $page_number, pas.evidence_lane = $evidence_lane
 
-                    MERGE (act:SelfCareAction {{action_name: '{chunk.section_title.replace("'", "''")}'}})
-                    SET act.evidence_level = '{chunk.evidence_type}'
+                    MERGE (act:{LABEL_SELF_CARE_ACTION} {{action_name: $action_name}})
+                    SET act.evidence_level = $evidence_level
 
-                    MERGE (sym:Symptom {{name: 'general_symptom'}})
-
-                    MERGE (pas)-[:EXTRACTED_FROM]->(src)
-                    MERGE (act)-[:SUPPORTED_BY]->(pas)
-                    MERGE (act)-[:MAY_SUPPORT]->(sym)
+                    MERGE (pas)-[:{REL_EXTRACTED_FROM}]->(src)
+                    MERGE (act)-[:{REL_SUPPORTED_BY}]->(pas)
                     """
-                    if neo4j_active and neo4j._driver is not None:
-                        await neo4j.execute_write(cypher_merge)
+                    
+                    params = {
+                        "source_file": chunk.source_file,
+                        "title": chunk.title,
+                        "publisher": chunk.publisher,
+                        "url": chunk.source_url,
+                        "passage_id": chunk.chunk_id,
+                        "text": chunk.text,
+                        "section_title": chunk.section_title,
+                        "page_number": chunk.page_number or 1,
+                        "evidence_lane": chunk.evidence_lane,
+                        "action_name": chunk.section_title,
+                        "evidence_level": chunk.evidence_type,
+                    }
 
-                    graph_nodes += 4
+                    if neo4j_active and neo4j._driver is not None:
+                        await neo4j.execute_write(cypher_merge, params)
+                        
+                        # Merge symptom links
+                        for sym_name in matched_symptoms:
+                            sym_cypher = f"""
+                            MATCH (act:{LABEL_SELF_CARE_ACTION} {{action_name: $action_name}})
+                            MERGE (sym:{LABEL_SYMPTOM} {{name: $sym_name}})
+                            MERGE (act)-[:{REL_MAY_SUPPORT}]->(sym)
+                            """
+                            await neo4j.execute_write(sym_cypher, {"action_name": chunk.section_title, "sym_name": sym_name})
+
+                    graph_nodes += 4 + len(matched_symptoms) - 1
                     graph_relationships += 3
                     neo4j.increment_local_counts(4, 3)
                 except Exception as exc:

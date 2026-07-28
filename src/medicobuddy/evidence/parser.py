@@ -53,6 +53,7 @@ class ParsedDocument:
     total_characters: int = 0
     quarantined: bool = False
     quarantine_reason: str = ""
+    document_authenticity: str = "UNKNOWN"
 
 
 def compute_sha256(content: bytes | str) -> str:
@@ -129,6 +130,12 @@ class DocumentParser:
         if sections and doc_title.startswith("Doc ") or doc_title.startswith("Who ") or doc_title.startswith("Nice "):
             doc_title = sections[0].section_title if len(sections[0].section_title) > 5 else doc_title
 
+        # Determine authenticity based on source URL (placeholder vs canonical)
+        is_placeholder_domain = "official.health.gov" in url or not url.startswith("http")
+        document_authenticity = "INTERNAL_SUMMARY" if is_placeholder_domain else "EXTERNAL_AUTHENTICATED"
+        if is_placeholder_domain:
+            logger.info("Marking %s as INTERNAL_SUMMARY due to placeholder URL", path.name)
+
         return ParsedDocument(
             doc_id=doc_id,
             title=doc_title,
@@ -152,6 +159,7 @@ class DocumentParser:
             total_characters=total_chars,
             quarantined=quarantined,
             quarantine_reason=quarantine_reason,
+            document_authenticity=document_authenticity,
         )
 
     @staticmethod

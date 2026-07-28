@@ -98,9 +98,10 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
     if not request.consent_given:
         raise HTTPException(status_code=400, detail="Explicit user consent is required before processing health queries.")
 
-    workflow = getattr(req.app.state, "workflow", None)
-    if workflow is None:
+    services = getattr(req.app.state, "services", None)
+    if services is None or services.workflow is None:
         raise HTTPException(status_code=503, detail="Workflow service not ready")
+    workflow = services.workflow
 
     age = AgeRange.parse_age(request.age_range)
 
