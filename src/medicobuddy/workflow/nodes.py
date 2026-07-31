@@ -547,8 +547,8 @@ async def response_composer_node(state: GraphState) -> dict[str, Any]:
 
     applies_to = f"Educational self-care guidance for reported {symptom_name} in adults aged 18–65."
 
-    # Look up metadata registry entry for fallback / primary enrichment
-    meta_entry = get_metadata_for_symptom(symptom_name) or get_metadata_for_symptom("nausea")
+    # Look up metadata registry entry dynamically from user_message
+    meta_entry = get_metadata_for_symptom(user_message)
 
     # 1. Build Action Table
     action_table: list[ActionTableRow] = []

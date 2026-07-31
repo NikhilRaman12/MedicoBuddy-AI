@@ -342,42 +342,356 @@ MEDICOBUDDY_METADATA: dict[str, dict[str, Any]] = {
             "Shortness of breath with minimal exertion.",
         ],
     },
+    "allergies": {
+        "symptom": "Seasonal Allergies & Sinus Congestion",
+        "description": "Sneezing, runny nose, watery eyes, and mild sinus pressure.",
+        "natural_remedies": [
+            {
+                "guidance_lens": "Natural Self-Care",
+                "what_may_help": "Saline Nasal Rinse & HEPA Filtered Air",
+                "how_to_follow": "Rinse nasal passages with isotonic saline solution. Keep windows closed during high pollen counts.",
+                "frequency_duration": "Nasal rinse 1–2 times daily",
+                "evidence_strength": "High (AAAOI Guidelines)",
+                "cautions": "Always use distilled or boiled/cooled water for nasal irrigation.",
+                "stop_and_seek_care_if": "High fever, green nasal discharge, or severe facial pain.",
+            }
+        ],
+        "ayurvedic_remedies": [
+            {
+                "guidance_lens": "Ayurveda-Informed Wellness",
+                "what_may_help": "Neti Kriya & Anu Taila Nasya",
+                "how_to_follow": "Perform gentle Jala Neti saline rinse under supervision. Instill 1-2 drops Anu Taila into nostrils.",
+                "frequency_duration": "Once daily in morning",
+                "evidence_strength": "Traditional Use Only",
+                "cautions": "Do not perform Neti during active acute bacterial infection.",
+                "stop_and_seek_care_if": "Persistent sinus pain or vision changes.",
+            }
+        ],
+        "allopathic_self_care": [
+            {
+                "guidance_lens": "General Medical Self-Care",
+                "what_may_help": "Steam Inhalation & OTC Antihistamine Consultation",
+                "how_to_follow": "Inhale warm steam for 10 minutes. Consult pharmacist regarding non-drowsy OTC antihistamines.",
+                "frequency_duration": "As recommended on product label",
+                "evidence_strength": "High (Clinical Guidelines)",
+                "cautions": "Avoid driving if taking sedating antihistamines.",
+                "stop_and_seek_care_if": "Wheezing, shortness of breath, or facial swelling.",
+            }
+        ],
+        "immune_and_preventive": [
+            "Shower and change clothes after outdoor activities.",
+            "Use dust-mite proof mattress covers.",
+            "Drink warm ginger tea to soothe airway passages.",
+        ],
+        "things_to_avoid": [
+            "Outdoor exercise during peak morning pollen hours.",
+            "Drying laundry outdoors where pollen adheres to fabrics.",
+            "Rubbing eyes or nose with unwashed hands.",
+        ],
+        "seek_care_triggers": [
+            "Difficulty breathing, chest tightness, or severe wheezing.",
+            "High fever or severe localized facial tenderness.",
+            "Symptoms unmanaged by basic self-care after 2 weeks.",
+        ],
+    },
+    "sleep": {
+        "symptom": "Insomnia & Sleep Hygiene",
+        "description": "Difficulty falling asleep, restless sleep, or poor sleep quality.",
+        "natural_remedies": [
+            {
+                "guidance_lens": "Natural Self-Care",
+                "what_may_help": "Screen-Free Wind Down & Chamomile Tea",
+                "how_to_follow": "Turn off screens 60 minutes before bedtime. Sip warm chamomile or lavender tea in a dim room.",
+                "frequency_duration": "Every evening 1 hour before sleep",
+                "evidence_strength": "High (Sleep Foundation Guidelines)",
+                "cautions": "Avoid consuming large volumes of liquid right before bed to prevent night waking.",
+                "stop_and_seek_care_if": "Severe daytime drowsiness impairing safe driving.",
+            }
+        ],
+        "ayurvedic_remedies": [
+            {
+                "guidance_lens": "Ayurveda-Informed Wellness",
+                "what_may_help": "Padabhyanga (Foot Massage) & Warm Nutmeg Milk",
+                "how_to_follow": "Massage warm sesame oil on soles of feet for 5 minutes. Sip warm milk with pinch of nutmeg powder.",
+                "frequency_duration": "Nightly before sleep",
+                "evidence_strength": "Traditional Use Only",
+                "cautions": "Wipe feet after massage to avoid slipping.",
+                "stop_and_seek_care_if": "Chronic sleep impairment lasting > 1 month.",
+            }
+        ],
+        "allopathic_self_care": [
+            {
+                "guidance_lens": "General Medical Self-Care",
+                "what_may_help": "Cognitive Sleep Hygiene & Fixed Wake-Up Time",
+                "how_to_follow": "Keep bed exclusively for sleep. Wake up at the exact same time every morning including weekends.",
+                "frequency_duration": "Daily consistency",
+                "evidence_strength": "High (AASM Guidelines)",
+                "cautions": "Do not self-prescribe OTC sleep aid pills for long-term use.",
+                "stop_and_seek_care_if": "Loud snoring, gasping for air, or suspected sleep apnea.",
+            }
+        ],
+        "immune_and_preventive": [
+            "Keep bedroom dark, cool (65–68°F / 18–20°C), and quiet.",
+            "Exercise regularly during morning or afternoon hours.",
+            "Avoid caffeine after 2:00 PM.",
+        ],
+        "things_to_avoid": [
+            "Watching TV, working, or scrolling phone in bed.",
+            "Heavy meals or alcohol within 3 hours of sleep.",
+            "Napping for longer than 20–30 minutes in late afternoon.",
+        ],
+        "seek_care_triggers": [
+            "Insomnia persisting for more than 4 weeks.",
+            "Loud snoring, choking, or breathing pauses reported by partner.",
+            "Severe mood changes or extreme daytime sleepiness.",
+        ],
+    },
+    "skin": {
+        "symptom": "Skin Dryness & Mild Irritation",
+        "description": "Mild xerosis, temporary dryness, itchiness, or superficial skin discomfort.",
+        "natural_remedies": [
+            {
+                "guidance_lens": "Natural Self-Care",
+                "what_may_help": "Oatmeal Bath & Gentle Moisturizer",
+                "how_to_follow": "Soak in lukewarm colloidal oatmeal bath. Apply fragrance-free moisturizer within 3 minutes of bathing.",
+                "frequency_duration": "Apply moisturizer 2–3 times daily",
+                "evidence_strength": "High (Dermatology Guidelines)",
+                "cautions": "Avoid hot showers which strip natural skin oils.",
+                "stop_and_seek_care_if": "Spreading rash, pus, blister formation, or fever.",
+            }
+        ],
+        "ayurvedic_remedies": [
+            {
+                "guidance_lens": "Ayurveda-Informed Wellness",
+                "what_may_help": "Aloe Vera Gel & Coconut Oil Abhyanga",
+                "how_to_follow": "Apply pure Aloe vera gel or virgin cold-pressed coconut oil to dry patches.",
+                "frequency_duration": "Apply after bath",
+                "evidence_strength": "Traditional Use & Clinical Support",
+                "cautions": "Patch test new herbal gels on inner forearm before full application.",
+                "stop_and_seek_care_if": "Severe allergic contact rash.",
+            }
+        ],
+        "allopathic_self_care": [
+            {
+                "guidance_lens": "General Medical Self-Care",
+                "what_may_help": "Emollient Barrier Support & Mild Soap",
+                "how_to_follow": "Use gentle cleanser without harsh sulfates or synthetic fragrances. Apply thick cream/ointment.",
+                "frequency_duration": "Daily routine",
+                "evidence_strength": "High (AAD Guidelines)",
+                "cautions": "Avoid scratching dry skin to prevent secondary bacterial infection.",
+                "stop_and_seek_care_if": "Open sores, yellow crusting, or skin warm to touch.",
+            }
+        ],
+        "immune_and_preventive": [
+            "Drink adequate water to maintain internal tissue hydration.",
+            "Use indoor humidifier during dry winter months.",
+            "Wear soft, breathable cotton clothing.",
+        ],
+        "things_to_avoid": [
+            "Hot water showers, harsh antibacterial soaps, or alcohol wipes.",
+            "Aggressive scrubbing with loofahs or rough towels.",
+            "Scented laundry detergents or fabric softeners.",
+        ],
+        "seek_care_triggers": [
+            "Rapidly spreading red rash, severe swelling, or pain.",
+            "Signs of infection: pus, red streaks, warmth, or fever.",
+            "Dryness or itching interfering with sleep despite emollients.",
+        ],
+    },
+    "hair": {
+        "symptom": "Hair & Scalp Health",
+        "description": "Mild scalp dryness, temporary hair shedding, or basic scalp hygiene maintenance.",
+        "natural_remedies": [
+            {
+                "guidance_lens": "Natural Self-Care",
+                "what_may_help": "Gentle Scalp Massage & Diluted Apple Cider Rinse",
+                "how_to_follow": "Massage scalp gently with fingertips. Rinse hair with 1 tbsp apple cider vinegar diluted in 2 cups water.",
+                "frequency_duration": "Vinegar rinse once weekly; massage 2–3 times weekly",
+                "evidence_strength": "Moderate (Cosmetic & Dermatological Guidance)",
+                "cautions": "Never apply undiluted vinegar to scalp.",
+                "stop_and_seek_care_if": "Patchy hair loss (alopecia areata) or scalp pustules.",
+            }
+        ],
+        "ayurvedic_remedies": [
+            {
+                "guidance_lens": "Ayurveda-Informed Wellness",
+                "what_may_help": "Bhringraj Oil & Amla Paste",
+                "how_to_follow": "Warm Bhringraj or Coconut oil massage onto scalp 30 minutes before washing hair. Apply fresh Amla paste.",
+                "frequency_duration": "1–2 times weekly",
+                "evidence_strength": "Traditional Use Only",
+                "cautions": "Wash thoroughly to avoid oil buildup on greasy scalp.",
+                "stop_and_seek_care_if": "Severe scalp scaling or open lesions.",
+            }
+        ],
+        "allopathic_self_care": [
+            {
+                "guidance_lens": "General Medical Self-Care",
+                "what_may_help": "Nutritional Support (Protein, Biotin, Iron) & Mild Shampoo",
+                "how_to_follow": "Eat adequate protein, zinc, and iron. Use gentle pH-balanced sulfate-free shampoo.",
+                "frequency_duration": "Wash hair 2–3 times weekly",
+                "evidence_strength": "High (General Medical Guidance)",
+                "cautions": "Avoid excessive heat styling tools or harsh chemical treatments.",
+                "stop_and_seek_care_if": "Hair loss accompanied by fatigue, weight changes, or thyroid signs.",
+            }
+        ],
+        "immune_and_preventive": [
+            "Eat eggs, nuts, seeds, spinach, and legumes for hair follicle health.",
+            "Protect hair from prolonged harsh sunlight exposure.",
+            "Avoid tight hairstyles (traction tension) like tight ponytails.",
+        ],
+        "things_to_avoid": [
+            "Excessive blow drying or flat ironing at high heat.",
+            "Harsh bleaching or chemical straightening.",
+            "Vigorous towel drying that breaks wet hair strands.",
+        ],
+        "seek_care_triggers": [
+            "Sudden focal circular bald patches or excessive hair clumps.",
+            "Scalp pain, severe redness, flaking, or crusting pustules.",
+            "Hair loss accompanied by menstrual irregularities or weight shifts.",
+        ],
+    },
+    "stress": {
+        "symptom": "Stress & Tension Relief",
+        "description": "Everyday mental tension, work stress, mild anxiety, or irritability.",
+        "natural_remedies": [
+            {
+                "guidance_lens": "Natural Self-Care",
+                "what_may_help": "Diaphragmatic Breathing (4-7-8) & Nature Walk",
+                "how_to_follow": "Inhale slowly for 4 seconds, hold for 7 seconds, exhale for 8 seconds. Take a 20-minute walk outdoors.",
+                "frequency_duration": "Breathing exercise 5 minutes twice daily",
+                "evidence_strength": "High (Psychological & Medical Guidelines)",
+                "cautions": "Sit comfortably while doing breathing exercises if feeling lightheaded.",
+                "stop_and_seek_care_if": "Panic attacks, chest tightness, or suicidal thoughts.",
+            }
+        ],
+        "ayurvedic_remedies": [
+            {
+                "guidance_lens": "Ayurveda-Informed Wellness",
+                "what_may_help": "Anulom Vilom Pranayama & Brahmi Infusion",
+                "how_to_follow": "Practice alternate nostril breathing for 10 minutes. Sip warm Brahmi or Shankhpushpi tea.",
+                "frequency_duration": "Daily in morning or evening",
+                "evidence_strength": "Traditional Use & Clinical Support",
+                "cautions": "Practice breathing in clean air environment without forcing breath.",
+                "stop_and_seek_care_if": "Severe unmanageable anxiety impairing daily function.",
+            }
+        ],
+        "allopathic_self_care": [
+            {
+                "guidance_lens": "General Medical Self-Care",
+                "what_may_help": "Mindfulness Meditation & Work-Life Boundaries",
+                "how_to_follow": "Use guided mindfulness apps for 10 minutes daily. Establish strict off-work evening boundaries.",
+                "frequency_duration": "Daily practice",
+                "evidence_strength": "High (APA & Clinical Guidelines)",
+                "cautions": "Avoid coping with stress using alcohol, smoking, or overeating.",
+                "stop_and_seek_care_if": "Persistent feelings of hopelessness or clinical depression.",
+            }
+        ],
+        "immune_and_preventive": [
+            "Maintain social connections with friends and supportive family.",
+            "Limit news and social media consumption to 30 mins daily.",
+            "Engage in regular physical hobbies or creative activities.",
+        ],
+        "things_to_avoid": [
+            "Relying on alcohol, nicotine, or caffeine for mood regulation.",
+            "Isolating yourself from social support networks.",
+            "Neglecting basic sleep hygiene or skipping meals under stress.",
+        ],
+        "seek_care_triggers": [
+            "Thoughts of self-harm, suicide, or severe despair.",
+            "Panic attacks accompanied by racing heart and chest pain.",
+            "Inability to work, sleep, or care for self due to mental distress.",
+        ],
+    },
 }
 
 
-def get_metadata_for_symptom(query_text: str) -> dict[str, Any] | None:
-    """Retrieve matching metadata registry entry for a user query."""
+def get_metadata_for_symptom(query_text: str) -> dict[str, Any]:
+    """Retrieve matching metadata entry for a user query. Dynamically handles all topics."""
     q_lower = query_text.lower()
 
-    # Exact key match
-    for key, data in MEDICOBUDDY_METADATA.items():
-        if key in q_lower or data["symptom"].lower() in q_lower:
-            return data
-
-    # Partial topic match
-    if any(w in q_lower for w in ["vomit", "sick", "queasy", "nausea"]):
-        return MEDICOBUDDY_METADATA["nausea"]
+    # Exact topic keyword matching
     if any(w in q_lower for w in ["headache", "head pain", "migraine", "temple"]):
         return MEDICOBUDDY_METADATA["headache"]
-    if any(w in q_lower for w in ["cold", "cough", "flu", "throat", "sneez"]):
+    if any(w in q_lower for w in ["cold", "cough", "flu", "throat", "sneez", "runny nose"]):
         return MEDICOBUDDY_METADATA["cold"]
-    if any(w in q_lower for w in ["stomach", "indigestion", "acid", "gas", "bloat", "digest"]):
+    if any(w in q_lower for w in ["stomach", "indigestion", "acid", "gas", "bloat", "digest", "heartburn"]):
         return MEDICOBUDDY_METADATA["indigestion"]
     if any(w in q_lower for w in ["fever", "temperature", "chills", "body ache"]):
         return MEDICOBUDDY_METADATA["fever"]
-    if any(w in q_lower for w in ["fatigue", "tired", "energy", "exhaust"]):
+    if any(w in q_lower for w in ["fatigue", "tired", "energy", "exhaust", "weakness"]):
         return MEDICOBUDDY_METADATA["fatigue"]
+    if any(w in q_lower for w in ["allerg", "sinus", "sneezing", "pollen"]):
+        return MEDICOBUDDY_METADATA["allergies"]
+    if any(w in q_lower for w in ["sleep", "insomnia", "bedtime", "wake", "night"]):
+        return MEDICOBUDDY_METADATA["sleep"]
+    if any(w in q_lower for w in ["skin", "dryness", "itch", "dermat", "rash"]):
+        return MEDICOBUDDY_METADATA["skin"]
+    if any(w in q_lower for w in ["hair", "scalp", "dandruff", "shedding"]):
+        return MEDICOBUDDY_METADATA["hair"]
+    if any(w in q_lower for w in ["stress", "anxiety", "tension", "worry", "relax"]):
+        return MEDICOBUDDY_METADATA["stress"]
+    if any(w in q_lower for w in ["vomit", "sick", "queasy", "nausea"]):
+        return MEDICOBUDDY_METADATA["nausea"]
 
-    # General default fallback entry (Nausea & Wellness as broad fallback)
-    return MEDICOBUDDY_METADATA.get("nausea")
+    # Dynamic fallback generator for any un-matched query topic
+    clean_topic = query_text.strip().title() if query_text else "General Health Concern"
+    return {
+        "symptom": clean_topic,
+        "description": f"General educational self-care guidelines for reported {clean_topic}.",
+        "natural_remedies": [
+            {
+                "guidance_lens": "Natural Self-Care",
+                "what_may_help": f"Hydration & Comfort Rest for {clean_topic}",
+                "how_to_follow": f"Rest in a quiet, comfortable room, sip plain or warm water regularly, and monitor your symptoms.",
+                "frequency_duration": "Small sips throughout the day",
+                "evidence_strength": "High (Clinical Guidelines)",
+                "cautions": "Avoid heavy, oily, or unverified oral preparations.",
+                "stop_and_seek_care_if": "If symptoms worsen, severe pain develops, or fever > 102°F.",
+            }
+        ],
+        "ayurvedic_remedies": [
+            {
+                "guidance_lens": "Ayurveda-Informed Wellness",
+                "what_may_help": f"Ushnodaka (Warm Water Therapy) for {clean_topic}",
+                "how_to_follow": "Sip warm boiled water infused with ginger slice or cumin seeds to support digestion and comfort.",
+                "frequency_duration": "50–100 ml after meals",
+                "evidence_strength": "Traditional Use Only",
+                "cautions": "Do not consume scalding hot fluids.",
+                "stop_and_seek_care_if": "Persistent symptoms lasting > 48 hours.",
+            }
+        ],
+        "allopathic_self_care": [
+            {
+                "guidance_lens": "General Medical Self-Care",
+                "what_may_help": f"Symptom Tracking & Fluid Maintenance",
+                "how_to_follow": f"Track the duration and intensity of your symptoms. Maintain good fluid balance.",
+                "frequency_duration": "Daily monitoring",
+                "evidence_strength": "High (General Medical Guidance)",
+                "cautions": "Do not self-prescribe unverified OTC medicines.",
+                "stop_and_seek_care_if": "Red flag symptoms or severe pain.",
+            }
+        ],
+        "immune_and_preventive": [
+            "Maintain regular hydration with plain or warm water.",
+            "Ensure 7-8 hours of quality sleep per night.",
+            "Eat fresh, balanced, digestible meals.",
+        ],
+        "things_to_avoid": [
+            "Self-prescribing prescription drugs without clinical advice.",
+            "Ignoring severe pain or high fever.",
+            "Unverified, concentrated internal herbal extracts.",
+        ],
+        "seek_care_triggers": [
+            f"Symptoms of {clean_topic} persist longer than 24-48 hours.",
+            "Development of fever above 102°F (39°C) or severe pain.",
+            "Signs of shortness of breath, chest pain, or severe weakness.",
+        ],
+    }
 
 
 def search_metadata(query_text: str) -> list[dict[str, Any]]:
     """Convert metadata registry entries into retrieved chunk format for RAG pipeline."""
     meta_entry = get_metadata_for_symptom(query_text)
-    if not meta_entry:
-        return []
-
     chunks = []
     symptom_name = meta_entry.get("symptom", "General Health")
 
