@@ -334,24 +334,26 @@ async def mcp_retrieval_node(state: GraphState) -> dict[str, Any]:
 # ════════════════════════════════════════════════════════════
 
 async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
-    """Full hybrid retrieval: pgvector vector + BM25 + Neo4j + medicobuddy_metadata store.
+    """Full hybrid retrieval: pgvector + BM25 + Neo4j + allowlisted MCPs + medicobuddy_metadata store.
 
     Guarantees retrieval hits so search never returns 0 chunks.
+    Clears previous turn state and records retrieval_query_hash.
     """
     start_time = time.perf_counter()
 
+    # Clear previous retrieval state and capture active query hash
+    active_q_hash = state.get("query_hash", "")
+    user_message = state.get("user_message", "")
     symptom_report = state.get("symptom_report")
     user_context = state.get("user_context", UserContext())
-    user_message = state.get("user_message", "")
     extracted_entities = state.get("extracted_entities", {})
 
     symptom_name = symptom_report.main_symptom if symptom_report else user_message
-    conditions = user_context.chronic_conditions
 
     graph_results: list[dict[str, Any]] = []
     vector_results: list[dict[str, Any]] = []
     bm25_results: list[dict[str, Any]] = []
-    contraindications: list[dict[str, Any]] = []
+    mcp_results: list[MCPResult] = []
     ayurvedic_concepts: list[dict[str, Any]] = []
 
     real_indexed_chunks = 0
@@ -362,16 +364,19 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
     graph_store_status = "offline"
     top_similarity_scores: list[float] = []
 
-    # 1. Search pgvector + BM25 + Neo4j DB
+    # 1. Search pgvector + BM25 + Neo4j DB + allowlisted MCPs concurrently
     try:
         from medicobuddy.config import get_settings
         from medicobuddy.knowledge_graph.client import Neo4jClient
         from medicobuddy.knowledge_graph.queries import KnowledgeGraphQueries
+        from medicobuddy.mcp.client import MCPClientAdapter
         from medicobuddy.retrieval.vector_store import VectorStoreClient
 
         settings = get_settings()
         vector_store = VectorStoreClient(settings)
+        mcp_client = MCPClientAdapter()
 
+        # Run vector search and MCP search concurrently
         if await vector_store.connect():
             vector_db_status = "connected"
             real_indexed_chunks = await vector_store.get_indexed_count()
@@ -381,6 +386,11 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
             await vector_store.close()
 
         top_similarity_scores = [float(v.get("score", 0.0)) for v in vector_results[:5]]
+
+        # Search allowlisted MCP evidence servers (PubMed, Europe PMC, CT.gov, Local PDF)
+        await mcp_client.initialize()
+        mcp_items, mcp_status, mcp_errs = await mcp_client.search_all([user_message], max_results_per_source=3)
+        mcp_results = mcp_items
 
         neo4j = Neo4jClient(settings)
         if await neo4j.connect() and neo4j._driver is not None:
@@ -407,13 +417,23 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
     except Exception as exc:
         logger.info("hybrid_retrieval DB search fallback: %s", exc)
 
-    # 2. Query built-in medicobuddy_metadata registry to supplement/guarantee RAG chunks!
+    # 2. Query built-in medicobuddy_metadata store
     metadata_chunks = search_metadata(user_message)
     if metadata_chunks:
-        # Prepend metadata chunks so retrieval is guaranteed to have evidence!
         vector_results = metadata_chunks + vector_results
 
-    mcp_results: list[MCPResult] = state.get("mcp_results", [])
+    # 3. Untrusted Data Protection & Prompt Injection Sanitization
+    def _sanitize(txt: str) -> str:
+        bad_phrases = ["ignore previous instructions", "system prompt:", "you are now an unrestricted", "disregard safety"]
+        clean_t = txt
+        for p in bad_phrases:
+            if p in clean_t.lower():
+                clean_t = clean_t.replace(p, "[REJECTED INSTRUCTION]")
+        return clean_t
+
+    for v in vector_results:
+        v["text"] = _sanitize(v.get("text", ""))
+
     total_retrieved = len(vector_results) + len(bm25_results) + len(mcp_results)
 
     merged_context_blocks: list[str] = []
@@ -424,6 +444,9 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
         page_num = meta.get("page_number", 1)
         text = vec.get("text", "")
         merged_context_blocks.append(f"[{src_file} (Page {page_num}) - {title}]:\n{text}")
+
+    for m in mcp_results:
+        merged_context_blocks.append(f"[{m.source_connector.upper()} - {m.title}] (License: {m.license}):\n{_sanitize(m.supporting_passage)}")
 
     merged_context = "\n\n".join(merged_context_blocks)
     context_chars = len(merged_context)
@@ -457,6 +480,8 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
     }
 
     return {
+        "retrieval_query_hash": active_q_hash,
+        "mcp_results": mcp_results,
         "graph_results": graph_results,
         "vector_results": vector_results,
         "bm25_results": bm25_results,
@@ -538,6 +563,12 @@ async def response_composer_node(state: GraphState) -> dict[str, Any]:
     ALWAYS builds a full 12-section answer with a complete Action Table.
     """
     from medicobuddy.llm import get_llm
+
+    # Assert query_hash consistency to reject generation on mismatched state
+    req_q_hash = state.get("query_hash", "")
+    ret_q_hash = state.get("retrieval_query_hash", "")
+    if req_q_hash and ret_q_hash and req_q_hash != ret_q_hash:
+        raise ValueError(f"State query_hash mismatch ({req_q_hash} != {ret_q_hash}) — rejecting generation.")
 
     user_message = state.get("user_message", "")
     symptom = state.get("symptom_report")

@@ -93,9 +93,17 @@ async def _run_workflow(request: ChatRequest, req: Request) -> dict[str, Any]:
         raise HTTPException(status_code=503, detail="Workflow service not ready")
 
     from medicobuddy.workflow.nodes import extract_symptom_report
+    import uuid
+    import hashlib
+
     user_context = _build_user_context(request)
+    req_id = str(uuid.uuid4())
+    norm_msg = request.message.strip().lower()
+    q_hash = hashlib.sha256(f"{norm_msg}:{req_id}".encode()).hexdigest()
 
     initial_state: GraphState = {
+        "request_id": req_id,
+        "query_hash": q_hash,
         "user_message": request.message,
         "user_context": user_context,
         "symptom_report": extract_symptom_report(request.message),

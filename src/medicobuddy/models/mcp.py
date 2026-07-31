@@ -1,16 +1,15 @@
-"""Standardised MCP connector result schema."""
+"""Standardised MCP connector result schema for allowlisted evidence servers."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
-
 from pydantic import BaseModel, Field
 
 
 class MCPResult(BaseModel):
-    """Standardised result from any MCP data connector.
+    """Standardised result from an allowlisted MCP data connector.
 
-    Every MCP connector must return results in this format to ensure
+    Every connector must return results in this format to ensure
     uniform evidence processing downstream.
     """
 
@@ -20,6 +19,8 @@ class MCPResult(BaseModel):
     publication_date: str = ""
     doi: str = ""
     pmid: str = ""
+    pmcid: str = ""
+    nct_id: str = ""
     trial_id: str = ""
     canonical_url: str = ""
     study_type: str = ""
@@ -35,9 +36,10 @@ class MCPResult(BaseModel):
     )
     supporting_passage: str = ""
     passage_id: str = ""
-    usage_licence: str = ""
+    usage_licence: str = "Open Access / Public Permitted"
+    license: str = "Open Access"
 
     # ── Connector metadata ───────────────────────────────────
-    source_connector: str = Field(description="Name of the MCP connector that produced this result")
+    source_connector: str = Field(description="Name of the MCP connector (pubmed, europe_pmc, clinical_trials, local_pdf)")
     raw_id: str = Field(default="", description="Original ID from the source system")
     search_query: str = Field(default="", description="Query that produced this result")

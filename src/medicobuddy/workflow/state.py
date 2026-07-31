@@ -24,6 +24,11 @@ class GraphState(TypedDict, total=False):
     Each node reads from and writes to specific keys in this state dict.
     """
 
+    # ── Request Isolation & Anti-Caching ───────────────────────
+    request_id: str
+    query_hash: str
+    retrieval_query_hash: str
+
     # ── Input & Context ──────────────────────────────────────
     user_message: str
     original_query: str
