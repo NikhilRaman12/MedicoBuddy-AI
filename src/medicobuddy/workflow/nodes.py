@@ -39,7 +39,7 @@ MULTILINGUAL_CONCEPT_MAP: dict[str, str] = {
     # Telugu
     "తలనెప్పి": "headache", "తలనొప్పి": "headache", "తల నొప్పి": "headache",
     "జ్వరం": "fever", "దగ్గు": "cough", "జలుబు": "cold",
-    "కడుపునొప్పి": "stomach discomfort", "కడుపు నొప్పి": "stomach discomfort",
+    "కడుపునొప్పి": "stomach discomfort", "కడుపు అసౌకర్యం": "stomach discomfort", "గ్యాస్": "stomach discomfort",
     "తల తిరగడం": "dizziness", "అలసట": "fatigue", "నీరసం": "fatigue",
     "వాంతులు": "nausea", "వికారంగా": "nausea", "నిద్ర": "sleep",
     "దురద": "skin", "స్కిన్": "skin",
@@ -47,8 +47,7 @@ MULTILINGUAL_CONCEPT_MAP: dict[str, str] = {
     "सिरदर्द": "headache", "बुखार": "fever", "खांसी": "cough",
     "जुकाम": "cold", "पेट दर्द": "stomach discomfort", "थकान": "fatigue",
     "उल्टी": "nausea", "मतली": "nausea", "एलर्जी": "allergy",
-    "साइनस": "sinus congestion", "बालों की देखभाल": "hair care",
-    "त्वचा की देखभाल": "skin care",
+    "साइनस": "sinus congestion", "बालों की देखभाल": "hair care", "त्वचा": "skin care",
     # Tamil
     "தலைவலி": "headache", "காய்ச்சல்": "fever", "இருமல்": "cough",
     "சளி": "cold", "வயிற்றுவலி": "stomach discomfort",
@@ -57,11 +56,31 @@ MULTILINGUAL_CONCEPT_MAP: dict[str, str] = {
     # Bengali
     "মাথাব্যথা": "headache", "জ্বর": "fever", "কাশি": "cough",
     "সর্দি": "cold", "পেটব্যথা": "stomach discomfort",
-    "ক্লান্তি": "fatigue", "বমিবমি": "nausea", "এলার্জি": "allergy",
+    "ক্লান্তি": "fatigue", "বমিবমি": "nausea", "বমি": "nausea", "এলার্জি": "allergy",
     # Marathi
     "डोकेदुखी": "headache", "ताप": "fever", "खोकला": "cough",
     "सर्दी": "cold", "पोटदुखी": "stomach discomfort",
-    "थकवा": "fatigue", "मळमळ": "nausea", "ॲलर्जी": "allergy",
+    "थकवा": "fatigue", "मळमळ": "nausea", "ॲलर्जी": "allergy", "त्वचेचा": "skin care",
+    # Gujarati
+    "માથાનો દુખાવો": "headache", "તાવ": "fever", "ઉધરસ": "cough",
+    "શરદી": "cold", "પેટમાં દુખાવો": "stomach discomfort",
+    "થાક": "fatigue", "ઉબકા": "nausea", "વાળની સંભાળ": "hair care",
+    # Kannada
+    "ತಲೆನೋವು": "headache", "ಜ್ವರ": "fever", "ಕೆಮ್ಮು": "cough",
+    "ಶೀತ": "cold", "ಹೊಟ್ಟೆ ನೋವು": "stomach discomfort",
+    "ಆಯಾಸ": "fatigue", "ಒತ್ತಡ": "stress",
+    # Malayalam
+    "തലവേദന": "headache", "പനി": "fever", "ചുമ": "cough",
+    "അസുഖം": "cold", "ക്ഷീണം": "fatigue", "ഉറക്കമില്ലായ്മ": "sleep",
+    # Punjabi
+    "ਸਿਰ ਦਰਦ": "headache", "ਬੁਖਾਰ": "fever", "ਖੰਘ": "cough",
+    "ਜ਼ੁਕਾਮ": "cold", "ਥਕਾਵਟ": "fatigue",
+    # Odia
+    "ମୁଣ୍ଡ ବିନ୍ଧା": "headache", "ଜର": "fever", "କାଶ": "cough",
+    "ଥଣ୍ଡା": "cold", "ଥକାପଣ": "fatigue",
+    # Urdu
+    "سر درد": "headache", "بخار": "fever", "کھانسی": "cough",
+    "نزلہ": "cold", "تھکاوٹ": "fatigue",
 }
 
 
@@ -71,6 +90,12 @@ def detect_and_normalize_language(text: str) -> tuple[str, str]:
     has_devanagari = any("\u0900" <= c <= "\u097f" for c in text)
     has_tamil = any("\u0b80" <= c <= "\u0bff" for c in text)
     has_bengali = any("\u0980" <= c <= "\u09ff" for c in text)
+    has_gujarati = any("\u0a80" <= c <= "\u0aff" for c in text)
+    has_kannada = any("\u0c80" <= c <= "\u0cff" for c in text)
+    has_malayalam = any("\u0d00" <= c <= "\u0d7f" for c in text)
+    has_gurmukhi = any("\u0a00" <= c <= "\u0a7f" for c in text)
+    has_odia = any("\u0b00" <= c <= "\u0b7f" for c in text)
+    has_arabic_script = any("\u0600" <= c <= "\u06ff" for c in text)
 
     if has_telugu:
         detected_lang = "te"
@@ -78,6 +103,18 @@ def detect_and_normalize_language(text: str) -> tuple[str, str]:
         detected_lang = "ta"
     elif has_bengali:
         detected_lang = "bn"
+    elif has_gujarati:
+        detected_lang = "gu"
+    elif has_kannada:
+        detected_lang = "kn"
+    elif has_malayalam:
+        detected_lang = "ml"
+    elif has_gurmukhi:
+        detected_lang = "pa"
+    elif has_odia:
+        detected_lang = "or"
+    elif has_arabic_script:
+        detected_lang = "ur"
     elif has_devanagari:
         detected_lang = "hi"
     else:

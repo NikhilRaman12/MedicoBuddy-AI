@@ -6,7 +6,7 @@
   "normalization": "L2",
   "distance_metric": "COSINE",
   "fingerprint": "f457b3733f2ccf4c",
-  "backend": "qwen3_local",
+  "backend": "ERROR",
   "is_local_fallback": false,
-  "written_at": "2026-07-31T15:23:15Z"
+  "written_at": "2026-07-31T16:50:22Z"
 }
