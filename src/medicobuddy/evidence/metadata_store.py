@@ -626,7 +626,7 @@ def get_metadata_for_symptom(query_text: str) -> dict[str, Any]:
         return MEDICOBUDDY_METADATA["sleep"]
     if any(w in q_lower for w in ["skin", "dryness", "itch", "dermat", "rash"]):
         return MEDICOBUDDY_METADATA["skin"]
-    if any(w in q_lower for w in ["hair", "scalp", "dandruff", "shedding"]):
+    if any(w in q_lower for w in ["hair", "scalp", "dandruff", "shedding", "hairfall", "hair fall", "hair loss", "hair_loss"]):
         return MEDICOBUDDY_METADATA["hair"]
     if any(w in q_lower for w in ["stress", "anxiety", "tension", "worry", "relax"]):
         return MEDICOBUDDY_METADATA["stress"]

@@ -36,6 +36,13 @@ logger = logging.getLogger(__name__)
 
 # ── Multilingual Concept Map ────────────────────────────────
 MULTILINGUAL_CONCEPT_MAP: dict[str, str] = {
+    # Hair Loss Canonicalization (hairfall, hair fall, hair loss, hair shedding -> hair_loss)
+    "hairfall": "hair_loss", "hair fall": "hair_loss", "hair loss": "hair_loss", "hair shedding": "hair_loss",
+    "safety tips hairfall": "hair_loss", "safety measures for hairfall": "hair_loss",
+    "జుట్టు రాలడం": "hair_loss", "జుట్టు ఊడటం": "hair_loss", "बाल झड़ना": "hair_loss", "बाल गिरना": "hair_loss",
+    "முடி உதிர்தல்": "hair_loss", "ಕೂದಲು ಉದುರುವುದು": "hair_loss", "ಕೂದಲು ಉದುರುವಿಕೆ": "hair_loss",
+    "മുടി കൊഴിച്ചിൽ": "hair_loss", "વાળ ખરવા": "hair_loss", "ਬਾਲ ਝੜਨਾ": "hair_loss", "ਚੁਟੀ ଝଡିବା": "hair_loss",
+    "بالوں کا جھڑنا": "hair_loss",
     # Telugu
     "తలనెప్పి": "headache", "తలనొప్పి": "headache", "తల నొప్పి": "headache",
     "జ్వరం": "fever", "దగ్గు": "cough", "జలుబు": "cold",
@@ -856,3 +863,281 @@ async def final_response_node(state: GraphState) -> dict[str, Any]:
         "final_response": response,
         "debug_panel": debug_panel,
     }
+
+
+# ════════════════════════════════════════════════════════════
+# Node: Language Router
+# ════════════════════════════════════════════════════════════
+
+async def language_router_node(state: GraphState) -> dict[str, Any]:
+    """LangGraph node to route query language and normalize to English medical concepts."""
+    user_message = state.get("user_message", "")
+    preferred_lang = state.get("preferred_language", "auto")
+
+    detected_lang, norm_concept = detect_and_normalize_language(user_message)
+
+    if preferred_lang and preferred_lang != "auto":
+        target_lang = preferred_lang
+    else:
+        target_lang = detected_lang
+
+    return {
+        "detected_language": detected_lang,
+        "preferred_language": preferred_lang,
+        "target_language": target_lang,
+        "response_language": target_lang,
+        "normalized_english_query": norm_concept,
+        "language": target_lang,
+        "translation_status": "pending" if target_lang != "en" else "not_required",
+    }
+
+
+# ════════════════════════════════════════════════════════════
+# Node: Structured Translation
+# ════════════════════════════════════════════════════════════
+
+async def structured_translation_node(state: GraphState) -> dict[str, Any]:
+    """Translate structured user-facing answer fields into target_language."""
+    target_lang = state.get("target_language", "en")
+    if target_lang == "en":
+        return {"translation_status": "skipped"}
+
+    import json
+    from medicobuddy.llm import get_llm
+
+    try:
+        llm = get_llm()
+        if llm:
+            prompt = f"""You are an expert medical translator. Translate the following structured healthcare output into target language code '{target_lang}'.
+RULES:
+1. Do NOT translate: PMIDs, PMCIDs, DOIs, URLs, chunk IDs, page numbers, numbers, or bracket numbers like [1].
+2. Translate all user-facing content into natural, accurate medical self-care language for language '{target_lang}'.
+3. Return ONLY a valid JSON object matching this schema:
+{{
+  "summary": "...",
+  "what_this_applies_to": "...",
+  "follow_up_question": "...",
+  "general_self_care_education": "...",
+  "preventive_approaches": ["..."],
+  "things_to_avoid": ["..."],
+  "when_to_seek_care": ["..."],
+  "warning_signs": ["..."],
+  "quick_action_chips": ["..."],
+  "action_table": [
+    {{
+      "guidance_lens": "...",
+      "what_may_help": "...",
+      "how_to_follow": "...",
+      "frequency_duration": "...",
+      "evidence_strength": "...",
+      "cautions": "...",
+      "stop_and_seek_care_if": "..."
+    }}
+  ]
+}}
+
+CONTENT:
+{json.dumps({
+    'summary': state.get('summary', ''),
+    'what_this_applies_to': state.get('what_this_applies_to', ''),
+    'follow_up_question': state.get('follow_up_question', ''),
+    'general_self_care_education': state.get('general_self_care_education', ''),
+    'preventive_approaches': state.get('preventive_approaches', []),
+    'things_to_avoid': state.get('things_to_avoid', []),
+    'when_to_seek_care': state.get('when_to_seek_care', []),
+    'warning_signs': state.get('warning_signs', []),
+    'quick_action_chips': state.get('quick_action_chips', []),
+    'action_table': [r.model_dump() if hasattr(r, 'model_dump') else r for r in state.get('action_table', [])],
+}, ensure_ascii=False, indent=2)}
+"""
+            llm_res = await llm.ainvoke(prompt)
+            raw_text = str(getattr(llm_res, "content", ""))
+            if "```json" in raw_text:
+                raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in raw_text:
+                raw_text = raw_text.split("```")[1].split("```")[0].strip()
+
+            parsed = json.loads(raw_text)
+            updates: dict[str, Any] = {"translation_status": "success"}
+            for key in ["summary", "what_this_applies_to", "follow_up_question", "general_self_care_education", "preventive_approaches", "things_to_avoid", "when_to_seek_care", "warning_signs", "quick_action_chips"]:
+                if parsed.get(key):
+                    updates[key] = parsed[key]
+
+            if parsed.get("action_table") and isinstance(parsed["action_table"], list):
+                orig_table = state.get("action_table", [])
+                new_table = []
+                for idx, r in enumerate(parsed["action_table"]):
+                    old_cits = orig_table[idx].citation_ids if (idx < len(orig_table) and hasattr(orig_table[idx], "citation_ids")) else ["CIT-001"]
+                    new_table.append(ActionTableRow(
+                        guidance_lens=r.get("guidance_lens", "Natural Self-Care"),
+                        what_may_help=r.get("what_may_help", "Hydration"),
+                        how_to_follow=r.get("how_to_follow", "Rest"),
+                        frequency_duration=r.get("frequency_duration", "As needed"),
+                        evidence_strength=r.get("evidence_strength", "High"),
+                        cautions=r.get("cautions", "Ensure comfort."),
+                        stop_and_seek_care_if=r.get("stop_and_seek_care_if", "If symptoms worsen."),
+                        citation_ids=old_cits,
+                    ))
+                updates["action_table"] = new_table
+
+            return updates
+    except Exception as exc:
+        logger.warning("Structured translation node error: %s", exc)
+
+    # ── Fallback Multilingual Dictionary Translation Engine ──
+    FALLBACK_TRANSLATIONS: dict[str, dict[str, Any]] = {
+        "te": {
+            "summary_prefix": "**ఆధారాలతో కూడిన స్వయం-రక్షణ మార్గదర్శకత్వం:**",
+            "what_applies": "పరిమిత స్వల్పకాలిక ఆరోగ్య ఆందోళనల కొరకు స్వయం-రక్షణ విద్యా మార్గదర్శకత్వం.",
+            "follow_up": "మీ లక్షణాలు 24-48 గంటల కంటే ఎక్కువ కాలం ఉన్నాయా?",
+            "lens_natural": "సహజ స్వయం-రక్షణ",
+            "lens_ayurveda": "ఆయుర్వేద అవగాహన",
+            "lens_allopathic": "సాధారణ వైద్య స్వయం-రక్షణ",
+            "chips": ["ప్రకృతి సిద్ధమైన ఉపశమనాలు ఏమిటి?", "ఆయుర్వేద సూచనలు", "వైద్యుడిని ఎప్పుడు సంప్రదించాలి?"],
+            "preventive": ["తగినంత మంచినీరు లేదా గోరువెచ్చని నీరు త్రాగండి.", "రాత్రి 7-8 గంటలు నిద్రపోండి.", "తేలికపాటి ఆహారం తీసుకోండి."],
+            "avoid": ["వైద్యుడి సలహా లేకుండా మందులు వాడకండి.", "తీవ్రమైన నొప్పిని ఉపేక్షించకండి."],
+            "when_seek": ["జ్వరం 102°F (39°C) కంటే ఎక్కువ ఉన్నప్పుడు", "తీవ్రమైన నొప్పి లేదా 48h కంటే ఎక్కువ ఉన్నప్పుడు"],
+        },
+        "hi": {
+            "summary_prefix": "**साक्ष्य-आधारित स्व-देखभाल मार्गदर्शन:**",
+            "what_applies": "सामान्य स्वास्थ्य चिंताओं के लिए साक्ष्य-आधारित शिक्षा।",
+            "follow_up": "क्या आपके लक्षण 24-48 घंटों से अधिक समय से हैं?",
+            "lens_natural": "प्राकृतिक स्व-देखभाल",
+            "lens_ayurveda": "आयुर्वेदिक दृष्टिकोण",
+            "lens_allopathic": "सामान्य चिकित्सा स्व-देखभाल",
+            "chips": ["प्राकृतिक उपाय क्या हैं?", "आयुर्वेदिक सुझाव", "डॉक्टर से कब परामर्श लें?"],
+            "preventive": ["पर्याप्त मात्रा में गुनगुना पानी पिएं।", "7-8 घंटे की अच्छी नींद लें।", "हल्का और सुपाच्य भोजन करें।"],
+            "avoid": ["बिना डॉक्टर की सलाह के दवाएं न लें।", "तेज दर्द को नजरअंदाज न करें।"],
+            "when_seek": ["102°F (39°C) से अधिक बुखार होने पर", "48 घंटे से अधिक लक्षण बने रहने पर"],
+        },
+        "ta": {
+            "summary_prefix": "**ஆதார அடிப்படையிலான சுயபராமரிப்பு வழிகாட்டுதல்:**",
+            "what_applies": "பொதுவான சுகாதார கவலைகளுக்கான சுயபராமரிப்பு கல்வி.",
+            "follow_up": "உங்கள் அறிகுறிகள் 24-48 மணி நேரத்திற்கு மேலாக நீடிக்கிறதா?",
+            "lens_natural": "இயற்கை சுயபராமரிப்பு",
+            "lens_ayurveda": "ஆயுர்வேத பார்வை",
+            "lens_allopathic": "பொது மருத்துவ சுயபராமரிப்பு",
+            "chips": ["இயற்கை நிவாரணங்கள் யாவை?", "ஆயுர்வேத உதவிக்குறிப்புகள்", "மருத்துவரை எப்போது அணுக வேண்டும்?"],
+            "preventive": ["போதுமான அளவு வெதுவெதுப்பான நீர் அருந்தவும்.", "7-8 மணி நேர உறக்கம் பெறவும்.", "எளிதில் செரிக்கும் உணவு உட்கொள்ளவும்."],
+            "avoid": ["மருத்துவர் ஆலோசனையின்றி மருந்துகளை உட்கொள்ள வேண்டாம்."],
+            "when_seek": ["காய்ச்சல் 102°F-க்கு மேல் இருந்தால்", "48 மணி நேரத்திற்கு மேல் நீடித்தால்"],
+        },
+        "bn": {
+            "summary_prefix": "**প্রমাণ-ভিত্তিক স্ব-যত্ন নির্দেশিকা:**",
+            "what_applies": "সাধারণ স্বাস্থ্য উদ্বেগের জন্য স্ব-যত্ন শিক্ষা।",
+            "follow_up": "আপনার উপসর্গগুলি কি ২৪-৪৮ ঘণ্টার বেশি স্থায়ী হয়েছে?",
+            "lens_natural": "প্রাকৃতিক স্ব-যত্ন",
+            "lens_ayurveda": "আয়ুর্বেদিক দৃষ্টিকোণ",
+            "lens_allopathic": "সাধারণ চিকিৎসা স্ব-যত্ন",
+            "chips": ["প্রাকৃতিক প্রতিকারগুলি কি?", "আয়ুর্বেদিক পরামর্শ", "কখন ডাক্তারের কাছে যাবেন?"],
+            "preventive": ["পর্যাপ্ত গরম জল পান করুন।", "৭-৮ ঘণ্টা ঘুমান।", "সহজপাচ্য খাবার খান।"],
+            "avoid": ["ডাক্তারের পরামর্শ ছাড়া ওষুধ খাবেন না।"],
+            "when_seek": ["১০২° ফারেনহাইটের বেশি জ্বর হলে", "৪৮ ঘণ্টার বেশি উপসর্গ থাকলে"],
+        },
+        "mr": {
+            "summary_prefix": "**पुरावा-आधारित स्व-काळजी मार्गदर्शन:**",
+            "what_applies": "सामान्य आरोग्य चिंतेसाठी स्व-काळजी शिक्षण.",
+            "follow_up": "तुमची लक्षणे २४-४८ तासांपेक्षा जास्त काळ आहेत का?",
+            "lens_natural": "नैसर्गिक स्व-काळजी",
+            "lens_ayurveda": "आयुर्वेदिक दृष्टिकोन",
+            "lens_allopathic": "सामान्य वैद्यकीय स्व-काळजी",
+            "chips": ["नैसर्गिक उपाय कोणते?", "आयुर्वेदिक टिप्स", "डॉक्टरांचा सल्ला कधी घ्यावा?"],
+        },
+        "gu": {
+            "summary_prefix": "**પુરાવા-આધારિત સ્વ-સંભાળ માર્ગદર્શન:**",
+            "what_applies": "સામાન્ય સ્વાસ્થ્ય સમસ્યાઓ માટે સ્વ-સંભાળ માર્ગદર્શન.",
+            "follow_up": "શું તમારા લક્ષણો 24-48 કલાક કરતાં વધુ સમયથી છે?",
+            "lens_natural": "કુદરતી સ્વ-સંભાળ",
+            "lens_ayurveda": "આયુર્વેદિક દ્રષ્ટિકોણ",
+            "lens_allopathic": "સામાન્ય તબીબી સ્વ-સંભાળ",
+            "chips": ["કુદરતી ઉપાયો કયા છે?", "આયુર્વેદિક ટિપ્સ", "ડોક્ટરની સલાહ ક્યારે લેવી?"],
+        },
+        "kn": {
+            "summary_prefix": "**ಸಾಕ್ಷ್ಯಾಧಾರಿತ ಸ್ವಯಂ-ಆರೈಕೆ ಮಾರ್ಗದರ್ಶನ:**",
+            "what_applies": "ಸಾಮಾನ್ಯ ಆರೋಗ್ಯ ಕಾಳಜಿಗಳಿಗೆ ಸ್ವಯಂ-ಆರೈಕೆ ಶಿಕ್ಷಣ.",
+            "follow_up": "ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳು 24-48 ಗಂಟೆಗಳಿಗಿಂತ ಹೆಚ್ಚು ಕಾಲ ಉಳಿದಿವೆಯೇ?",
+            "lens_natural": "ನೈಸರ್ಗಿಕ ಸ್ವಯಂ-ಆರೈಕೆ",
+            "lens_ayurveda": "ಆಯುರ್ವೇದ ದೃಷ್ಟಿಕೋನ",
+            "lens_allopathic": "ಸಾಮಾನ್ಯ ವೈದ್ಯಕೀಯ ಸ್ವಯಂ-ಆರೈಕೆ",
+            "chips": ["ನೈಸರ್ಗಿಕ ಉಪಾಯಗಳು யಾವವು?", "ಆಯುರ್ವೇದ ಸಲಹೆಗಳು", "ವೈದ್ಯರನ್ನು ಯಾವಾಗ ಭೇಟಿಯಾಗಬೇಕು?"],
+        },
+        "ml": {
+            "summary_prefix": "**തെളിവ് അടിസ്ഥാനമാക്കിയുള്ള സ്വയം പരിചരണ മാർഗ്ഗനിർദ്ദേശം:**",
+            "what_applies": "പൊതുവായ ആരോഗ്യ ആശങ്കകൾക്കുള്ള സ്വയം പരിചരണ വിദ്യാഭ്യാസം.",
+            "follow_up": "നിങ്ങളുടെ ലക്ഷണങ്ങൾ 24-48 മണിക്കൂറിൽ കൂടുതൽ നിലനിൽക്കുന്നുണ്ടോ?",
+            "lens_natural": "പ്രകൃതിദത്ത സ്വയം പരിചരണം",
+            "lens_ayurveda": "ആയുർവേദ കാഴ്ചപ്പാട്",
+            "lens_allopathic": "ജനറൽ മെഡിക്കൽ സ്വയം പരിചരണം",
+            "chips": ["പ്രകൃതിദത്ത പ്രതിവിധികൾ ഏവ?", "ആയുർവേദ നിർദ്ദേശങ്ങൾ", "എപ്പോൾ ഡോക്ടറെ കാണണം?"],
+        },
+        "pa": {
+            "summary_prefix": "**ਸਬੂਤ-ਆਧਾਰਿਤ ਸਵੈ-ਦੇਖਭਾਲ ਮਾਰਗਦਰਸ਼ਨ:**",
+            "what_applies": "ਆਮ ਸਿਹਤ ਚਿੰਤਾਵਾਂ ਲਈ ਸਵੈ-ਦੇਖਭਾਲ ਸਿੱਖਿਆ।",
+            "follow_up": "ਕੀ ਤੁਹਾਡੇ ਲੱਛਣ 24-48 ਘੰਟਿਆਂ ਤੋਂ ਵੱਧ ਸਮੇਂ ਤੋਂ ਹਨ?",
+            "lens_natural": "ਕੁਦਰਤੀ ਸਵੈ-ਦੇਖਭਾਲ",
+            "lens_ayurveda": "ਆਯੁਰਵੈਦਿਕ ਦ੍ਰਿਸ਼ਟੀਕੋਣ",
+            "lens_allopathic": "ਆਮ ਮੈਡੀਕਲ ਸਵੈ-ਦੇਖਭਾਲ",
+            "chips": ["ਕੁਦਰਤੀ ਉਪਾਅ ਕੀ ਹਨ?", "ਆਯੁਰਵੈਦਿਕ ਸੁਝਾਅ", "ਡਾਕਟਰ ਦੀ ਸਲਾਹ ਕਦੋਂ ਲਓ?"],
+        },
+        "or": {
+            "summary_prefix": "**ପ୍ରମାଣ-ଆଧାରିତ ସ୍ୱୟଂ-ସେବା ମାର୍ଗଦର୍ଶନ:**",
+            "what_applies": "ସାଧାରଣ ସ୍ୱାସ୍ଥ୍ୟ ଚିନ୍ତା ପାଇଁ ସ୍ୱୟଂ-ସେବା ଶିକ୍ଷା |",
+            "follow_up": "ଆପଣଙ୍କର ଲକ୍ଷଣ ୨୪-୪୮ ଘଣ୍ଟାରୁ ଅଧିକ ସମୟ ଧରି ରହିଛି କି?",
+            "lens_natural": "ପ୍ରାକୃତିକ ସ୍ୱୟଂ-ସେବା",
+            "lens_ayurveda": "ଆୟୁର୍ବେଦିକ ଦୃଷ୍ଟିକୋଣ",
+            "lens_allopathic": "ସାଧାରଣ ଡାକ୍ତରୀ ସ୍ୱୟଂ-ସେବା",
+            "chips": ["ପ୍ରାକୃତିକ ପ୍ରତିକାର କ’ଣ?", "ଆୟୁର୍ବେଦିକ ପରାମର୍ଶ", "ଡାକ୍ତରଙ୍କ ସହିତ କେବେ ପରାମର୍ଶ କରିବେ?"],
+        },
+        "ur": {
+            "summary_prefix": "**شواہد پر مبنی خود کی دیکھ بھال کی رہنمائی:**",
+            "what_applies": "عام صحت کے خدشات کے لیے خود کی دیکھ بھال کی تعلیم۔",
+            "follow_up": "کیا آپ کی علامات 24 سے 48 گھنٹے سے زیادہ پرانی ہیں؟",
+            "lens_natural": "قدرتی خود کی دیکھ بھال",
+            "lens_ayurveda": "آیو ویدک نقطہ نظر",
+            "lens_allopathic": "عام طبی خود کی دیکھ بھال",
+            "chips": ["قدرتی علاج کیا ہیں؟", "آیو ویدک مشورے", "ڈاکٹر سے کب رجوع کریں؟"],
+        },
+    }
+
+    fb = FALLBACK_TRANSLATIONS.get(target_lang)
+    if fb:
+        orig_summary = state.get("summary", "")
+        summary_translated = f"{fb['summary_prefix']} {orig_summary}" if orig_summary else fb['summary_prefix']
+        
+        orig_table = state.get("action_table", [])
+        translated_table = []
+        for r in orig_table:
+            old_cits = r.citation_ids if hasattr(r, "citation_ids") else ["CIT-001"]
+            old_lens = r.guidance_lens if hasattr(r, "guidance_lens") else "Natural Self-Care"
+            
+            if "Ayurveda" in old_lens:
+                lens_text = fb.get("lens_ayurveda", old_lens)
+            elif "Medical" in old_lens:
+                lens_text = fb.get("lens_allopathic", old_lens)
+            else:
+                lens_text = fb.get("lens_natural", old_lens)
+                
+            translated_table.append(ActionTableRow(
+                guidance_lens=lens_text,
+                what_may_help=r.what_may_help if hasattr(r, "what_may_help") else "Hydration & Rest",
+                how_to_follow=r.how_to_follow if hasattr(r, "how_to_follow") else "Sip warm fluids.",
+                frequency_duration=r.frequency_duration if hasattr(r, "frequency_duration") else "As needed",
+                evidence_strength=r.evidence_strength if hasattr(r, "evidence_strength") else "High",
+                cautions=r.cautions if hasattr(r, "cautions") else "Ensure comfort.",
+                stop_and_seek_care_if=r.stop_and_seek_care_if if hasattr(r, "stop_and_seek_care_if") else "If symptoms worsen.",
+                citation_ids=old_cits,
+            ))
+
+        return {
+            "summary": summary_translated,
+            "what_this_applies_to": fb.get("what_applies", state.get("what_this_applies_to", "")),
+            "follow_up_question": fb.get("follow_up", state.get("follow_up_question", "")),
+            "quick_action_chips": fb.get("chips", state.get("quick_action_chips", [])),
+            "action_table": translated_table,
+            "translation_status": "fallback_dictionary_success",
+            "response_language": target_lang,
+        }
+
+    return {"translation_status": "failed"}
+
+

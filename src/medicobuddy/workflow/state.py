@@ -26,8 +26,17 @@ class GraphState(TypedDict, total=False):
 
     # ── Request Isolation & Anti-Caching ───────────────────────
     request_id: str
+    parent_request_id: str | None
     query_hash: str
     retrieval_query_hash: str
+
+    # ── Multilingual Language Router ──────────────────────────
+    detected_language: str
+    preferred_language: str
+    target_language: str
+    normalized_english_query: str
+    response_language: str
+    translation_status: str
 
     # ── Input & Context ──────────────────────────────────────
     user_message: str
@@ -37,7 +46,6 @@ class GraphState(TypedDict, total=False):
     conversation_history: list[dict[str, str]]
     conversation_context: str
     user_context: UserContext
-    detected_language: str
     language: str
     entities: list[str]
     symptom_entities: list[str]

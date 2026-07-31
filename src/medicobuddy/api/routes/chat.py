@@ -26,6 +26,8 @@ class ChatRequest(BaseModel):
     """Incoming chat request."""
 
     message: str = Field(min_length=1, max_length=2000, description="User message")
+    preferred_language: str = Field(default="auto", description="Preferred response language code (e.g. te, hi, en)")
+    parent_request_id: str | None = Field(default=None, description="Parent request ID for interactive follow-up turns")
     thread_id: str = Field(default="default_thread", description="Conversation thread ID")
     age_range: str = Field(default="18-65")
     pregnancy_status: str = Field(default="unknown")
@@ -103,8 +105,10 @@ async def _run_workflow(request: ChatRequest, req: Request) -> dict[str, Any]:
 
     initial_state: GraphState = {
         "request_id": req_id,
+        "parent_request_id": request.parent_request_id,
         "query_hash": q_hash,
         "user_message": request.message,
+        "preferred_language": request.preferred_language or "auto",
         "user_context": user_context,
         "symptom_report": extract_symptom_report(request.message),
         "conversation_history": [],
