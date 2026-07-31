@@ -1,0 +1,111 @@
+{
+  "timestamp": "2026-07-31T18:00:18Z",
+  "total_documents_discovered": 18,
+  "total_documents_ingested": 17,
+  "total_documents_quarantined": 1,
+  "total_semantic_chunks": 74,
+  "records": [
+    {
+      "document_id": "DOC_32a1cd906870",
+      "file_name": "AYURVEDA_The_Science_of_LifeDossier.pdf",
+      "chunks_created": 52,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_c5330c6b5076",
+      "file_name": "self-care-communications-toolkit-2026.pdf",
+      "chunks_created": 7,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_4ec5882694b6",
+      "file_name": "cdc_seasonal_allergies_guide.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_73fb1f8dd668",
+      "file_name": "ccras_ayurveda_science_of_life.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_fc6964046fe9",
+      "file_name": "medlineplus_digestive_health.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_53a61e5b945c",
+      "file_name": "niddk_indigestion_dyspepsia_guide.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_c7470a739ed3",
+      "file_name": "medlineplus_general_wellness_guide.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_44618bedbd47",
+      "file_name": "who_selfcare_interventions_guideline.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_9604be6c7d21",
+      "file_name": "medlineplus_headache_guidance.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_85f29b1f4f2b",
+      "file_name": "nice_cg150_headache_management.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_5c3e179a2981",
+      "file_name": "nccih_herbs_natural_safety.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_c61fa3c5d92b",
+      "file_name": "us_physical_activity_guidelines.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_8fd991324980",
+      "file_name": "who_healthy_diet_factsheet.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_a3d67f24b3e4",
+      "file_name": "cdc_common_cold_selfcare.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_027e901f681c",
+      "file_name": "who_respiratory_cold_cough_guide.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_4d711d730392",
+      "file_name": "cdc_sleep_health_basics.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    },
+    {
+      "document_id": "DOC_f5fd8b6149df",
+      "file_name": "who_stress_management_guide.pdf",
+      "chunks_created": 1,
+      "status": "SUCCESS"
+    }
+  ]
+}

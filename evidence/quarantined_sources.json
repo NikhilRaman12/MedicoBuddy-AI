@@ -1,0 +1,8 @@
+[
+  {
+    "file_path": "downloaded\\9789240052215-eng.pdf",
+    "sha256": "a859cc83d11508435744f1ce4fb6f39396083c22e60bea3f872887eb2dd1863f",
+    "reason": "Invalid PDF magic bytes header",
+    "quarantined_at": "2026-07-31T18:00:17Z"
+  }
+]

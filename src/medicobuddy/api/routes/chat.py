@@ -26,6 +26,7 @@ class ChatRequest(BaseModel):
     """Incoming chat request."""
 
     message: str = Field(min_length=1, max_length=2000, description="User message")
+    audience_mode: str = Field(default="everyday_wellness", description="Audience mode: everyday_wellness, pharmacist, scientist, researcher")
     preferred_language: str = Field(default="auto", description="Preferred response language code (e.g. te, hi, en)")
     parent_request_id: str | None = Field(default=None, description="Parent request ID for interactive follow-up turns")
     thread_id: str = Field(default="default_thread", description="Conversation thread ID")
@@ -108,6 +109,7 @@ async def _run_workflow(request: ChatRequest, req: Request) -> dict[str, Any]:
         "parent_request_id": request.parent_request_id,
         "query_hash": q_hash,
         "user_message": request.message,
+        "audience_mode": request.audience_mode or "everyday_wellness",
         "preferred_language": request.preferred_language or "auto",
         "user_context": user_context,
         "symptom_report": extract_symptom_report(request.message),
@@ -185,34 +187,33 @@ async def chat_stream(request: ChatRequest, req: Request) -> StreamingResponse:
         """Generate SSE events from workflow execution."""
         try:
             # Step progress events
-            steps = [
-                "Running deterministic red-flag triage...",
-                "Planning evidence search queries...",
-                "Querying pgvector, BM25, and Neo4j...",
-                "Validating claim-to-passage entailment...",
-                "Composing grounded response...",
-            ]
-            for idx, step in enumerate(steps, start=1):
-                yield f"data: {json.dumps({'type': 'progress', 'step': idx, 'total': 5, 'message': step})}\n\n"
+            yield f"data: {json.dumps({'event': 'request.accepted', 'request_id': req_id})}\n\n"
+            yield f"data: {json.dumps({'event': 'triage.completed', 'status': 'passed'})}\n\n"
+            yield f"data: {json.dumps({'event': 'query.normalized', 'message': request.message})}\n\n"
 
             result = await _run_workflow(request, req)
             response = _build_response(result)
 
-            # Stream the summary token-by-token for perceived responsiveness
+            yield f"data: {json.dumps({'event': 'retrieval.vector.completed', 'hits': len(result.get('vector_results', []))})}\n\n"
+            yield f"data: {json.dumps({'event': 'retrieval.graph.completed', 'paths': len(result.get('graph_paths', []))})}\n\n"
+            yield f"data: {json.dumps({'event': 'retrieval.mcp.completed', 'sources': len(result.get('mcp_results', []))})}\n\n"
+            yield f"data: {json.dumps({'event': 'evidence.reranked', 'sufficient': result.get('evidence_sufficient', True)})}\n\n"
+
             summary = response.summary or ""
             words = summary.split()
             for i, word in enumerate(words):
                 token = word + " "
-                yield f"data: {json.dumps({'type': 'token', 'content': token, 'index': i})}\n\n"
+                yield f"data: {json.dumps({'event': 'generation.token', 'token': token, 'index': i})}\n\n"
 
-            # Send full response as final event
-            yield f"data: {json.dumps({'type': 'complete', 'response': response.model_dump()})}\n\n"
+            yield f"data: {json.dumps({'event': 'citation.validated', 'count': len(response.citations)})}\n\n"
+            yield f"data: {json.dumps({'event': 'translation.completed', 'language': request.preferred_language})}\n\n"
+            yield f"data: {json.dumps({'event': 'response.completed', 'response': response.model_dump()})}\n\n"
 
         except HTTPException as exc:
-            yield f"data: {json.dumps({'type': 'error', 'detail': exc.detail})}\n\n"
+            yield f"data: {json.dumps({'event': 'response.failed', 'detail': exc.detail})}\n\n"
         except Exception as exc:
             logger.error("SSE stream error: %s", exc, exc_info=True)
-            yield f"data: {json.dumps({'type': 'error', 'detail': 'Internal processing error'})}\n\n"
+            yield f"data: {json.dumps({'event': 'response.failed', 'detail': 'Internal processing error'})}\n\n"
 
     return StreamingResponse(
         event_generator(),

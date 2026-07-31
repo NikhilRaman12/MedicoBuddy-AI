@@ -93,23 +93,18 @@ class AvoidAndMonitorRow(BaseModel):
     monitoring_frequency: str = ""
 
 
-class MedicoBuddyResponse(BaseModel):
-    """The full required 12-part answer contract.
+class QuickAction(BaseModel):
+    """Structured contextual quick action button definition matching spec #7."""
 
-    Every successful answer must contain:
-    1. Safety status
-    2. Direct evidence-grounded explanation
-    3. Responsive table (action table)
-    4. Natural preventive approaches
-    5. Traditional Ayurvedic context (explicitly labelled by evidence level)
-    6. General non-prescriptive medical self-care education
-    7. Implementation plan: now, next 6-12h, next 24-48h
-    8. What to avoid
-    9. Warning signs and when to seek professional care
-    10. Verified sources with document title and PDF page number
-    11. One follow-up question only when required
-    12. Two or three contextual quick-action chips
-    """
+    action_id: str = Field(default="", description="Unique ID for the follow-up action")
+    label: str = Field(description="Short user-facing button label")
+    standalone_query: str = Field(description="Full query including parent topic context")
+    intent: str = Field(default="general_followup", description="Follow-up intent category")
+    parent_topic: str = Field(default="general_health", description="Parent health topic identifier")
+
+
+class MedicoBuddyResponse(BaseModel):
+    """The full required 12-part answer contract."""
 
     # 1. Safety status
     triage_outcome: TriageOutcome
@@ -152,8 +147,9 @@ class MedicoBuddyResponse(BaseModel):
     targeted_follow_up: str = ""
     follow_up_question: str = ""
 
-    # 12. Contextual quick-action chips (2-3)
+    # 12. Contextual quick-action chips and buttons
     quick_action_chips: list[str] = Field(default_factory=list)
+    quick_actions: list[QuickAction] = Field(default_factory=list)
 
     # Educational-use statement (always present)
     educational_statement: str = Field(

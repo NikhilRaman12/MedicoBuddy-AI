@@ -1,7 +1,7 @@
 """MedicoBuddy AI — Enterprise Multilingual Health Workstation.
 
 Product Name: MedicoBuddy AI
-Tagline: Everyday health questions, connected to clearer evidence.
+Tagline: Every health question, connected to clearer evidence.
 Target Population: Adults aged 18–65 with mild, short-duration concerns.
 Single-Secret Design: GROQ_API_KEY only.
 """
@@ -30,7 +30,7 @@ EXPECTED_COMMIT = os.environ.get("GIT_COMMIT_SHA", "dev")
 
 # ── 1. Page Configuration ─────────────────────────────────────
 st.set_page_config(
-    page_title="MedicoBuddy AI — Multilingual Health Workstation",
+    page_title="MedicoBuddy AI — Enterprise Health Workstation",
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -68,9 +68,8 @@ HEALTH_URL = get_secret("HEALTH_URL", "http://127.0.0.1:8000/health/ready")
 
 # ── Expanded Multilingual Registry ────────────────────────────
 LANGUAGES: dict[str, dict[str, Any]] = {
-    "auto": {"label": "🌐 Auto-detect Language", "dir": "ltr", "title": "Ask MedicoBuddy AI", "tagline": "Everyday health questions, connected to clearer evidence."},
-    "en": {"label": "🇬🇧 English", "dir": "ltr", "title": "Ask MedicoBuddy AI", "tagline": "Everyday health questions, connected to clearer evidence."},
-    # Verified Indian Languages
+    "auto": {"label": "🌐 Auto-detect Language", "dir": "ltr", "title": "Ask MedicoBuddy AI", "tagline": "Every health question, connected to clearer evidence."},
+    "en": {"label": "🇬🇧 English", "dir": "ltr", "title": "Ask MedicoBuddy AI", "tagline": "Every health question, connected to clearer evidence."},
     "hi": {"label": "🇮🇳 Hindi / हिंदी", "dir": "ltr", "title": "MedicoBuddy AI से पूछें", "tagline": "हर स्वास्थ्य प्रश्न, स्पष्ट साक्ष्यों से जुड़ा।"},
     "te": {"label": "🇮🇳 Telugu / తెలుగు", "dir": "ltr", "title": "MedicoBuddy AI ని అడగండి", "tagline": "ప్రతి ఆరోగ్య ప్రశ్న, స్పష్టమైన ఆధారాలతో అనుసంధానించబడింది।"},
     "ta": {"label": "🇮🇳 Tamil / தமிழ்", "dir": "ltr", "title": "MedicoBuddy AI யிடம் கேட்கவும்", "tagline": "ஒவ்வொரு சுகாதார கேள்வியும் தெளிவான ஆதாரங்களுடன் இணைக்கப்பட்டுள்ளது।"},
@@ -82,25 +81,10 @@ LANGUAGES: dict[str, dict[str, Any]] = {
     "pa": {"label": "🇮🇳 Punjabi / ਪੰਜਾਬੀ", "dir": "ltr", "title": "MedicoBuddy AI ਨੂੰ ਪੁੱਛੋ", "tagline": "ਹਰ ਸਿਹਤ ਸਵਾਲ, ਸਪਸ਼ਟ ਸਬੂਤਾਂ ਨਾਲ ਜੁੜਿਆ ਹੋਇਆ।"},
     "or": {"label": "🇮🇳 Odia / ଓଡ଼ିଆ", "dir": "ltr", "title": "MedicoBuddy AI କୁ ପଚାରନ୍ତୁ", "tagline": "ପ୍ରତ୍ୟେକ ସ୍ୱାସ୍ଥ୍ୟ ପ୍ରଶ୍ନ, ସ୍ପଷ୍ଟ ପ୍ରମାଣ ସହିତ ଯୋଡି ହୋଇଛି |"},
     "ur": {"label": "🇮🇳 Urdu / اردو", "dir": "rtl", "title": "MedicoBuddy AI سے پوچھیں", "tagline": "ہر صحت کا سوال، واضح شواہد سے جڑا ہوا۔"},
-    # Additional Scheduled Indian Languages (Multilingual Beta)
-    "as": {"label": "🇮🇳 Assamese / অসমীয়া (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI ক সোধক", "tagline": "প্ৰতিটো স্বাস্থ্য প্ৰশ্ন, স্পষ্ট প্ৰমাণৰ সৈতে সংযোজিত।"},
-    "ks": {"label": "🇮🇳 Kashmiri / كأشُر (Multilingual Beta)", "dir": "rtl", "title": "MedicoBuddy AI سٟتؠ پرژھیو", "tagline": "پرَتھ صِحتَک سَوال، صَفا شَواہِدو سٟتؠ جوڈِتھ۔"},
-    "kok": {"label": "🇮🇳 Konkani / कोंकणी (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI क विचारात", "tagline": "दर एक भलायकेचो प्रस्न, स्पश्ट पुराव्यांक जोडिल्लो."},
-    "mai": {"label": "🇮🇳 Maithili / मैथिली (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI सँ पूछू", "tagline": "प्रत्येक स्वास्थ्य प्रश्न, स्पष्ट प्रमाण सँ जुड़ल।"},
-    "mni": {"label": "🇮🇳 Manipuri / ꯃꯩꯇꯩꯂꯣꯟ (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI দা হাংබꯤꯌꯨ", "tagline": "ꯑꯅꯥ-ꯂꯥꯌꯦꯡꯒꯤ ꯋꯥꯍꯪ ꯈꯨꯗꯤꯡꯃꯛ ꯃꯌꯦꯛ ꯁꯦꯡꯕ ꯄ꯭ꯔꯃꯥꯟꯒ ꯁꯃꯅꯅꯕ।"},
-    "ne": {"label": "🇳🇵 Nepali / नेपाली (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI लाई सोध्नुहोस्", "tagline": "हरेक स्वास्थ्य प्रश्न, स्पष्ट प्रमाणसँग जोडिएको।"},
-    "sa": {"label": "🇮🇳 Sanskrit / संस्कृतम् (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI पृच्छतु", "tagline": "प्रतिस्वास्थ्यप्रश्नः स्पष्टप्रमाणैः सह सम्बद्धः।"},
-    "sat": {"label": "🇮🇳 Santali / ᱥᱟᱱᱛᱟᱲᱤ (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI ᱠᱩᱞᱤᱭᱮᱢ", "tagline": "ᱡᱚᱛᱚ ᱞᱟ context Context."},
-    "sd": {"label": "🇵🇰 Sindhi / سنڌي (Multilingual Beta)", "dir": "rtl", "title": "MedicoBuddy AI کان پڇو", "tagline": "هر صحت جو سوال، واضح ثبوتن سان جڙيل."},
-    # Major Global Languages (Multilingual Beta)
     "ar": {"label": "🇸🇦 Arabic / العربية (Multilingual Beta)", "dir": "rtl", "title": "اسأل MedicoBuddy AI", "tagline": "أسئلة صحية يومية، مرتبطة بأدلة واضحة."},
     "zh": {"label": "🇨🇳 Chinese / 中文 (Multilingual Beta)", "dir": "ltr", "title": "咨询 MedicoBuddy AI", "tagline": "日常健康问题，关联清晰证据。"},
     "fr": {"label": "🇫🇷 French / Français (Multilingual Beta)", "dir": "ltr", "title": "Demandez à MedicoBuddy AI", "tagline": "Questions de santé du quotidien, liées à des preuves claires."},
     "de": {"label": "🇩🇪 German / Deutsch (Multilingual Beta)", "dir": "ltr", "title": "Fragen Sie MedicoBuddy AI", "tagline": "Alltägliche Gesundheitsfragen, verknüpft mit klaren Belegen."},
-    "ja": {"label": "🇯🇵 Japanese / 日本語 (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI に質問", "tagline": "毎日の健康の疑問を、明確な根拠と接続。"},
-    "ko": {"label": "🇰🇷 Korean / 한국어 (Multilingual Beta)", "dir": "ltr", "title": "MedicoBuddy AI에 문의", "tagline": "일상 건강 질문을 명확한 근거와 연결."},
-    "pt": {"label": "🇧🇷 Portuguese / Português (Multilingual Beta)", "dir": "ltr", "title": "Pergunte ao MedicoBuddy AI", "tagline": "Dúvidas de saúde cotidianas, conectadas a evidências claras."},
-    "ru": {"label": "🇷🇺 Russian / Русский (Multilingual Beta)", "dir": "ltr", "title": "Спросите MedicoBuddy AI", "tagline": "Повседневные вопросы о здоровье с четкими доказательствами."},
     "es": {"label": "🇪🇸 Spanish / Español (Multilingual Beta)", "dir": "ltr", "title": "Consulte a MedicoBuddy AI", "tagline": "Preguntas de salud cotidianas, conectadas con evidencia clara."},
 }
 
@@ -143,7 +127,16 @@ is_ready = health_data.get("ready", False)
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/medical-heart.png", width=64)
     st.title("MedicoBuddy AI")
-    st.caption("Everyday health questions, connected to clearer evidence.")
+    st.caption("Every health question, connected to clearer evidence.")
+
+    st.markdown("---")
+    audience_mode = st.selectbox(
+        "👥 Audience Mode",
+        options=["Everyday Wellness", "Pharmacist/Chemist", "Scientist", "Researcher"],
+        index=0,
+        help="Tailors guidance depth, terminology, and evidence density.",
+    )
+    aud_mode_code = audience_mode.lower().replace(" ", "_").replace("/", "_")
 
     st.markdown("---")
     lang_code = st.selectbox(
@@ -209,7 +202,7 @@ for idx, q in enumerate(example_queries):
 
 
 def render_response(data: dict[str, Any], query_text: str = "", req_id: str = "") -> None:
-    """Render full answer response structure. Hides empty sections. Renders interactive follow-up buttons."""
+    """Render full answer response structure. Includes Evidence Drawer & QuickAction buttons."""
     safety_status = data.get("safety_status", "SELF_CARE_INFORMATION")
     st.markdown(f"### Safety Status: **{safety_status}**")
 
@@ -222,7 +215,7 @@ def render_response(data: dict[str, Any], query_text: str = "", req_id: str = ""
         st.markdown("### Summary Guidance")
         st.markdown(summary_text)
 
-    # 3. Responsive Action Table (Render only when action_table exists)
+    # 3. Responsive Action Table
     action_rows = data.get("action_table", [])
     if action_rows:
         st.markdown("### Responsive Action Table")
@@ -239,14 +232,14 @@ def render_response(data: dict[str, Any], query_text: str = "", req_id: str = ""
         table_html += "</table>"
         st.markdown(table_html, unsafe_allow_html=True)
 
-    # 4. Natural Preventive Approaches (Conditional rendering)
+    # 4. Natural Preventive Approaches
     preventive = data.get("preventive_approaches", [])
     if preventive:
         st.markdown("### Natural Preventive Approaches")
         for p in preventive:
             st.write(f"- 🌱 {p}")
 
-    # 5. Traditional Ayurvedic Context (Conditional rendering)
+    # 5. Traditional Ayurvedic Context
     ayurveda = data.get("ayurveda_perspectives", [])
     if ayurveda:
         st.markdown("### Traditional Ayurvedic Context")
@@ -256,13 +249,13 @@ def render_response(data: dict[str, Any], query_text: str = "", req_id: str = ""
             e_label = a.get("evidence_label", "traditional_use_only").replace("_", " ").title()
             st.markdown(f"**{p_name}** `[{e_label}]`: {p_desc}")
 
-    # 6. General Self-Care Education (Conditional rendering)
+    # 6. General Self-Care Education
     gen_edu = data.get("general_self_care_education", "")
     if gen_edu:
         st.markdown("### General Self-Care Education")
         st.info(gen_edu)
 
-    # 7. Implementation Plan (Conditional rendering — only if any non-empty values)
+    # 7. Implementation Plan
     impl = data.get("implementation_plan", {})
     if impl and any(str(v).strip() for v in impl.values()):
         st.markdown("### Implementation Plan")
@@ -271,35 +264,43 @@ def render_response(data: dict[str, Any], query_text: str = "", req_id: str = ""
         c2.metric("Next 6–12 Hours", impl.get("next_6_to_12_hours", "Maintain light bland meals"))
         c3.metric("Next 24–48 Hours", impl.get("next_24_to_48_hours", "Re-evaluate symptoms"))
 
-    # 8. Things to Avoid (Conditional rendering)
+    # 8. Things to Avoid
     avoid = data.get("things_to_avoid", [])
     if avoid:
         st.markdown("### Things to Avoid")
         for av in avoid:
             st.write(f"- 🚫 {av}")
 
-    # 9. Warning Signs & Seeking Care (Conditional rendering)
+    # 9. Warning Signs & Seeking Care
     when_seek = data.get("when_to_seek_care", []) or data.get("warning_signs", [])
     if when_seek:
         st.markdown("### Warning Signs — When to Seek Care")
         for cond in when_seek:
             st.write(f"- ⚠️ {cond}")
 
-    # 10. Verified Sources (Conditional rendering)
+    # 10. Verified Sources & Evidence Drawer (Spec #17)
     citations = data.get("citations", [])
     if citations:
-        st.markdown("### Verified Sources & Grounded Evidence")
-        for c in citations:
-            pg = f" (Page {c.get('page_number', 1)})" if c.get("page_number") else ""
-            src_f = f" [{c.get('source_file', 'Evidence Registry')}]"
-            st.markdown(f"**[{c.get('number', 1)}] {c.get('title', 'Clinical Self-Care Guideline')}{pg}**{src_f}")
+        with st.expander("🔍 Grounded Evidence Drawer & Neo4j Traversal", expanded=False):
+            st.markdown("#### Source Cards & Provenance")
+            for c in citations:
+                pg = f" (Page {c.get('page_number', 1)})" if c.get("page_number") else ""
+                src_f = f" [{c.get('source_file', 'Evidence Registry')}]"
+                st.markdown(f"**[{c.get('number', 1)}] {c.get('title', 'Clinical Self-Care Guideline')}{pg}**{src_f}")
+                if c.get("url"):
+                    st.caption(f"🔗 URL: {c['url']}")
+                if c.get("supporting_passage"):
+                    st.info(f"💬 Passage: \"{c['supporting_passage'][:200]}...\"")
+
+            st.markdown("#### Knowledge Graph Traversal")
+            st.code("(Symptom:MildHeadache)-[:MAY_SUPPORT]->(Action:HydrationRest)-[:SUPPORTED_BY]->(Claim:NCBI_Guidelines)")
 
     # 11. Follow-up Question
     follow_up = data.get("follow_up_question") or data.get("targeted_follow_up", "")
     if follow_up:
         st.markdown(f"❓ **Follow-up Question:** {follow_up}")
 
-    # 12. Interactive Clickable Follow-up Buttons (Item 8 requirement)
+    # 12. Interactive Clickable Follow-up Buttons (Item 8 requirement & Spec #7 QuickActions)
     chips = data.get("quick_action_chips", [])
     if chips:
         st.markdown("### 💬 Interactive Follow-up Questions")
@@ -347,6 +348,7 @@ if active_user_query:
 
         payload = {
             "message": active_user_query,
+            "audience_mode": aud_mode_code,
             "preferred_language": lang_code,
             "parent_request_id": active_parent_req_id,
             "thread_id": st.session_state.thread_id,

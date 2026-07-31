@@ -24,6 +24,11 @@ class GraphState(TypedDict, total=False):
     Each node reads from and writes to specific keys in this state dict.
     """
 
+    # ── Audience Mode & Context ───────────────────────────────
+    audience_mode: str  # everyday_wellness | pharmacist | scientist | researcher
+    standalone_query: str
+    canonical_topic: str
+
     # ── Request Isolation & Anti-Caching ───────────────────────
     request_id: str
     parent_request_id: str | None

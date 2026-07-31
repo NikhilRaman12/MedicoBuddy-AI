@@ -1,74 +1,53 @@
-# ──────────────────────────────────────────────────────────────
-# MedicoBuddy AI — Hugging Face Spaces Single-Container Runtime
-#
-# Runs all 5 services in one container:
-#   PostgreSQL 16 + pgvector  (localhost:5432)
-#   Neo4j Community Edition   (localhost:7687)
-#   Qwen3-Embedding-0.6B      (in-process)
-#   FastAPI backend            (127.0.0.1:8000)
-#   Streamlit frontend         (0.0.0.0:7860)
-#
-# Port 7860 is the only public port (Hugging Face requirement).
-# ──────────────────────────────────────────────────────────────
+# Dockerfile.hf — Hugging Face Space Production Image for MedicoBuddy AI
+# Exposes Port 7860 for Streamlit UI + Embedded FastAPI Backend
 
-FROM python:3.12-slim
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    PORT=7860 \
+    STREAMLIT_SERVER_PORT=7860 \
+    STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
+    API_BASE=http://127.0.0.1:8000/api/v1 \
+    HEALTH_URL=http://127.0.0.1:8000/health/ready
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# ── System dependencies ──────────────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl wget bash gnupg2 lsb-release software-properties-common \
-    libpq-dev postgresql postgresql-server-dev-16 \
-    openjdk-17-jre-headless \
-    build-essential && \
-    rm -rf /var/lib/apt/lists/*
-
-# ── Install pgvector extension ───────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-16-pgvector && \
-    rm -rf /var/lib/apt/lists/*
-
-# ── Install Neo4j Community Edition ──────────────────────────
-RUN wget -qO- https://dist.neo4j.org/neo4j-community-5.26.0-unix.tar.gz | \
-    tar -xz -C /opt/ && \
-    ln -s /opt/neo4j-community-5.26.0 /opt/neo4j && \
-    /opt/neo4j/bin/neo4j-admin dbms set-initial-password medicobuddy_dev
-
-ENV NEO4J_HOME=/opt/neo4j
-ENV PATH="${NEO4J_HOME}/bin:${PATH}"
-
-# ── Python dependencies ─────────────────────────────────────
-COPY requirements.txt .
+# Copy requirements and install Python dependencies
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ── Pre-download Qwen3-Embedding-0.6B ───────────────────────
-RUN python -c "\
-from sentence_transformers import SentenceTransformer; \
-m = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B', trust_remote_code=True); \
-print(f'Qwen3-Embedding-0.6B cached (dim={m.get_sentence_embedding_dimension()})')"
+# Copy source code and scripts
+COPY src/ /app/src/
+COPY frontend/ /app/frontend/
+COPY scripts/ /app/scripts/
+COPY evidence/ /app/evidence/
+COPY .env.example /app/.env
 
-# ── Copy application ────────────────────────────────────────
-COPY . .
-RUN pip install --no-cache-dir --no-deps -e .
+# Add src to PYTHONPATH
+ENV PYTHONPATH=/app/src:$PYTHONPATH
 
-# Make scripts executable
-RUN chmod +x scripts/*.sh 2>/dev/null || true
-
-# ── Environment ─────────────────────────────────────────────
-ENV PYTHONPATH=/app/src
-ENV PYTHONUNBUFFERED=1
-ENV POSTGRES_HOST=localhost
-ENV POSTGRES_PORT=5432
-ENV POSTGRES_DB=medicobuddy
-ENV POSTGRES_USER=medicobuddy_internal
-ENV POSTGRES_PASSWORD=medicobuddy_dev
-ENV NEO4J_URI=bolt://localhost:7687
-ENV NEO4J_USER=neo4j
-ENV NEO4J_PASSWORD=medicobuddy_dev
-ENV NEO4J_EDITION=community
-ENV MCP_ENABLED=false
-
-# HF Spaces port
+# Expose port 7860 for Hugging Face Space
 EXPOSE 7860
 
-ENTRYPOINT ["bash", "scripts/start_hf_space.sh"]
+# Cold-start bootstrap script
+RUN echo '#!/bin/bash\n\
+echo "Starting MedicoBuddy AI Cold-Start Bootstrap..."\n\
+python -m uvicorn medicobuddy.main:app --host 127.0.0.1 --port 8000 &\n\
+echo "Waiting for FastAPI backend to initialize..."\n\
+sleep 8\n\
+python -c "import httpx; resp = httpx.get(\"http://127.0.0.1:8000/health/ready\"); print(\"Health Probe:\", resp.status_code)"\n\
+echo "Launching Streamlit frontend on port 7860..."\n\
+streamlit run frontend/app.py --server.port 7860 --server.address 0.0.0.0\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]

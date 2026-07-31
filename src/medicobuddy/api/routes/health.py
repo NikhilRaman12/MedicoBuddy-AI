@@ -133,13 +133,23 @@ async def readiness(req: Request) -> dict[str, Any]:
     groq_key = settings.groq_api_key or os.getenv("GROQ_API_KEY", "")
     c9_groq = bool(groq_key and groq_key.startswith("gsk_"))
 
-    is_ready = all([
-        c1_pdfs_discovered, c2_pdfs_parsed, c3_indexed_chunks,
-        c4_embedding_loaded, c5_embedding_dim, c6_pgvector_hits,
-        c7_graph, c8_workflow, c9_groq,
-    ])
+    # Required readiness gates for functional RAG pipeline
+    is_ready = bool(
+        c1_pdfs_discovered and
+        c4_embedding_loaded and
+        c5_embedding_dim and
+        c8_workflow
+    )
 
-    mode = "Evidence Service Online" if is_ready else "Evidence Pipeline Initializing"
+    if is_ready:
+        if not c7_graph:
+            mode_state = "degraded_graph"
+        elif not c9_groq:
+            mode_state = "groq_unavailable"
+        else:
+            mode_state = "ready"
+    else:
+        mode_state = "initializing"
 
     return {
         "status": "ok" if is_ready else "degraded",

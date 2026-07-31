@@ -97,6 +97,10 @@ class EmbeddingProvider:
             )
 
         cleaned_text = text.strip()
+        if is_query:
+            query_instruction = "Given a health or wellness question, retrieve authoritative passages that directly support safe, non-diagnostic educational guidance."
+            cleaned_text = f"{query_instruction}\n{cleaned_text}"
+
         embedding = self._model.encode(cleaned_text, normalize_embeddings=True)
         vector = embedding.tolist()
 
