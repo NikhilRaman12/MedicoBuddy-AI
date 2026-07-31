@@ -1,12 +1,12 @@
 {
-  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "model_name": "Qwen/Qwen3-Embedding-0.6B",
   "revision": "main",
-  "dimension": 384,
+  "dimension": 1024,
   "pooling": "mean",
   "normalization": "L2",
   "distance_metric": "COSINE",
-  "fingerprint": "229d69e75ed1e3b1",
-  "backend": "LOCAL_DEVELOPMENT_FALLBACK",
-  "is_local_fallback": true,
-  "written_at": "2026-07-28T16:28:11Z"
+  "fingerprint": "f457b3733f2ccf4c",
+  "backend": "qwen3_local",
+  "is_local_fallback": false,
+  "written_at": "2026-07-31T15:08:56Z"
 }
