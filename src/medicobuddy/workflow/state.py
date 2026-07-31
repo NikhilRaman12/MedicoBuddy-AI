@@ -37,6 +37,10 @@ class GraphState(TypedDict, total=False):
     entities: list[str]
     symptom_entities: list[str]
 
+    # ── Entity Extraction ────────────────────────────────────
+    extracted_entities: dict[str, list[str]]  # symptom, remedy, population, evidence, safety
+    entity_synonyms: dict[str, list[str]]     # entity -> expanded synonyms
+
     # ── Scope & Triage ───────────────────────────────────────
     symptom_report: SymptomReport
     scope_valid: bool
@@ -53,6 +57,7 @@ class GraphState(TypedDict, total=False):
     mcp_results: list[MCPResult]
     graph_results: list[dict[str, Any]]
     vector_results: list[dict[str, Any]]
+    bm25_results: list[dict[str, Any]]
     vector_docs: list[dict[str, Any]]
     vector_scores: list[float]
     graph_entities: list[dict[str, Any]]
@@ -97,6 +102,10 @@ class GraphState(TypedDict, total=False):
     safe_comfort_steps: list[str]
     ayurveda_perspectives: list[AyurvedaPerspective]
     things_to_avoid: list[str]
+    preventive_approaches: list[str]
+    general_self_care_education: str
+    warning_signs: list[str]
+    quick_action_chips: list[str]
     monitoring_guidance: list[str]
     seek_care_conditions: list[str]
     generation_called: bool

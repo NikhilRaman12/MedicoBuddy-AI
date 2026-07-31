@@ -1,14 +1,18 @@
-"""Chat endpoint — main conversation API with thread deletion support."""
+"""Chat endpoint — main conversation API with SSE streaming support."""
 
 from __future__ import annotations
 
+import json
 import logging
+import time
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from medicobuddy import __version__
+from medicobuddy.config import GIT_COMMIT_SHA
 from medicobuddy.models.response import MedicoBuddyResponse
 from medicobuddy.models.symptom import SymptomReport, TriageOutcome
 from medicobuddy.models.user_context import AgeRange, PregnancyStatus, UserContext
@@ -16,8 +20,6 @@ from medicobuddy.workflow.state import GraphState
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-GIT_COMMIT = "9a70cb3f"
 
 
 class ChatRequest(BaseModel):
@@ -35,82 +37,45 @@ class ChatRequest(BaseModel):
     consent_given: bool = Field(default=False)
 
 
-class DebugPanel(BaseModel):
-    """Refined operational health & retrieval debug panel metrics matching Step 12."""
-
-    vector_db_connection: str = Field(default="PASS")
-    vector_collection: str = Field(default="medicobuddy_evidence_qwen3")
-    total_indexed_chunks: int = Field(default=5)
-    embedding_model_status: str = Field(default="PASS")
-    embedding_dimension: int = Field(default=4096)
-    retriever_status: str = Field(default="PASS")
-    retrieved_chunks: int = Field(default=0)
-    top_similarity_scores: list[float] = Field(default_factory=list)
-    graph_store_connection: str = Field(default="PASS")
-    graph_nodes: int = Field(default=20)
-    graph_relationships: int = Field(default=16)
-    extracted_query_entities: list[str] = Field(default_factory=list)
-    matched_graph_entities: int = Field(default=0)
-    evidence_sources_count: int = Field(default=0)
-    context_length: int = Field(default=0)
-    context_token_estimate: int = Field(default=0)
-    llm_provider_status: str = Field(default="PASS")
-    generation_called: bool = Field(default=False)
-    pipeline_final_state: str = Field(default="ANSWER")
-    latency_ms: float = Field(default=0.0)
-
-    # Backward compatibility properties
-    vector_db: str = Field(default="PASS")
-    graph_store: str = Field(default="PASS")
-    embedding_model: str = Field(default="PASS")
-    retriever: str = Field(default="PASS")
-    llm: str = Field(default="PASS")
-
-
 class ChatResponse(BaseModel):
     """Chat API response matching the required answer contract."""
 
     version: str = Field(default=__version__)
-    git_commit: str = Field(default=GIT_COMMIT)
+    git_commit: str = Field(default=GIT_COMMIT_SHA)
     triage_outcome: str
     safety_status: str
     what_this_applies_to: str
     summary: str = ""
     action_table: list[dict[str, Any]]
     implementation_plan: dict[str, str]
+    preventive_approaches: list[str] = Field(default_factory=list)
+    ayurveda_perspectives: list[dict[str, Any]] = Field(default_factory=list)
+    general_self_care_education: str = ""
+    things_to_avoid: list[str] = Field(default_factory=list)
     avoid_and_monitor: list[dict[str, Any]]
     when_to_seek_care: list[str]
+    warning_signs: list[str] = Field(default_factory=list)
     overall_evidence_level: str
     citations: list[dict[str, Any]]
     evidence_trail: list[dict[str, Any]] = Field(default_factory=list)
     targeted_follow_up: str
     follow_up_question: str = ""
+    quick_action_chips: list[str] = Field(default_factory=list)
     educational_statement: str
     clarification_questions: list[str]
     needs_clarification: bool
     debug_panel: dict[str, Any] = Field(default_factory=dict)
 
 
-
-@router.post("/chat", response_model=ChatResponse, summary="Send a message to MedicoBuddy AI")
-async def chat(request: ChatRequest, req: Request) -> ChatResponse:
-    """Process a user message through the LangGraph workflow."""
-    if not request.consent_given:
-        raise HTTPException(status_code=400, detail="Explicit user consent is required before processing health queries.")
-
-    services = getattr(req.app.state, "services", None)
-    if services is None or services.workflow is None:
-        raise HTTPException(status_code=503, detail="Workflow service not ready")
-    workflow = services.workflow
-
+def _build_user_context(request: ChatRequest) -> UserContext:
+    """Build UserContext from ChatRequest."""
     age = AgeRange.parse_age(request.age_range)
-
     try:
         pregnancy = PregnancyStatus(request.pregnancy_status)
     except ValueError:
         pregnancy = PregnancyStatus.UNKNOWN
 
-    user_context = UserContext(
+    return UserContext(
         age_range=age,
         pregnancy_status=pregnancy,
         is_immunocompromised=request.is_immunocompromised,
@@ -120,7 +85,15 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
         region=request.region,
     )
 
+
+async def _run_workflow(request: ChatRequest, req: Request) -> dict[str, Any]:
+    """Execute the LangGraph workflow and return the result dict."""
+    services = getattr(req.app.state, "services", None)
+    if services is None or services.workflow is None:
+        raise HTTPException(status_code=503, detail="Workflow service not ready")
+
     from medicobuddy.workflow.nodes import extract_symptom_report
+    user_context = _build_user_context(request)
 
     initial_state: GraphState = {
         "user_message": request.message,
@@ -131,11 +104,14 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
 
     try:
         config = {"configurable": {"thread_id": request.thread_id}}
-        result = await workflow.ainvoke(initial_state, config=config)
+        return await services.workflow.ainvoke(initial_state, config=config)
     except Exception as exc:
         logger.error("Workflow execution failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal processing error") from exc
 
+
+def _build_response(result: dict[str, Any]) -> ChatResponse:
+    """Build ChatResponse from workflow result."""
     final: MedicoBuddyResponse | None = result.get("final_response")
     if final is None:
         raise HTTPException(status_code=500, detail="No response generated")
@@ -150,24 +126,90 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
 
     return ChatResponse(
         version=__version__,
-        git_commit=GIT_COMMIT,
+        git_commit=GIT_COMMIT_SHA,
         triage_outcome=final.triage_outcome.value,
         safety_status=final.safety_status,
         what_this_applies_to=final.what_this_applies_to,
-        summary=final.summary or f"Evidence-grounded summary for {request.message}",
+        summary=final.summary or "",
         action_table=[row.model_dump() for row in final.action_table],
         implementation_plan=final.implementation_plan.model_dump(),
+        preventive_approaches=final.preventive_approaches,
+        ayurveda_perspectives=[p.model_dump() for p in final.ayurveda_perspectives],
+        general_self_care_education=final.general_self_care_education,
+        things_to_avoid=final.things_to_avoid,
         avoid_and_monitor=[row.model_dump() for row in final.avoid_and_monitor],
         when_to_seek_care=final.when_to_seek_care,
+        warning_signs=final.warning_signs,
         overall_evidence_level=final.overall_evidence_level.value,
         citations=[c.model_dump() for c in final.citations],
         evidence_trail=ev_trail,
         targeted_follow_up=final.targeted_follow_up,
         follow_up_question=final.follow_up_question or final.targeted_follow_up,
+        quick_action_chips=final.quick_action_chips,
         educational_statement=final.educational_statement,
         clarification_questions=result.get("clarification_questions", []),
         needs_clarification=result.get("needs_clarification", False),
         debug_panel=result.get("debug_panel", {}),
+    )
+
+
+@router.post("/chat", response_model=ChatResponse, summary="Send a message to MedicoBuddy AI")
+async def chat_endpoint(request: ChatRequest, req: Request) -> ChatResponse:
+    """Process a user message through the LangGraph workflow."""
+    if not request.consent_given:
+        raise HTTPException(status_code=400, detail="Explicit user consent is required before processing health queries.")
+
+    result = await _run_workflow(request, req)
+    return _build_response(result)
+
+
+@router.post("/chat/stream", summary="SSE streaming chat endpoint")
+async def chat_stream(request: ChatRequest, req: Request) -> StreamingResponse:
+    """Process a user message and stream results via Server-Sent Events."""
+    if not request.consent_given:
+        raise HTTPException(status_code=400, detail="Explicit user consent is required before processing health queries.")
+
+    async def event_generator():
+        """Generate SSE events from workflow execution."""
+        try:
+            # Step progress events
+            steps = [
+                "Running deterministic red-flag triage...",
+                "Planning evidence search queries...",
+                "Querying pgvector, BM25, and Neo4j...",
+                "Validating claim-to-passage entailment...",
+                "Composing grounded response...",
+            ]
+            for idx, step in enumerate(steps, start=1):
+                yield f"data: {json.dumps({'type': 'progress', 'step': idx, 'total': 5, 'message': step})}\n\n"
+
+            result = await _run_workflow(request, req)
+            response = _build_response(result)
+
+            # Stream the summary token-by-token for perceived responsiveness
+            summary = response.summary or ""
+            words = summary.split()
+            for i, word in enumerate(words):
+                token = word + " "
+                yield f"data: {json.dumps({'type': 'token', 'content': token, 'index': i})}\n\n"
+
+            # Send full response as final event
+            yield f"data: {json.dumps({'type': 'complete', 'response': response.model_dump()})}\n\n"
+
+        except HTTPException as exc:
+            yield f"data: {json.dumps({'type': 'error', 'detail': exc.detail})}\n\n"
+        except Exception as exc:
+            logger.error("SSE stream error: %s", exc, exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'detail': 'Internal processing error'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 

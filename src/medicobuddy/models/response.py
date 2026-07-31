@@ -1,4 +1,7 @@
-"""Response contract model enforcing the required 9-part MedicoBuddy AI answer structure."""
+"""Response contract model enforcing the required 12-part MedicoBuddy AI answer structure.
+
+Every successful answer must contain all 12 mandatory sections as specified.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +13,7 @@ from medicobuddy.models.symptom import TriageOutcome
 
 
 class Citation(BaseModel):
-    """Claim-linked citation with exact passage location and limitation."""
+    """Claim-linked citation with document title and PDF page number."""
 
     number: int = 1
     citation_id: str = ""
@@ -28,48 +31,53 @@ class Citation(BaseModel):
     supporting_passage: str = ""
     retrieval_date: str = ""
     limitation: str = ""
+    page_number: int | None = None
+    source_file: str = ""
 
 
 class AyurvedaPerspective(BaseModel):
-    """Ayurveda-informed non-pharmacological wellness perspective."""
+    """Ayurveda-informed non-pharmacological wellness perspective with explicit evidence label."""
 
     practice: str = Field(description="The lifestyle/wellness practice")
     description: str = ""
     evidence_label: str = Field(
-        default="evidence_supported",
+        default="traditional_use_only",
         description="One of: evidence_supported, limited_preliminary, traditional_use_only, conflicting"
     )
     source_summary: str = ""
 
 
 class ActionTableRow(BaseModel):
-    """Row in the required Action Table matching exact 7 columns + citation IDs."""
+    """Row in the required responsive table matching spec column names.
+
+    | Guidance lens | What may help | How to follow | Evidence strength | Cautions | Citation |
+    """
 
     guidance_lens: str = Field(description="Natural self-care / Ayurveda-informed wellness / General medical self-care")
     what_may_help: str
     how_to_follow: str
     frequency_duration: str = ""
-    frequency_or_duration: str = ""
-    evidence_level: str = "Moderate"
-    important_cautions: str = ""
+    evidence_strength: str = "Moderate"
+    evidence_level: str = "Moderate"  # backward compat
     cautions: str = ""
+    important_cautions: str = ""  # backward compat
     stop_and_seek_care_if: str = ""
     citation_ids: list[str] = Field(default_factory=list)
 
     def model_post_init(self, __context: Any) -> None:
-        if not self.frequency_duration and self.frequency_or_duration:
-            self.frequency_duration = self.frequency_or_duration
-        elif not self.frequency_or_duration and self.frequency_duration:
-            self.frequency_or_duration = self.frequency_duration
+        if not self.evidence_strength and self.evidence_level:
+            self.evidence_strength = self.evidence_level
+        elif not self.evidence_level and self.evidence_strength:
+            self.evidence_level = self.evidence_strength
 
-        if not self.important_cautions and self.cautions:
-            self.important_cautions = self.cautions
-        elif not self.cautions and self.important_cautions:
+        if not self.cautions and self.important_cautions:
             self.cautions = self.important_cautions
+        elif not self.important_cautions and self.cautions:
+            self.important_cautions = self.cautions
 
 
 class ImplementationPlan(BaseModel):
-    """Simple implementation plan for Now, Next 6-12h, Next 24-48h."""
+    """Implementation plan: now, next 6-12 hours, next 24-48 hours."""
 
     now: str = ""
     next_6_to_12_hours: str = ""
@@ -77,7 +85,7 @@ class ImplementationPlan(BaseModel):
 
 
 class AvoidAndMonitorRow(BaseModel):
-    """Row in the Avoid and Monitor table."""
+    """Row in the Things to Avoid / Monitor table."""
 
     what_to_avoid: str = ""
     why_avoid: str = ""
@@ -85,21 +93,23 @@ class AvoidAndMonitorRow(BaseModel):
     monitoring_frequency: str = ""
 
 
-class MedicoBuddyResponseDraft(BaseModel):
-    """Pydantic draft response model for ChatGroq structured output."""
-
-    what_this_applies_to: str = Field(description="Exact scope and symptom summary")
-    summary: str = Field(default="", description="Plain-language evidence-grounded summary")
-    action_table: list[ActionTableRow] = Field(default_factory=list, description="Evidence-backed non-pharmacological self-care action rows")
-    implementation_plan: ImplementationPlan = Field(default_factory=ImplementationPlan, description="Step-by-step timeline (now, next 6-12h, next 24-48h)")
-    avoid_and_monitor: list[AvoidAndMonitorRow] = Field(default_factory=list, description="What to avoid and what symptoms to monitor")
-    when_to_seek_care: list[str] = Field(default_factory=list, description="Red flag thresholds when to seek professional care")
-    targeted_follow_up: str = Field(default="Are you experiencing any other symptoms?", description="One targeted follow-up question")
-    follow_up_question: str = Field(default="", description="One relevant follow-up question")
-
-
 class MedicoBuddyResponse(BaseModel):
-    """The full required answer contract."""
+    """The full required 12-part answer contract.
+
+    Every successful answer must contain:
+    1. Safety status
+    2. Direct evidence-grounded explanation
+    3. Responsive table (action table)
+    4. Natural preventive approaches
+    5. Traditional Ayurvedic context (explicitly labelled by evidence level)
+    6. General non-prescriptive medical self-care education
+    7. Implementation plan: now, next 6-12h, next 24-48h
+    8. What to avoid
+    9. Warning signs and when to seek professional care
+    10. Verified sources with document title and PDF page number
+    11. One follow-up question only when required
+    12. Two or three contextual quick-action chips
+    """
 
     # 1. Safety status
     triage_outcome: TriageOutcome
@@ -107,33 +117,45 @@ class MedicoBuddyResponse(BaseModel):
         description="One of: self-care information, professional review advised, urgent care, emergency, out of scope, insufficient evidence"
     )
 
-    # 2. What this information applies to
+    # 2. What this information applies to + evidence-grounded explanation
     what_this_applies_to: str = ""
-
-    # Summary
     summary: str = ""
 
-    # 3. Action table
+    # 3. Responsive action table
     action_table: list[ActionTableRow] = Field(default_factory=list)
 
-    # 4. Simple implementation plan
+    # 4. Natural preventive approaches
+    preventive_approaches: list[str] = Field(default_factory=list)
+
+    # 5. Traditional Ayurvedic context (explicitly labelled by evidence level)
+    ayurveda_perspectives: list[AyurvedaPerspective] = Field(default_factory=list)
+
+    # 6. General non-prescriptive medical self-care education
+    general_self_care_education: str = ""
+
+    # 7. Implementation plan
     implementation_plan: ImplementationPlan = Field(default_factory=ImplementationPlan)
 
-    # 5. Avoid and monitor table
+    # 8. What to avoid
+    things_to_avoid: list[str] = Field(default_factory=list)
     avoid_and_monitor: list[AvoidAndMonitorRow] = Field(default_factory=list)
 
-    # 6. When to seek professional help
+    # 9. Warning signs and when to seek professional care
     when_to_seek_care: list[str] = Field(default_factory=list)
+    warning_signs: list[str] = Field(default_factory=list)
 
-    # 7. Evidence and limitations
+    # 10. Verified sources with document title and PDF page number
     citations: list[Citation] = Field(default_factory=list)
     overall_evidence_level: EvidenceLevel = EvidenceLevel.INSUFFICIENT
 
-    # 8. One targeted follow-up question
+    # 11. One follow-up question only when required
     targeted_follow_up: str = ""
     follow_up_question: str = ""
 
-    # 9. Educational-use statement
+    # 12. Contextual quick-action chips (2-3)
+    quick_action_chips: list[str] = Field(default_factory=list)
+
+    # Educational-use statement (always present)
     educational_statement: str = Field(
         default=(
             "Educational-use statement: MedicoBuddy AI provides evidence-grounded general self-care education for adults aged 18–65. "
@@ -145,8 +167,6 @@ class MedicoBuddyResponse(BaseModel):
     urgency_summary: str = ""
     user_report_summary: str = ""
     safe_comfort_steps: list[str] = Field(default_factory=list)
-    ayurveda_perspectives: list[dict[str, Any]] = Field(default_factory=list)
-    things_to_avoid: list[str] = Field(default_factory=list)
     monitoring_guidance: list[str] = Field(default_factory=list)
     seek_care_conditions: list[str] = Field(default_factory=list)
     disclaimer: str = ""

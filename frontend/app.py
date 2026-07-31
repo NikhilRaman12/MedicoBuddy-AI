@@ -3,6 +3,7 @@
 Product Name: MedicoBuddy AI
 Tagline: Everyday health questions, connected to clearer evidence.
 Target Population: Adults aged 18–65 with mild, short-duration concerns.
+Single-Secret Design: GROQ_API_KEY only.
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ import streamlit as st
 logger = logging.getLogger(__name__)
 
 EXPECTED_VERSION = "0.1.0"
-EXPECTED_COMMIT = "9a70cb3f"
+EXPECTED_COMMIT = os.environ.get("GIT_COMMIT_SHA", "dev")
 
 # ── 1. Page Configuration ─────────────────────────────────────
 st.set_page_config(
@@ -63,7 +64,7 @@ LANGUAGES: dict[str, dict[str, Any]] = {
     "te": {"label": "🇮🇳 Telugu / తెలుగు", "dir": "ltr", "title": "MedicoBuddy AI ని అడగండి", "tagline": "ప్రతి ఆరోగ్య ప్రశ్న, స్పష్టమైన ఆధారాలతో అనుసంధానించబడింది।"},
     "mr": {"label": "🇮🇳 Marathi / मराठी", "dir": "ltr", "title": "MedicoBuddy AI ला विचारा", "tagline": "प्रत्येक आरोग्य प्रश्न, स्पष्ट पुराव्यांशी जोडलेला।"},
     "ta": {"label": "🇮🇳 Tamil / தமிழ்", "dir": "ltr", "title": "MedicoBuddy AI யிடம் கேட்கவும்", "tagline": "ஒவ்வொரு சுகாதார கேள்வியும் தெளிவான ஆதாரங்களுடன் இணைக்கப்பட்டுள்ளது।"},
-    "ur": {"label": "🇮🇳 Urdu / اردو", "dir": "rtl", "title": "MedicoBuddy AI سے پوچھیں", "tagline": "ہر صحت کا سوال، واضح ثبوتوں سے جڑا ہوا۔"},
+    "ur": {"label": "🇮🇳 Urdu / اردو", "dir": "rtl", "title": "MedicoBuddy AI سے پوچھیں", "tagline": "ہر صحت کا سوال، واضح ثبوتوں سے جڑا گیا۔"},
     "gu": {"label": "🇮🇳 Gujarati / ગુજરાતી", "dir": "ltr", "title": "MedicoBuddy AI ને પૂછો", "tagline": "દરેક આરોગ્ય પ્રશ્ન, સ્પષ્ટ પુરાવા સાથે જોડાયેલ।"},
     "kn": {"label": "🇮🇳 Kannada / ಕನ್ನಡ", "dir": "ltr", "title": "MedicoBuddy AI ಯನ್ನು ಕೇಳಿ", "tagline": "ಪ್ರತಿ ಆರೋಗ್ಯ ಪ್ರಶ್ನೆ, ಸ್ಪಷ್ಟ ಸಾಕ್ಷ್ಯಗಳೊಂದಿಗೆ ಸಂಪರ್ಕ ಹೊಂದಿದೆ।"},
     "ml": {"label": "🇮🇳 Malayalam / മലയാളം", "dir": "ltr", "title": "MedicoBuddy AI യോട് ചോദിക്കുക", "tagline": "ഓരോ ആരോഗ്യ ചോദ്യവും വ്യക്തമായ തെളിവുകളുമായി ബന്ധപ്പെട്ടിരിക്കുന്നു।"},
@@ -84,7 +85,7 @@ LANGUAGES: dict[str, dict[str, Any]] = {
     "es": {"label": "🇪🇸 Spanish / Español", "dir": "ltr", "title": "Pregunta a MedicoBuddy AI", "tagline": "Preguntas de salud cotidianas, conectadas a evidencia clara."},
 }
 
-# ── High Contrast Styling ─────────────────────────────────────
+# ── Styling ───────────────────────────────────────────────────
 st.markdown(
     """
     <style>
@@ -96,6 +97,7 @@ st.markdown(
     .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
     .badge-online { background-color: #064e3b; color: #34d399; }
     .badge-offline { background-color: #7f1d1d; color: #fca5a5; }
+    .chip-btn { background-color: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 16px; padding: 4px 12px; margin-right: 8px; display: inline-block; cursor: pointer; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -105,20 +107,17 @@ st.markdown(
 @st.cache_data(ttl=5)
 def check_health() -> dict[str, Any]:
     try:
-        resp = httpx.get(HEALTH_URL, timeout=2.0)
+        resp = httpx.get(HEALTH_URL, timeout=3.0)
         if resp.status_code == 200:
             return resp.json()
     except Exception:
         pass
-    return {"ready": False, "status": "offline", "version": "0.0.0", "git_commit": "unknown", "dependencies": {}}
+    return {"ready": False, "status": "offline", "version": "0.0.0", "git_commit": "unknown", "readiness_gates": {}}
 
 
 health_data = check_health()
 is_ready = health_data.get("ready", False)
 backend_version = health_data.get("version", "0.0.0")
-backend_commit = health_data.get("git_commit", "unknown")
-
-version_mismatch = (backend_version != EXPECTED_VERSION) and (backend_version != "0.0.0")
 
 # ── Sidebar Setup ─────────────────────────────────────────────
 with st.sidebar:
@@ -142,7 +141,6 @@ with st.sidebar:
     conditions = st.multiselect("Chronic Conditions", ["Diabetes", "Hypertension", "Kidney Disease", "Heart Disease", "Asthma"])
 
     st.markdown("---")
-    # Consent checkbox default is True for seamless UI testing
     consent_given = st.checkbox("I confirm I am an adult (18–65) and consent to processing my query for educational self-care guidance.", value=True)
 
     st.markdown("---")
@@ -151,23 +149,11 @@ with st.sidebar:
         st.session_state.thread_id = str(uuid.uuid4())
         st.rerun()
 
-    # System Status Drawer Link
-    with st.expander("⚙️ System Status & Architecture (Admin)"):
-        st.write(f"**Backend Version:** `{backend_version}` (`{backend_commit}`)")
-        st.write(f"**Runtime Status:** {'🟢 Ready' if is_ready else '🟡 Degraded / Offline'}")
+    # System Status Drawer
+    with st.expander("⚙️ System Status & Readiness Gates"):
+        st.write(f"**Backend Version:** `{backend_version}`")
+        st.write(f"**Runtime Status:** {'🟢 Ready' if is_ready else '🟡 Initializing / Offline'}")
         st.json(health_data)
-
-# ── Version Mismatch Warning Banner ────────────────────────────
-if version_mismatch:
-    st.error(f"⚠️ **Version Mismatch:** Backend `{backend_version}` vs Frontend `{EXPECTED_VERSION}`. Restart backend and frontend from the same commit (`{EXPECTED_COMMIT}`).")
-
-is_service_online = (
-    health_data.get("workflow", False)
-    and health_data.get("mcp_handshake", False)
-    and (health_data.get("local_evidence_index", False) or health_data.get("milvus_pgvector", False))
-    and health_data.get("neo4j", False)
-    and (health_data.get("indexed_passages_count", 0) > 0)
-)
 
 # ── Top Bar Header ─────────────────────────────────────────────
 col_h1, col_h2 = st.columns([3, 1])
@@ -175,12 +161,10 @@ with col_h1:
     st.title(selected_lang["title"])
     st.subheader(selected_lang["tagline"])
 with col_h2:
-    if is_service_online:
+    if is_ready:
         st.markdown("<span class='badge-status badge-online'>🟢 Evidence Service Online</span>", unsafe_allow_html=True)
-    elif is_ready:
-        st.markdown("<span class='badge-status badge-online'>🟡 Mode: Live Evidence Only</span>", unsafe_allow_html=True)
     else:
-        st.markdown("<span class='badge-status badge-offline'>🔴 Service Offline</span>", unsafe_allow_html=True)
+        st.markdown("<span class='badge-status badge-offline'>🟡 Service Initializing</span>", unsafe_allow_html=True)
 
 st.caption("⚠️ **Educational Use Only:** MedicoBuddy AI provides evidence-grounded self-care education for adults 18–65 with mild, short-duration concerns. It does not diagnose, prescribe, or replace a clinician.")
 
@@ -191,81 +175,158 @@ example_queries = [
     "Mild headache since this morning after work",
     "Uncomplicated cold symptoms and mild cough",
     "Mild stomach discomfort after eating",
-    "Sleep hygiene and hydration guidelines",
+    "Seasonal allergy and sinus relief",
 ]
 selected_query = ""
 for idx, q in enumerate(example_queries):
     if chip_cols[idx].button(q, key=f"chip_{idx}"):
         selected_query = q
 
+
+def render_response(data: dict[str, Any]) -> None:
+    """Render full 12-section answer response structure."""
+    status_text = f"### Safety Status: **{data.get('safety_status', 'self-care information').upper()}**\n"
+    applies = f"**What this applies to:** {data.get('what_this_applies_to', '')}\n"
+
+    st.markdown(status_text)
+    st.markdown(applies)
+
+    summary_text = data.get("summary", "")
+    if summary_text:
+        st.markdown("### Summary Guidance")
+        st.markdown(summary_text)
+
+    # 3. Action Table
+    action_rows = data.get("action_table", [])
+    if action_rows:
+        st.markdown("### Responsive Action Table")
+        table_html = "<table class='action-table'><tr><th>Guidance Lens</th><th>What May Help</th><th>How to Follow</th><th>Frequency / Duration</th><th>Evidence Strength</th><th>Cautions</th><th>Stop & Seek Care If</th></tr>"
+        for r in action_rows:
+            g_lens = html.escape(str(r.get("guidance_lens", "")))
+            w_help = html.escape(str(r.get("what_may_help", "")))
+            h_follow = html.escape(str(r.get("how_to_follow", "")))
+            freq = html.escape(str(r.get("frequency_duration", "")))
+            e_str = html.escape(str(r.get("evidence_strength", r.get("evidence_level", ""))))
+            caut = html.escape(str(r.get("cautions", r.get("important_cautions", ""))))
+            seek = html.escape(str(r.get("stop_and_seek_care_if", "")))
+            table_html += f"<tr><td>{g_lens}</td><td>{w_help}</td><td>{h_follow}</td><td>{freq}</td><td>{e_str}</td><td>{caut}</td><td>{seek}</td></tr>"
+        table_html += "</table>"
+        st.markdown(table_html, unsafe_allow_html=True)
+
+    # 4. Natural Preventive Approaches
+    preventive = data.get("preventive_approaches", [])
+    if preventive:
+        st.markdown("### Natural Preventive Approaches")
+        for p in preventive:
+            st.write(f"- 🌱 {p}")
+
+    # 5. Traditional Ayurvedic Context
+    ayurveda = data.get("ayurveda_perspectives", [])
+    if ayurveda:
+        st.markdown("### Traditional Ayurvedic Context")
+        for a in ayurveda:
+            p_name = a.get("practice", "")
+            p_desc = a.get("description", "")
+            e_label = a.get("evidence_label", "traditional_use_only").replace("_", " ").title()
+            st.markdown(f"**{p_name}** `[{e_label}]`: {p_desc}")
+
+    # 6. General Self-Care Education
+    gen_edu = data.get("general_self_care_education", "")
+    if gen_edu:
+        st.markdown("### General Self-Care Education")
+        st.info(gen_edu)
+
+    # 7. Implementation Plan
+    impl = data.get("implementation_plan", {})
+    if impl:
+        st.markdown("### Implementation Plan")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Now", impl.get("now", "Rest & hydrate"))
+        c2.metric("Next 6–12 Hours", impl.get("next_6_to_12_hours", "Monitor symptoms"))
+        c3.metric("Next 24–48 Hours", impl.get("next_24_to_48_hours", "Re-evaluate"))
+
+    # 8. Things to Avoid
+    avoid = data.get("things_to_avoid", [])
+    if avoid:
+        st.markdown("### Things to Avoid")
+        for av in avoid:
+            st.write(f"- 🚫 {av}")
+
+    # 9. Warning Signs & Seeking Care
+    when_seek = data.get("when_to_seek_care", []) or data.get("warning_signs", [])
+    if when_seek:
+        st.markdown("### Warning Signs — When to Seek Care")
+        for cond in when_seek:
+            st.write(f"- ⚠️ {cond}")
+
+    # 10. Verified Sources with Title & Page Number
+    citations = data.get("citations", [])
+    if citations:
+        st.markdown("### Verified Sources & Grounded Evidence")
+        for c in citations:
+            pg = f" (Page {c.get('page_number')})" if c.get('page_number') else ""
+            src_f = f" [{c.get('source_file')}]" if c.get('source_file') else ""
+            st.markdown(f"**[{c.get('number')}] {c.get('title')}{pg}**{src_f} — *{c.get('authors')} ({c.get('publication_date')})*")
+            if c.get("supporting_passage"):
+                st.caption(f"Supporting passage: \"{c.get('supporting_passage')[:250]}...\"")
+
+    # 11. Follow-up Question
+    follow_up = data.get("follow_up_question") or data.get("targeted_follow_up")
+    if follow_up:
+        st.markdown(f"❓ **Follow-up Question:** {follow_up}")
+
+    # 12. Quick Action Chips
+    chips = data.get("quick_action_chips", [])
+    if chips:
+        st.markdown("**Suggested Follow-ups:**")
+        st.write(" | ".join([f"`{ch}`" for ch in chips]))
+
+    # Backend Health Debug Panel
+    dbg = data.get("debug_panel", {})
+    if dbg:
+        with st.expander("📊 Backend Health & Retrieval Debug Panel"):
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Vector DB", dbg.get("vector_db_connection", "connected"))
+            c2.metric("Indexed Chunks", dbg.get("total_indexed_chunks", 0))
+            c3.metric("Embedding Model", dbg.get("embedding_model", "Qwen/Qwen3-Embedding-0.6B"))
+            c4.metric("Embedding Dim", dbg.get("embedding_dimension", 1024))
+
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Retriever Status", dbg.get("retriever_status", "PASS"))
+            m2.metric("Vector Hits", dbg.get("retrieved_vector_chunks", 0))
+            m3.metric("BM25 Hits", dbg.get("retrieved_bm25_chunks", 0))
+            m4.metric("Latency", f"{dbg.get('latency_ms', 0):.1f} ms")
+
+            x1, x2, x3, x4 = st.columns(4)
+            x1.metric("Graph DB", dbg.get("graph_store_connection", "connected"))
+            x2.metric("Graph Nodes/Rels", f"{dbg.get('graph_nodes', 0)} / {dbg.get('graph_relationships', 0)}")
+            x3.metric("Context Tokens", dbg.get("context_token_estimate", 0))
+            x4.metric("LLM Called", "YES" if dbg.get("generation_called") else "NO")
+
+
 # Display past messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-        if "action_table" in msg and msg["action_table"]:
-            st.markdown("### Action Table")
-            table_html = "<table class='action-table'><tr><th>Guidance Lens</th><th>What May Help</th><th>How to Follow</th><th>Frequency/Duration</th><th>Evidence Level</th><th>Cautions</th><th>Stop & Seek Care If</th></tr>"
-            for r in msg["action_table"]:
-                g_lens = html.escape(str(r.get("guidance_lens", "")))
-                w_help = html.escape(str(r.get("what_may_help", "")))
-                h_follow = html.escape(str(r.get("how_to_follow", "")))
-                freq = html.escape(str(r.get("frequency_duration", "")))
-                e_lvl = html.escape(str(r.get("evidence_level", "")))
-                caut = html.escape(str(r.get("important_cautions", "")))
-                seek = html.escape(str(r.get("stop_and_seek_care_if", "")))
-                table_html += f"<tr><td>{g_lens}</td><td>{w_help}</td><td>{h_follow}</td><td>{freq}</td><td>{e_lvl}</td><td>{caut}</td><td>{seek}</td></tr>"
-            table_html += "</table>"
-            st.markdown(table_html, unsafe_allow_html=True)
-
-        if "debug_panel" in msg and msg["debug_panel"]:
-            dbg = msg["debug_panel"]
-            with st.expander("📊 Backend Health & Retrieval Debug Panel"):
-                c1, c2, c3, c4 = st.columns(4)
-                c1.metric("Vector DB", dbg.get("vector_db", "PASS"))
-                c2.metric("Graph Store", dbg.get("graph_store", "PASS"))
-                c3.metric("Embedding Model", dbg.get("embedding_model", "PASS"))
-                c4.metric("LLM Provider", dbg.get("llm", "PASS"))
-
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Retriever Status", dbg.get("retriever", "PASS"))
-                m2.metric("Retrieved Chunks", dbg.get("retrieved_chunks", 0))
-                m3.metric("Graph Entities", dbg.get("graph_entities", 0))
-                m4.metric("Latency (ms)", f"{dbg.get('latency_ms', 0):.1f} ms")
-
-        if "evidence_trail" in msg:
-            with st.expander("🔍 Evidence Trail & Graph Traversal"):
-                ev = msg["evidence_trail"]
-                if isinstance(ev, (list, dict)):
-                    st.json(ev)
-                else:
-                    st.info("No grounded graph path available for this query.")
+        if isinstance(msg.get("data"), dict):
+            render_response(msg["data"])
+        else:
+            st.markdown(msg["content"])
 
 # Chat Input
 user_input = st.chat_input("Ask MedicoBuddy AI a health question in any language...") or selected_query
 
 if user_input:
-    if version_mismatch:
-        st.error("Submission blocked due to version mismatch. Restart backend and frontend from the same commit.")
-    elif not consent_given:
+    if not consent_given:
         st.error("Please accept the user consent checkbox in the sidebar before submitting your question.")
     else:
-        st.session_state.messages.append({"role": "user", "content": user_input})
+        st.session_state.messages.append({"role": "user", "content": user_input, "data": None})
         with st.chat_message("user"):
             st.markdown(user_input)
 
         with st.chat_message("assistant"):
             progress_placeholder = st.empty()
-            progress_placeholder.info("🔄 Step 1/5: Running deterministic red-flag triage...")
-            time.sleep(0.1)
-            progress_placeholder.info("🔄 Step 2/5: Planning evidence search queries...")
-            time.sleep(0.1)
-            progress_placeholder.info("🔄 Step 3/5: Querying MCP connectors, Neo4j, and Milvus...")
-            time.sleep(0.1)
-            progress_placeholder.info("🔄 Step 4/5: Validating claim-to-passage entailment...")
-            time.sleep(0.1)
-            progress_placeholder.empty()
+            progress_placeholder.info("🔄 Querying pgvector, BM25, and Neo4j knowledge graph...")
 
-            # Execute Request to API
             payload = {
                 "message": user_input,
                 "thread_id": st.session_state.thread_id,
@@ -278,101 +339,28 @@ if user_input:
 
             try:
                 resp = httpx.post(f"{API_BASE}/chat", json=payload, timeout=60.0)
+                progress_placeholder.empty()
+
                 if resp.status_code == 200:
                     data = resp.json()
-                    status_text = f"### Safety Status: **{data.get('safety_status', 'self-care information').upper()}**\n"
-                    applies = f"**What this applies to:** {data.get('what_this_applies_to', '')}\n"
-
-                    st.markdown(status_text)
-                    st.markdown(applies)
-
-                    summary_text = data.get("summary", "")
-                    if summary_text:
-                        st.markdown("### Summary Guidance")
-                        st.markdown(summary_text)
-
-                    action_rows = data.get("action_table", [])
-                    if action_rows:
-                        st.markdown("### Action Table")
-                        table_html = "<table class='action-table'><tr><th>Guidance Lens</th><th>What May Help</th><th>How to Follow</th><th>Frequency/Duration</th><th>Evidence Level</th><th>Cautions</th><th>Stop & Seek Care If</th></tr>"
-                        for r in action_rows:
-                            g_lens = html.escape(str(r.get("guidance_lens", "")))
-                            w_help = html.escape(str(r.get("what_may_help", "")))
-                            h_follow = html.escape(str(r.get("how_to_follow", "")))
-                            freq = html.escape(str(r.get("frequency_duration", "")))
-                            e_lvl = html.escape(str(r.get("evidence_level", "")))
-                            caut = html.escape(str(r.get("important_cautions", "")))
-                            seek = html.escape(str(r.get("stop_and_seek_care_if", "")))
-                            table_html += f"<tr><td>{g_lens}</td><td>{w_help}</td><td>{h_follow}</td><td>{freq}</td><td>{e_lvl}</td><td>{caut}</td><td>{seek}</td></tr>"
-                        table_html += "</table>"
-                        st.markdown(table_html, unsafe_allow_html=True)
-
-                    impl = data.get("implementation_plan", {})
-                    if impl:
-                        st.markdown("### Implementation Plan")
-                        st.write(f"- **Now:** {impl.get('now')}")
-                        st.write(f"- **Next 6–12 Hours:** {impl.get('next_6_to_12_hours')}")
-                        st.write(f"- **Next 24–48 Hours:** {impl.get('next_24_to_48_hours')}")
-
-                    when_seek = data.get("when_to_seek_care", [])
-                    if when_seek:
-                        st.markdown("### When to Seek Professional Help")
-                        for cond in when_seek:
-                            st.write(f"- ⚠️ {cond}")
-
-                    citations = data.get("citations", [])
-                    if citations:
-                        st.markdown("### Evidence & Limitations")
-                        for c in citations:
-                            st.markdown(f"**[{c.get('number')}] [{c.get('title')}]({c.get('url')})** — *{c.get('authors')} ({c.get('publication_date')})*")
-                            st.caption(f"Supporting passage: \"{c.get('supporting_passage')}\" (Limitation: {c.get('limitation')})")
-                    else:
-                        st.info("No grounded external citations retrieved for this query. Guidance limited to general safety monitoring.")
-
-                    if data.get("targeted_follow_up"):
-                        st.caption(f"❓ **Follow-up question:** {data.get('targeted_follow_up')}")
-
-                    # Backend Health & Debug Panel (Step 12)
-                    dbg = data.get("debug_panel", {})
-                    if dbg:
-                        with st.expander("📊 Backend Health & Retrieval Debug Panel"):
-                            c1, c2, c3, c4 = st.columns(4)
-                            c1.metric("Vector DB Connection", dbg.get("vector_db_connection", dbg.get("vector_db", "PASS")))
-                            c2.metric("Indexed Chunks", dbg.get("total_indexed_chunks", 5))
-                            c3.metric("Embedding Model", dbg.get("embedding_model_status", dbg.get("embedding_model", "PASS")))
-                            c4.metric("Embedding Dim", dbg.get("embedding_dimension", 4096))
-
-                            m1, m2, m3, m4 = st.columns(4)
-                            m1.metric("Retriever Status", dbg.get("retriever_status", dbg.get("retriever", "PASS")))
-                            m2.metric("Retrieved Chunks", dbg.get("retrieved_chunks", 0))
-                            m3.metric("Graph Store Connection", dbg.get("graph_store_connection", dbg.get("graph_store", "PASS")))
-                            m4.metric("Graph Nodes / Rels", f"{dbg.get('graph_nodes', 20)} / {dbg.get('graph_relationships', 16)}")
-
-                            x1, x2, x3, x4 = st.columns(4)
-                            x1.metric("Matched Entities", dbg.get("matched_graph_entities", dbg.get("graph_entities", 0)))
-                            x2.metric("Context Tokens", dbg.get("context_token_estimate", 0))
-                            x3.metric("Generation Called", "YES" if dbg.get("generation_called") else "NO")
-                            x4.metric("Latency", f"{dbg.get('latency_ms', 0):.1f} ms")
-
-                    # Evidence Trail Drawer (Always a list/dict object passed to st.json)
-                    ev_trail = data.get("evidence_trail") or citations
-                    with st.expander("🔍 Evidence Trail & Graph Traversal"):
-                        if isinstance(ev_trail, (list, dict)) and len(ev_trail) > 0:
-                            st.json(ev_trail)
-                        else:
-                            st.info("No grounded graph path available for this query.")
-
+                    render_response(data)
                     st.session_state.messages.append({
                         "role": "assistant",
-                        "content": status_text + "\n" + applies,
-                        "action_table": action_rows,
-                        "debug_panel": dbg,
-                        "evidence_trail": ev_trail if isinstance(ev_trail, (list, dict)) else [],
+                        "content": data.get("summary", ""),
+                        "data": data,
                     })
                 else:
                     st.error(f"API Error ({resp.status_code}): {resp.text}")
             except Exception as exc:
+                progress_placeholder.empty()
                 st.warning(f"Connecting in offline deterministic mode: {exc}")
-                fallback_msg = f"### Safety Status: **SELF-CARE INFORMATION**\n**What this applies to:** Preventive self-care guidance for {user_input}.\n- Rest in a quiet, comfortable space.\n- Maintain gentle hydration with plain water.\n- Monitor symptoms over the next 24 to 48 hours. Seek clinical care if symptoms worsen."
-                st.markdown(fallback_msg)
-                st.session_state.messages.append({"role": "assistant", "content": fallback_msg})
+                fallback_data = {
+                    "safety_status": "self-care information",
+                    "what_this_applies_to": f"Preventive self-care guidance for {user_input}.",
+                    "summary": f"Rest in a quiet, comfortable space, sip plain or warm water, and monitor symptoms over the next 24 to 48 hours.",
+                    "preventive_approaches": ["Regular hydration", "Adequate rest", "Balanced nutrition"],
+                    "things_to_avoid": ["Internal herbal extracts", "Self-prescribing OTC drugs"],
+                    "when_to_seek_care": ["Fever above 102°F (39°C)", "Severe pain", "Symptoms persisting past 48h"],
+                }
+                render_response(fallback_data)
+                st.session_state.messages.append({"role": "assistant", "content": fallback_data["summary"], "data": fallback_data})

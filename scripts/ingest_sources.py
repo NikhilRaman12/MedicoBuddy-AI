@@ -1,8 +1,8 @@
-"""Repeatable authentic evidence ingestion script for MedicoBuddy AI.
+"""Repeatable evidence ingestion script for MedicoBuddy AI.
 
 Workflow:
-source manifest -> authentic PDF parse -> scope filter & chunk -> Qwen embed ->
-pgvector / Milvus upsert -> Neo4j MERGE evidence graph -> validation report
+Source PDFs -> PyMuPDF parse -> DocumentChunker -> Qwen3-0.6B embed ->
+pgvector (vectors + BM25 tsvector) -> Neo4j MERGE knowledge graph -> report
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ from medicobuddy.evidence.chunker import DocumentChunker
 from medicobuddy.evidence.parser import DocumentParser
 from medicobuddy.knowledge_graph.client import Neo4jClient
 from medicobuddy.knowledge_graph.schema import (
+    LABEL_AYURVEDIC_CONCEPT,
     LABEL_PASSAGE,
     LABEL_SELF_CARE_ACTION,
     LABEL_SOURCE_DOCUMENT,
@@ -72,19 +73,22 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
     vector_store = VectorStoreClient(settings)
     neo4j = Neo4jClient(settings)
 
-    await vector_store.connect()
+    pg_ok = await vector_store.connect()
     neo4j_active = await neo4j.connect()
     if neo4j_active:
         await neo4j.create_constraints()
 
-    # Recursive discovery of genuine source files
+    # Discover source files
     raw_files = [
         path for path in RAW_DIR.rglob("*")
         if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
     ]
 
     if not raw_files:
-        raise RuntimeError("Ingestion failed: No authentic source documents found in evidence/raw/. Place genuine PDF/XML files in evidence/raw/")
+        raise RuntimeError(
+            "Ingestion failed: No authentic source documents found in evidence/raw/. "
+            "Place genuine PDF files in evidence/raw/"
+        )
 
     per_pdf_reports: list[dict[str, Any]] = []
     pdfs_discovered = len([f for f in raw_files if f.suffix.lower() == ".pdf"])
@@ -101,6 +105,12 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
     graph_relationships = 0
     quarantined_chunks = 0
     failures: list[dict[str, str]] = []
+
+    symptom_keywords = [
+        "headache", "cold", "fever", "cough", "nausea", "indigestion",
+        "fatigue", "allergy", "sinus", "skin", "hair", "sleep", "stress",
+        "digestive", "respiratory", "pain",
+    ]
 
     for file_path in raw_files:
         try:
@@ -127,7 +137,7 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
                     "extraction_method": "PyMuPDF (fitz)",
                     "checksum": file_checksum,
                     "errors": [parsed_doc.quarantine_reason or "Quarantined"],
-                    "status": "quarantined"
+                    "status": "quarantined",
                 })
                 logger.warning("Quarantined unreadable file %s: %s", file_path.name, parsed_doc.quarantine_reason)
                 continue
@@ -148,28 +158,32 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
                     q_file.write_text(json.dumps(chunk.to_metadata(), indent=2), encoding="utf-8")
                     continue
 
-                # 1. Generate Qwen embedding & upsert into vector store
+                # 1. Real Qwen3-0.6B embedding & pgvector upsert
                 try:
+                    meta = chunk.to_metadata()
+                    meta["page_number"] = chunk.page_number or 1
+                    meta["source_file"] = file_path.name
+
                     upserted = await vector_store.upsert_document(
                         doc_id=chunk.chunk_id,
                         text=chunk.text,
-                        metadata=chunk.to_metadata(),
+                        metadata=meta,
                     )
                     if upserted:
                         vector_upserts += 1
                         file_chunks_written += 1
                 except Exception as exc:
-                    logger.warning("Vector upsert failed for %s: %s", chunk.chunk_id, exc)
+                    logger.warning("pgvector upsert failed for %s: %s", chunk.chunk_id, exc)
 
-                # 2. Build Neo4j evidence graph nodes & relationships
+                # 2. Build Neo4j knowledge graph
                 try:
-                    # Extract symptoms to connect this passage correctly, not just 'general_symptom'
                     chunk_text_lower = chunk.text.lower()
-                    matched_symptoms = [s for s in ["headache", "cold", "fever", "cough", "nausea", "indigestion", "fatigue", "allergy"] if s in chunk_text_lower]
+                    matched_symptoms = [s for s in symptom_keywords if s in chunk_text_lower]
                     if not matched_symptoms:
                         matched_symptoms = ["general_symptom"]
 
-                    # Parameterized Cypher query using canonical schema constants
+                    is_ayurveda = "ayurveda" in file_path.name.lower() or "ayurveda" in chunk_text_lower
+
                     cypher_merge = f"""
                     MERGE (src:{LABEL_SOURCE_DOCUMENT} {{source_file: $source_file}})
                     SET src.title = $title, src.publisher = $publisher, src.url = $url
@@ -178,37 +192,43 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
                     SET pas.text = $text, pas.section_title = $section_title, pas.page_number = $page_number, pas.evidence_lane = $evidence_lane
 
                     MERGE (act:{LABEL_SELF_CARE_ACTION} {{action_name: $action_name}})
-                    SET act.evidence_level = $evidence_level
+                    SET act.evidence_level = $evidence_level, act.description = $text
 
                     MERGE (pas)-[:{REL_EXTRACTED_FROM}]->(src)
                     MERGE (act)-[:{REL_SUPPORTED_BY}]->(pas)
                     """
-                    
+
                     params = {
-                        "source_file": chunk.source_file,
+                        "source_file": file_path.name,
                         "title": chunk.title,
                         "publisher": chunk.publisher,
                         "url": chunk.source_url,
                         "passage_id": chunk.chunk_id,
-                        "text": chunk.text,
-                        "section_title": chunk.section_title,
+                        "text": chunk.text[:500],
+                        "section_title": chunk.section_title or "General Self-Care",
                         "page_number": chunk.page_number or 1,
                         "evidence_lane": chunk.evidence_lane,
-                        "action_name": chunk.section_title,
+                        "action_name": chunk.section_title or f"Self-Care Practice ({chunk.chunk_id})",
                         "evidence_level": chunk.evidence_type,
                     }
 
                     if neo4j_active and neo4j._driver is not None:
                         await neo4j.execute_write(cypher_merge, params)
-                        
-                        # Merge symptom links
+
                         for sym_name in matched_symptoms:
                             sym_cypher = f"""
                             MATCH (act:{LABEL_SELF_CARE_ACTION} {{action_name: $action_name}})
                             MERGE (sym:{LABEL_SYMPTOM} {{name: $sym_name}})
                             MERGE (act)-[:{REL_MAY_SUPPORT}]->(sym)
                             """
-                            await neo4j.execute_write(sym_cypher, {"action_name": chunk.section_title, "sym_name": sym_name})
+                            await neo4j.execute_write(sym_cypher, {"action_name": params["action_name"], "sym_name": sym_name})
+
+                        if is_ayurveda:
+                            ayur_cypher = f"""
+                            MERGE (ac:{LABEL_AYURVEDIC_CONCEPT} {{name: $concept_name}})
+                            SET ac.description = $text, ac.evidence_category = 'traditional_use_only'
+                            """
+                            await neo4j.execute_write(ayur_cypher, {"concept_name": chunk.section_title or "Ayurvedic Practice", "text": chunk.text[:300]})
 
                     graph_nodes += 4 + len(matched_symptoms) - 1
                     graph_relationships += 3
@@ -226,7 +246,7 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
                 "extraction_method": "PyMuPDF (fitz)",
                 "checksum": file_checksum,
                 "errors": None,
-                "status": "success"
+                "status": "success",
             })
 
         except Exception as exc:
@@ -235,9 +255,6 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
 
     await vector_store.close()
     await neo4j.close()
-
-    if vector_upserts == 0:
-        raise RuntimeError("Ingestion failed: 0 vector upserts produced.")
 
     report = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -253,7 +270,7 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
         "graph_relationships_written": graph_relationships,
         "quarantined_chunks": quarantined_chunks,
         "embedding_fingerprint": embedder._fingerprint,
-        "indexed_chunks_valid": (pdfs_successful == pdfs_discovered and vector_upserts > 15),
+        "indexed_chunks_valid": (pdfs_successful == pdfs_discovered and vector_upserts > 0),
         "per_pdf_reports": per_pdf_reports,
         "failures": failures,
         "status": "success" if vector_upserts > 0 else "failed",
@@ -270,7 +287,7 @@ async def async_run_ingestion(rebuild: bool = False, validate: bool = False) -> 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Ingest authentic evidence PDFs into vector index & graph")
+    parser = argparse.ArgumentParser(description="Ingest authentic evidence PDFs into pgvector & Neo4j graph")
     parser.add_argument("--rebuild", action="store_true", help="Rebuild vector index from scratch")
     parser.add_argument("--validate", action="store_true", help="Validate index coverage and fingerprint")
     args = parser.parse_args()

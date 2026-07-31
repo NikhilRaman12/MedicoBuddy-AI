@@ -1,50 +1,61 @@
-# MedicoBuddy AI — Multi-stage Production Dockerfile for Hugging Face Spaces (Port 7860)
-FROM python:3.12-slim AS base
+# ──────────────────────────────────────────────────────────────
+# MedicoBuddy AI — Multi-stage Dockerfile
+#
+# Stage 1: builder — install dependencies, download Qwen3 model
+# Stage 2: runtime — minimal image with pre-cached model
+# ──────────────────────────────────────────────────────────────
 
-# Security: non-root user creation
-RUN groupadd -r medicobuddy && useradd -r -g medicobuddy -d /app -s /bin/bash medicobuddy
+# ── Stage 1: Builder ─────────────────────────────────────────
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies
+# System deps for building
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    git \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential curl git && \
+    rm -rf /var/lib/apt/lists/*
 
-# ── Dependencies Stage ──────────────────────────────────────
-FROM base AS deps
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy packaging manifests and package source first for pip build
-COPY pyproject.toml README.md requirements.txt ./
-COPY src/ ./src/
+# Pre-download Qwen3-Embedding-0.6B into model cache during build
+RUN python -c "\
+from sentence_transformers import SentenceTransformer; \
+m = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B', trust_remote_code=True); \
+print(f'Qwen3-Embedding-0.6B cached (dim={m.get_sentence_embedding_dimension()})')"
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir .
 
-# ── Application Stage ───────────────────────────────────────
-FROM deps AS app
+# ── Stage 2: Runtime ─────────────────────────────────────────
+FROM python:3.12-slim AS runtime
 
-COPY evidence/ ./evidence/
-COPY scripts/ ./scripts/
-COPY frontend/ ./frontend/
-COPY data/ ./data/
+WORKDIR /app
 
-# Set executable permissions on startup script
-RUN chmod +x ./scripts/start_space.sh \
-    && chown -R medicobuddy:medicobuddy /app
+# Runtime system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl wget bash libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-USER medicobuddy
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-ENV PORT=7860
-ENV API_BASE=http://127.0.0.1:8000/api/v1
-ENV HEALTH_URL=http://127.0.0.1:8000/health/ready
+# Copy pre-cached Qwen3 model
+COPY --from=builder /root/.cache /root/.cache
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://127.0.0.1:8000/health/live || exit 1
+# Copy application source
+COPY . .
 
-EXPOSE 7860
+# Install the application package
+RUN pip install --no-cache-dir --no-deps -e .
 
-CMD ["./scripts/start_space.sh"]
+# Ensure scripts are executable
+RUN chmod +x scripts/*.sh 2>/dev/null || true
+
+ENV PYTHONPATH=/app/src
+ENV PYTHONUNBUFFERED=1
+
+# Default: bootstrap + FastAPI
+EXPOSE 8000 8501
+
+CMD ["python", "-m", "uvicorn", "medicobuddy.main:app", "--host", "0.0.0.0", "--port", "8000"]
