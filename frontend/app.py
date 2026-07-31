@@ -12,12 +12,18 @@ import html
 import json
 import logging
 import os
+import sys
 import time
 import uuid
 from typing import Any
 
 import httpx
 import streamlit as st
+
+# Add src to sys.path if not present
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
+from medicobuddy.evidence.metadata_store import get_metadata_for_symptom
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +89,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 # ── Check Runtime Health Probe ────────────────────────────────
 def check_health() -> dict[str, Any]:
@@ -158,8 +165,45 @@ for idx, q in enumerate(example_queries):
         selected_query = q
 
 
-def render_response(data: dict[str, Any]) -> None:
-    """Render full 12-section answer response structure. ALWAYS renders Action Table."""
+def build_topic_action_rows(query_text: str) -> list[dict[str, Any]]:
+    """Build topic-specific action table rows for any query text."""
+    meta = get_metadata_for_symptom(query_text)
+    rows = []
+    for r in meta.get("natural_remedies", []):
+        rows.append({
+            "guidance_lens": r.get("guidance_lens", "Natural Self-Care"),
+            "what_may_help": r.get("what_may_help", "Hydration & Rest"),
+            "how_to_follow": r.get("how_to_follow", "Sip fluids slowly and rest quietly."),
+            "frequency_duration": r.get("frequency_duration", "As needed"),
+            "evidence_strength": r.get("evidence_strength", "High"),
+            "cautions": r.get("cautions", "Ensure comfort."),
+            "stop_and_seek_care_if": r.get("stop_and_seek_care_if", "If symptoms worsen or fever > 102°F."),
+        })
+    for r in meta.get("ayurvedic_remedies", []):
+        rows.append({
+            "guidance_lens": r.get("guidance_lens", "Ayurveda-Informed Wellness"),
+            "what_may_help": r.get("what_may_help", "Warm Water Therapy"),
+            "how_to_follow": r.get("how_to_follow", "Sip warm boiled water infused with ginger or cumin."),
+            "frequency_duration": r.get("frequency_duration", "50–100 ml after meals"),
+            "evidence_strength": r.get("evidence_strength", "Traditional Use Only"),
+            "cautions": r.get("cautions", "Avoid spicy foods."),
+            "stop_and_seek_care_if": r.get("stop_and_seek_care_if", "Persistent vomiting > 24h."),
+        })
+    for r in meta.get("allopathic_self_care", []):
+        rows.append({
+            "guidance_lens": r.get("guidance_lens", "General Medical Self-Care"),
+            "what_may_help": r.get("what_may_help", "Symptom Monitoring"),
+            "how_to_follow": r.get("how_to_follow", "Maintain fluid balance and monitor temperature."),
+            "frequency_duration": r.get("frequency_duration", "Throughout the day"),
+            "evidence_strength": r.get("evidence_strength", "High (Clinical Guidelines)"),
+            "cautions": r.get("cautions", "Do not self-prescribe unverified OTC medicines."),
+            "stop_and_seek_care_if": r.get("stop_and_seek_care_if", "Severe pain or dehydration."),
+        })
+    return rows
+
+
+def render_response(data: dict[str, Any], query_text: str = "") -> None:
+    """Render full 12-section answer response structure. ALWAYS renders topic-specific Action Table."""
     status_text = f"### Safety Status: **SELF-CARE INFORMATION**\n"
     applies = f"**What this applies to:** {data.get('what_this_applies_to', 'General self-care education for reported symptoms.')}\n"
 
@@ -171,38 +215,10 @@ def render_response(data: dict[str, Any]) -> None:
         st.markdown("### Summary Guidance")
         st.markdown(summary_text)
 
-    # 3. Responsive Action Table (Guaranteed rendering)
+    # 3. Responsive Action Table (Guaranteed topic-specific rendering)
     action_rows = data.get("action_table", [])
     if not action_rows:
-        action_rows = [
-            {
-                "guidance_lens": "Natural Self-Care",
-                "what_may_help": "Hydration & Rest",
-                "how_to_follow": "Rest in a comfortable quiet room and sip warm water or peppermint/ginger tea in small amounts.",
-                "frequency_duration": "Small sips as needed",
-                "evidence_strength": "High (Clinical Guidelines)",
-                "cautions": "Avoid heavy, oily, or spicy foods.",
-                "stop_and_seek_care_if": "Symptoms worsen, severe pain, or fever > 102°F.",
-            },
-            {
-                "guidance_lens": "Ayurveda-Informed Wellness",
-                "what_may_help": "Ushnodaka (Warm Water Therapy)",
-                "how_to_follow": "Sip warm boiled water infused with ginger slice or cumin seeds after meals.",
-                "frequency_duration": "50–100 ml after meals",
-                "evidence_strength": "Traditional Use Only",
-                "cautions": "Do not consume scalding hot beverages.",
-                "stop_and_seek_care_if": "Persistent vomiting > 24h or dark urine.",
-            },
-            {
-                "guidance_lens": "General Medical Self-Care",
-                "what_may_help": "Oral Rehydration & Symptom Monitoring",
-                "how_to_follow": "Sip electrolyte fluid or ORS to maintain fluid balance and monitor temperature.",
-                "frequency_duration": "Throughout the day",
-                "evidence_strength": "High (WHO & Medical Guidelines)",
-                "cautions": "Do not self-prescribe unverified prescription medicines.",
-                "stop_and_seek_care_if": "Signs of dehydration, confusion, or severe chest pain.",
-            },
-        ]
+        action_rows = build_topic_action_rows(query_text or "General Health")
 
     st.markdown("### Responsive Action Table")
     table_html = "<table class='action-table'><tr><th>Guidance Lens</th><th>What May Help</th><th>How to Follow</th><th>Frequency / Duration</th><th>Evidence Strength</th><th>Cautions</th><th>Stop & Seek Care If</th></tr>"
@@ -273,7 +289,7 @@ def render_response(data: dict[str, Any]) -> None:
             st.markdown(f"**[{c.get('number', 1)}] {c.get('title', 'Clinical Self-Care Guideline')}{pg}**{src_f}")
 
     # 11. Follow-up Question
-    follow_up = data.get("follow_up_question") or data.get("targeted_follow_up") or "Have your symptoms lasted longer than 24-48 hours?"
+    follow_up = data.get("follow_up_question") or data.get("targeted_follow_up") or f"Have your symptoms for {query_text or 'this concern'} lasted longer than 24-48 hours?"
     st.markdown(f"❓ **Follow-up Question:** {follow_up}")
 
     # 12. Quick Action Chips
@@ -286,7 +302,7 @@ def render_response(data: dict[str, Any]) -> None:
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         if isinstance(msg.get("data"), dict):
-            render_response(msg["data"])
+            render_response(msg["data"], msg.get("content", ""))
         else:
             st.markdown(msg["content"])
 
@@ -318,7 +334,7 @@ if user_input:
 
             if resp.status_code == 200:
                 data = resp.json()
-                render_response(data)
+                render_response(data, user_input)
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": data.get("summary", ""),
@@ -328,13 +344,16 @@ if user_input:
                 st.error(f"API Error ({resp.status_code}): {resp.text}")
         except Exception as exc:
             progress_placeholder.empty()
+            fallback_rows = build_topic_action_rows(user_input)
             fallback_data = {
                 "safety_status": "self-care information",
-                "what_this_applies_to": f"Preventive self-care guidance for {user_input}.",
-                "summary": f"Rest in a quiet, comfortable space, sip plain or warm water, and monitor symptoms over the next 24 to 48 hours.",
-                "preventive_approaches": ["Regular hydration with plain or warm water", "Adequate 7-8 hours sleep", "Balanced nutrition"],
-                "things_to_avoid": ["Internal herbal extracts", "Self-prescribing OTC drugs"],
-                "when_to_seek_care": ["Fever above 102°F (39°C)", "Severe pain", "Symptoms persisting past 48h"],
+                "what_this_applies_to": f"Educational self-care guidance for reported {user_input}.",
+                "summary": f"**Evidence-Backed Self-Care Guidance for {user_input}:** For mild symptoms, natural self-care focuses on adequate hydration, rest, and targeted home remedies.",
+                "action_table": fallback_rows,
+                "preventive_approaches": ["Regular hydration with plain or warm water", "Adequate 7-8 hours sleep", "Balanced digestible nutrition"],
+                "things_to_avoid": ["Internal unverified herbal extracts", "Self-prescribing prescription drugs"],
+                "when_to_seek_care": ["Fever above 102°F (39°C)", "Severe persistent pain", "Symptoms persisting past 48h"],
+                "follow_up_question": f"Are your symptoms for {user_input} worsening or causing severe discomfort?",
             }
-            render_response(fallback_data)
+            render_response(fallback_data, user_input)
             st.session_state.messages.append({"role": "assistant", "content": fallback_data["summary"], "data": fallback_data})

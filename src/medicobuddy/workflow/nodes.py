@@ -391,6 +391,7 @@ async def hybrid_retrieval_node(state: GraphState) -> dict[str, Any]:
     vector_results: list[dict[str, Any]] = []
     bm25_results: list[dict[str, Any]] = []
     mcp_results: list[MCPResult] = []
+    contraindications: list[dict[str, Any]] = []
     ayurvedic_concepts: list[dict[str, Any]] = []
 
     real_indexed_chunks = 0
