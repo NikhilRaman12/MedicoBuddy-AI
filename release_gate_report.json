@@ -1,0 +1,135 @@
+{
+  "report_version": "2.0.0",
+  "generated_at": "2026-08-01T18:02:40Z",
+  "product": "MedicoBuddy AI",
+  "release_tag": "production_release_v2",
+  "git_commit": "dev",
+  "overall_status": "PASS",
+  "gates_total": 15,
+  "gates_passed": 15,
+  "gates_failed_critical": 0,
+  "gates_failed_major": 0,
+  "gates": [
+    {
+      "gate_id": "G01",
+      "status": "PASS",
+      "detail": "No hardcoded similarity scores detected",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "No hardcoded similarity scores in nodes.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G02",
+      "status": "PASS",
+      "detail": "evidence_sufficient is conditionally set, not hardcoded",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "No hardcoded evidence_sufficient=True in nodes.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G03",
+      "status": "PASS",
+      "detail": "medicobuddy_metadata_registry.pdf not used as citation source",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "No hardcoded medicobuddy_metadata_registry.pdf citation",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G04",
+      "status": "PASS",
+      "detail": "No hardcoded Neo4j traversal path in frontend",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "No hardcoded Neo4j graph path in frontend",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G05",
+      "status": "PASS",
+      "detail": "No hardcoded table cell defaults found",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "No hardcoded 'Hydration & Rest' table default in frontend",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G06",
+      "status": "PASS",
+      "detail": "corrective_retrieval node present in workflow graph",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "corrective_retrieval node present in workflow",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G07",
+      "status": "PASS",
+      "detail": "_search_local_faiss() method present in VectorStoreClient",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "_search_local_faiss() method present in VectorStoreClient",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G08",
+      "status": "PASS",
+      "detail": "GET /health/dependencies endpoint present",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "GET /health/dependencies endpoint present",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G09",
+      "status": "PASS",
+      "detail": "GET /chat info endpoint present",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "GET /chat endpoint present",
+      "severity": "MAJOR"
+    },
+    {
+      "gate_id": "G10",
+      "status": "PASS",
+      "detail": "req_id correctly defined inside event_generator scope",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "req_id defined before SSE event_generator scope",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G11",
+      "status": "PASS",
+      "detail": "GroqStructuredResponse and all sub-models present",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "GroqStructuredResponse Pydantic model importable",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G12",
+      "status": "PASS",
+      "detail": "ingest_and_index.py exists with upsert, embed, and report logic",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "ingest_and_index.py script exists and is runnable",
+      "severity": "MAJOR"
+    },
+    {
+      "gate_id": "G13",
+      "status": "PASS",
+      "detail": "All 8 required fields present in GroqStructuredResponse",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "groq_output.py model exists with required fields",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G14",
+      "status": "PASS",
+      "detail": "All 15 required workflow nodes present",
+      "checked_at": "2026-08-01T18:01:41Z",
+      "description": "All 15 workflow nodes present in graph.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "gate_id": "G15",
+      "description": "All pytest tests pass",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "detail": "56 passed, 1 warning in 51.13s",
+      "checked_at": "2026-08-01T18:02:40Z"
+    }
+  ],
+  "deployment_approved": true
+}

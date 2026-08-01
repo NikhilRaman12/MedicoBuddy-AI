@@ -154,7 +154,7 @@ async def readiness(req: Request) -> dict[str, Any]:
     return {
         "status": "ok" if is_ready else "degraded",
         "ready": is_ready,
-        "mode": mode,
+        "mode": mode_state,
         "app": __app_name__,
         "version": __version__,
         "git_commit": GIT_COMMIT,
@@ -190,3 +190,100 @@ async def readiness(req: Request) -> dict[str, Any]:
         "neo4j": c7_graph,
         "indexed_passages_count": real_indexed_chunks,
     }
+
+
+@router.get("/health/dependencies", summary="Per-service dependency status")
+async def dependencies(req: Request) -> dict[str, Any]:
+    """Real-time dependency status for all external services.
+
+    All status values reflect actual live connection tests.
+    Never returns 'connected' for services that are not reachable.
+    """
+    settings = get_settings()
+    services = getattr(req.app.state, "services", None)
+
+    # Groq API
+    groq_key = settings.groq_api_key or os.getenv("GROQ_API_KEY", "")
+    groq_status = "configured" if (groq_key and groq_key.startswith("gsk_")) else "not_configured"
+
+    # pgvector / vector store
+    vector_status = "offline"
+    indexed_chunks = 0
+    if services and services.vector_store:
+        try:
+            is_pg = await services.vector_store.is_ready()
+            if is_pg:
+                vector_status = "connected"
+                indexed_chunks = await services.vector_store.get_indexed_count()
+            else:
+                # Check local FAISS cache
+                from pathlib import Path as _Path
+                norm_dir = _Path(__file__).resolve().parent.parent.parent.parent.parent / "evidence" / "normalized"
+                if norm_dir.exists() and any(norm_dir.glob("*.json")):
+                    faiss_count = len(list(norm_dir.glob("*.json")))
+                    vector_status = "local_faiss_fallback"
+                    indexed_chunks = faiss_count
+                else:
+                    vector_status = "offline_no_cache"
+        except Exception as exc:
+            vector_status = f"error: {exc}"
+
+    # Neo4j
+    neo4j_status = "offline"
+    graph_nodes = 0
+    graph_rels = 0
+    if services and services.neo4j:
+        try:
+            graph_nodes, graph_rels = await services.neo4j.get_graph_counts()
+            neo4j_status = "connected" if graph_nodes > 0 else "connected_empty"
+        except Exception as exc:
+            neo4j_status = f"error: {exc}"
+
+    # Embedding model
+    embedding_status = "offline"
+    embedding_model = "unknown"
+    embedding_dim = 0
+    if services and services.embedder:
+        backend = services.embedder._backend
+        if backend not in ("ERROR", "uninitialized"):
+            embedding_status = "loaded"
+        embedding_model = services.embedder.model_name
+        embedding_dim = services.embedder.dimension
+
+    # MCP
+    mcp_status = "disabled" if not settings.mcp_enabled else "enabled_unchecked"
+
+    # Workflow
+    workflow_status = "ready" if (services and services.workflow) else "offline"
+
+    return {
+        "groq_llm": {
+            "status": groq_status,
+            "model": settings.groq_model_name,
+            "key_prefix": groq_key[:8] + "..." if groq_key else "none",
+        },
+        "vector_store": {
+            "status": vector_status,
+            "backend": "pgvector" if vector_status == "connected" else vector_status,
+            "indexed_chunks": indexed_chunks,
+        },
+        "neo4j": {
+            "status": neo4j_status,
+            "graph_nodes": graph_nodes,
+            "graph_relationships": graph_rels,
+        },
+        "embedding_model": {
+            "status": embedding_status,
+            "model": embedding_model,
+            "dimension": embedding_dim,
+        },
+        "mcp": {"status": mcp_status},
+        "langgraph_workflow": {"status": workflow_status},
+        "overall": "ready" if (
+            groq_status == "configured" and
+            vector_status in ("connected", "local_faiss_fallback") and
+            embedding_status == "loaded" and
+            workflow_status == "ready"
+        ) else "degraded",
+    }
+

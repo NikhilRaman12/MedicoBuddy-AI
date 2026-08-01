@@ -10,42 +10,36 @@ pinned: false
 
 # MedicoBuddy AI — Everyday health questions, connected to clearer evidence.
 
-MedicoBuddy AI is an evidence-grounded, safety-first preventive self-care education assistant for adults aged 18–65. Built with LangGraph, Neo4j, Milvus, PostgreSQL pgvector, Groq LLM inference, and Model Context Protocol (MCP) data connectors.
+MedicoBuddy AI is an evidence-grounded, safety-first preventive self-care education assistant for adults aged 18–65. Built with LangGraph, Neo4j, PostgreSQL `pgvector`, Groq LLM inference, Model Context Protocol (MCP) data connectors, and a production React.js + TypeScript web application.
 
 ## Architecture
 
-- **Orchestration**: LangGraph 13-Node Evidence & Entailment State Machine
-- **Knowledge Graph**: Neo4j Graph Database
-- **Vector DB**: Milvus (Primary) + PostgreSQL `pgvector` (Failover)
-- **Embeddings**: `Qwen/Qwen3-Embedding-8B`
-- **LLM Engine**: Groq API (`ChatGroq` with `llama-3.3-70b-versatile`)
-- **Protocol**: Official Model Context Protocol (MCP) Server & Client Adapter
-- **Data Connectors**: PubMed, MedlinePlus XML, ClinicalTrials.gov, Crossref, Local Evidence Registry
-- **Frontend**: Streamlit Multilingual Enterprise Workstation (22 Scheduled Indian Languages + BCP-47 Global Auto-detect)
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS (`frontend-react/`), served static from FastAPI at `/`
+- **Backend API**: FastAPI REST endpoints (`/api/v1/chat`, `/health/*`)
+- **Orchestration**: LangGraph 15-Node Evidence & Entailment State Machine
+- **Knowledge Graph**: Neo4j Community Database
+- **Vector Search**: PostgreSQL `pgvector` with local FAISS fallback
+- **Embeddings**: `Qwen/Qwen3-Embedding-0.6B` local embedding provider
+- **LLM Engine**: Groq API (`GroqStructuredResponse` Pydantic models)
+- **Protocol**: Official Model Context Protocol (MCP) Client Adapter
 
-## Required Environment Variables
+## Deployment Target
 
-To deploy on Hugging Face Spaces or run locally, configure these secrets:
+Deployed on **Hugging Face Docker Spaces** on single same-origin port **7860**:
+- **Secret Required**: `GROQ_API_KEY`
 
-- `GROQ_API_KEY`: Groq API Key
-- `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`: Neo4j connection
-- `MILVUS_URI`, `MILVUS_TOKEN`: Milvus Standalone connection
-- `POSTGRES_DSN`: PostgreSQL pgvector DSN
-- `NCBI_API_KEY`, `NCBI_EMAIL`, `NCBI_TOOL_NAME`: NCBI MCP parameters
-- `QWEN_EMBEDDING_ENDPOINT`, `HF_TOKEN`: Managed Qwen embedding inference
-
-## Local Development & Ingestion
+## Local Development
 
 ```bash
-# 1. Install package in editable mode
+# 1. Install Python package in editable mode
 pip install -e .
 
-# 2. Run evidence ingestion pipeline
-python scripts/ingest_sources.py
+# 2. Build React frontend bundle
+cd frontend-react
+npm install
+npm run build
+cd ..
 
-# 3. Execute unit & safety test suite
-python -m pytest tests/ -v
-
-# 4. Launch full container environment
-docker-compose up --build
+# 3. Start FastAPI server (serves API + React SPA at http://localhost:8000)
+python -m uvicorn medicobuddy.main:app --host 0.0.0.0 --port 8000
 ```

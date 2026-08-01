@@ -126,8 +126,17 @@ def create_fastapi_app() -> FastAPI:
     app.include_router(consent.router, prefix="/api/v1", tags=["Consent"])
     app.include_router(feedback.router, prefix="/api/v1", tags=["Feedback"])
 
+    # Serve compiled React SPA frontend from frontend-react/dist if present
+    from pathlib import Path as _Path
+    from fastapi.staticfiles import StaticFiles
+    dist_dir = _Path(__file__).resolve().parent.parent.parent / "frontend-react" / "dist"
+    if dist_dir.exists():
+        app.mount("/", StaticFiles(directory=str(dist_dir), html=True), name="react-spa")
+        logger.info("Serving production React SPA from %s at /", dist_dir)
+
     return app
 
 
 # Module-level app for uvicorn
 app = create_fastapi_app()
+

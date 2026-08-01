@@ -1,18 +1,20 @@
-# Dockerfile.hf — Hugging Face Space Production Image for MedicoBuddy AI
-# Exposes Port 7860 for Streamlit UI + Embedded FastAPI Backend
+# Dockerfile.hf — Multi-Stage Production Docker Image for MedicoBuddy AI
+# Stage 1: Build React.js SPA Frontend
+FROM node:24-slim AS frontend-builder
+WORKDIR /app/frontend-react
+COPY frontend-react/package*.json ./
+RUN npm ci
+COPY frontend-react/ ./
+RUN npm run build
 
+# Stage 2: Production Python Runtime with FastAPI serving React SPA
 FROM python:3.11-slim
 
-# Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     PORT=7860 \
-    STREAMLIT_SERVER_PORT=7860 \
-    STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
-    API_BASE=http://127.0.0.1:8000/api/v1 \
-    HEALTH_URL=http://127.0.0.1:8000/health/ready
+    PYTHONPATH=/app/src:$PYTHONPATH
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -22,32 +24,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
+# Install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code and scripts
+# Copy backend source code and pre-built React SPA bundle
 COPY src/ /app/src/
-COPY frontend/ /app/frontend/
+COPY --from=frontend-builder /app/frontend-react/dist /app/frontend-react/dist
 COPY scripts/ /app/scripts/
 COPY evidence/ /app/evidence/
 COPY .env.example /app/.env
 
-# Add src to PYTHONPATH
-ENV PYTHONPATH=/app/src:$PYTHONPATH
-
-# Expose port 7860 for Hugging Face Space
+# Expose port 7860 for Hugging Face Spaces
 EXPOSE 7860
 
-# Cold-start bootstrap script
-RUN echo '#!/bin/bash\n\
-echo "Starting MedicoBuddy AI Cold-Start Bootstrap..."\n\
-python -m uvicorn medicobuddy.main:app --host 127.0.0.1 --port 8000 &\n\
-echo "Waiting for FastAPI backend to initialize..."\n\
-sleep 8\n\
-python -c "import httpx; resp = httpx.get(\"http://127.0.0.1:8000/health/ready\"); print(\"Health Probe:\", resp.status_code)"\n\
-echo "Launching Streamlit frontend on port 7860..."\n\
-streamlit run frontend/app.py --server.port 7860 --server.address 0.0.0.0\n\
-' > /app/start.sh && chmod +x /app/start.sh
-
-CMD ["/app/start.sh"]
+# Run FastAPI backend directly on port 7860 (serves REST API + static React SPA at /)
+CMD ["python", "-m", "uvicorn", "medicobuddy.main:app", "--host", "0.0.0.0", "--port", "7860"]

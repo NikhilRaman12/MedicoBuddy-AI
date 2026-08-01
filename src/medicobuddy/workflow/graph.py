@@ -10,6 +10,7 @@ from langgraph.graph import END, StateGraph
 from medicobuddy.workflow.nodes import (
     citation_validator_node,
     clarification_node,
+    corrective_retrieval_node,
     evidence_grader_node,
     final_response_node,
     hybrid_retrieval_node,
@@ -58,12 +59,21 @@ def _output_check(state: GraphState) -> str:
     return "valid"
 
 
+def _corrective_retrieval_needed(state: GraphState) -> str:
+    """Check if evidence is insufficient and corrective retrieval is needed."""
+    evidence_count = state.get("evidence_count", 0)
+    evidence_sufficient = state.get("evidence_sufficient", False)
+    if not evidence_sufficient and evidence_count < 3:
+        return "retry"
+    return "proceed"
+
+
 def build_workflow() -> StateGraph:
     """Build the complete MedicoBuddy LangGraph workflow.
 
     Flow:
         User Input → Language Router → Scope Validator → Red-Flag Triage → Clarification
-        → Query Planner → MCP Retrieval → Hybrid Retrieval
+        → Query Planner → MCP Retrieval → Hybrid Retrieval → Corrective Retrieval (if needed)
         → Evidence Grader → Safety Critic → Response Composer
         → Output Validator → Citation Validator → Structured Translation → Final Response
     """
@@ -77,6 +87,7 @@ def build_workflow() -> StateGraph:
     workflow.add_node("query_planner", query_planner_node)
     workflow.add_node("mcp_retrieval", mcp_retrieval_node)
     workflow.add_node("hybrid_retrieval", hybrid_retrieval_node)
+    workflow.add_node("corrective_retrieval", corrective_retrieval_node)
     workflow.add_node("evidence_grader", evidence_grader_node)
     workflow.add_node("safety_critic", safety_critic_node)
     workflow.add_node("response_composer", response_composer_node)
@@ -89,9 +100,7 @@ def build_workflow() -> StateGraph:
     workflow.set_entry_point("language_router")
     workflow.add_edge("language_router", "scope_validator")
 
-    # ── Edges with routing ───────────────────────────────────
-
-    # Scope validator → either out_of_scope (→ final) or in_scope (→ triage)
+    # Scope validator → either out_of_scope (→ translation → final) or in_scope (→ triage)
     workflow.add_conditional_edges(
         "scope_validator",
         _scope_check,
@@ -101,7 +110,7 @@ def build_workflow() -> StateGraph:
         },
     )
 
-    # Red flag triage → either escalate (→ final) or continue (→ clarification)
+    # Red flag triage → either escalate (→ response_composer) or continue (→ clarification)
     workflow.add_conditional_edges(
         "red_flag_triage",
         _should_escalate,
@@ -111,7 +120,7 @@ def build_workflow() -> StateGraph:
         },
     )
 
-    # Clarification → either clarify (→ final w/ questions) or proceed (→ query planner)
+    # Clarification → either clarify (→ translation → final) or proceed (→ query planner)
     workflow.add_conditional_edges(
         "clarification",
         _needs_clarification,
@@ -121,17 +130,27 @@ def build_workflow() -> StateGraph:
         },
     )
 
-    # Linear flow: query planner → MCP → hybrid → evidence → safety → compose
+    # Linear: query planner → MCP → hybrid retrieval
     workflow.add_edge("query_planner", "mcp_retrieval")
     workflow.add_edge("mcp_retrieval", "hybrid_retrieval")
-    workflow.add_edge("hybrid_retrieval", "evidence_grader")
+
+    # Corrective retrieval gate: retry if evidence is insufficient
+    workflow.add_conditional_edges(
+        "hybrid_retrieval",
+        _corrective_retrieval_needed,
+        {
+            "retry": "corrective_retrieval",
+            "proceed": "evidence_grader",
+        },
+    )
+    workflow.add_edge("corrective_retrieval", "evidence_grader")
+
+    # Linear: evidence grader → safety critic → response composer
     workflow.add_edge("evidence_grader", "safety_critic")
     workflow.add_edge("safety_critic", "response_composer")
 
-    # Response composer → output validator
+    # Output validator → either recompose (one retry) or proceed
     workflow.add_edge("response_composer", "output_validator")
-
-    # Output validator → either recompose or continue to citation validator
     workflow.add_conditional_edges(
         "output_validator",
         _output_check,
@@ -141,7 +160,7 @@ def build_workflow() -> StateGraph:
         },
     )
 
-    # Citation validator → structured translation → final response → END
+    # Citation validator → translation → final response → END
     workflow.add_edge("citation_validator", "structured_translation")
     workflow.add_edge("structured_translation", "final_response")
     workflow.add_edge("final_response", END)

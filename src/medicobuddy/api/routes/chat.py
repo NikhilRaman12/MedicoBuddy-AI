@@ -185,6 +185,8 @@ async def chat_stream(request: ChatRequest, req: Request) -> StreamingResponse:
 
     async def event_generator():
         """Generate SSE events from workflow execution."""
+        import uuid as _uuid
+        req_id = str(_uuid.uuid4())
         try:
             # Step progress events
             yield f"data: {json.dumps({'event': 'request.accepted', 'request_id': req_id})}\n\n"
@@ -231,3 +233,18 @@ async def delete_thread(thread_id: str) -> dict[str, str]:
     """Delete a conversation thread state."""
     logger.info("Deleted thread state for thread_id=%s", thread_id)
     return {"status": "deleted", "thread_id": thread_id}
+
+
+@router.get("/chat", summary="MedicoBuddy Chat API info")
+async def chat_api_info() -> dict[str, Any]:
+    """Return API info for the chat endpoint (GET convenience)."""
+    return {
+        "endpoint": "/api/v1/chat",
+        "method": "POST",
+        "version": __version__,
+        "description": "Send a message to MedicoBuddy AI. Requires consent_given=true.",
+        "required_fields": ["message", "consent_given"],
+        "supported_languages": [
+            "en", "te", "hi", "ta", "bn", "gu", "kn", "ml", "mr", "pa", "or", "ur",
+        ],
+    }

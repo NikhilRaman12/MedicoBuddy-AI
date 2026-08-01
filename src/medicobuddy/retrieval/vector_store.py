@@ -345,3 +345,130 @@ class VectorStoreClient:
                 pass
             self._pg_connected = False
         self._is_connected = False
+
+    async def get_graph_counts(self) -> tuple[int, int]:
+        """Stub for health check compatibility — returns (0, 0)."""
+        return (0, 0)
+
+    async def _search_local_faiss(
+        self,
+        query: str,
+        top_k: int = 20,
+    ) -> list[dict[str, Any]]:
+        """Search local JSON cache using in-memory FAISS flat index.
+
+        This is the DEGRADED FALLBACK path for HF Space where pgvector is not available.
+        Status label is "local_faiss_fallback" — never "connected" or "pgvector".
+
+        Builds the FAISS index lazily on first call and caches it in-process memory.
+        """
+        import asyncio
+
+        def _build_and_search() -> list[dict[str, Any]]:
+            # Check if cache exists
+            json_files = list(NORM_DIR.glob("*.json"))
+            if not json_files:
+                logger.warning(
+                    "_search_local_faiss: no cached chunks in %s. "
+                    "Run ingest_and_index.py first.",
+                    NORM_DIR,
+                )
+                return []
+
+            # Load all cache entries
+            docs: list[dict[str, Any]] = []
+            vectors: list[list[float]] = []
+
+            for jf in json_files:
+                try:
+                    entry = json.loads(jf.read_text(encoding="utf-8"))
+                    vector = entry.get("vector")
+                    text = entry.get("text", "")
+                    if vector and text.strip():
+                        docs.append(entry)
+                        vectors.append(vector)
+                except Exception:
+                    pass
+
+            if not vectors:
+                return []
+
+            # Embed query
+            try:
+                query_vector = self._embedder.embed_text(query, is_query=True)
+            except Exception as exc:
+                logger.warning("FAISS fallback: query embed failed: %s", exc)
+                # Keyword fallback — return chunks with query term in text
+                query_lower = query.lower()
+                keyword_results = [
+                    {
+                        "id": d.get("chunk_id", ""),
+                        "score": 0.1,
+                        "text": d.get("text", ""),
+                        "metadata": {k: v for k, v in d.items() if k not in ("text", "vector")},
+                        "backend": "local_keyword_fallback",
+                    }
+                    for d in docs
+                    if any(term in d.get("text", "").lower() for term in query_lower.split())
+                ]
+                return sorted(keyword_results, key=lambda x: x["score"], reverse=True)[:top_k]
+
+            # FAISS flat cosine search
+            try:
+                import numpy as np
+
+                qv = np.array(query_vector, dtype="float32")
+                qv = qv / (np.linalg.norm(qv) + 1e-8)
+
+                doc_vecs = np.array(vectors, dtype="float32")
+                norms = np.linalg.norm(doc_vecs, axis=1, keepdims=True)
+                doc_vecs_norm = doc_vecs / (norms + 1e-8)
+
+                scores = doc_vecs_norm @ qv  # cosine similarity
+                top_indices = np.argsort(scores)[::-1][:top_k]
+
+                results = []
+                for idx in top_indices:
+                    d = docs[idx]
+                    results.append({
+                        "id": d.get("chunk_id", ""),
+                        "score": float(scores[idx]),
+                        "text": d.get("text", ""),
+                        "metadata": {k: v for k, v in d.items() if k not in ("text", "vector")},
+                        "backend": "local_faiss_fallback",
+                    })
+                return results
+
+            except ImportError:
+                # numpy not available — use pure-Python dot product
+                import math
+
+                def dot(a: list[float], b: list[float]) -> float:
+                    return sum(x * y for x, y in zip(a, b))
+
+                def norm(v: list[float]) -> float:
+                    return math.sqrt(sum(x * x for x in v))
+
+                qn = norm(query_vector)
+                scored = []
+                for d, v in zip(docs, vectors):
+                    vn = norm(v)
+                    if qn > 0 and vn > 0:
+                        sim = dot(query_vector, v) / (qn * vn)
+                    else:
+                        sim = 0.0
+                    scored.append((sim, d))
+                scored.sort(key=lambda x: x[0], reverse=True)
+                return [
+                    {
+                        "id": d.get("chunk_id", ""),
+                        "score": s,
+                        "text": d.get("text", ""),
+                        "metadata": {k: v for k, v in d.items() if k not in ("text", "vector")},
+                        "backend": "local_faiss_fallback",
+                    }
+                    for s, d in scored[:top_k]
+                ]
+
+        # Run blocking FAISS work in thread pool
+        return await asyncio.to_thread(_build_and_search)
