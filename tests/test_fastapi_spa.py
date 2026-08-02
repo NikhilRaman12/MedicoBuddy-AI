@@ -29,3 +29,12 @@ def test_api_routes_remain_intact(client):
     data = response.json()
     assert data.get("status") == "ok"
 
+
+def test_client_side_subpath_fallback(client):
+    """GET /any-client-route should return index.html for client-side routing."""
+    response = client.get("/client-route-test")
+    assert response.status_code == 200
+    assert "text/html" in response.headers.get("content-type", "")
+    assert "MedicoBuddy AI" in response.text
+
+

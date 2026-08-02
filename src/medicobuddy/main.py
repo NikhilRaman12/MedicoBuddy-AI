@@ -129,14 +129,36 @@ def create_fastapi_app() -> FastAPI:
     # Serve compiled React SPA frontend from frontend-react/dist if present
     from pathlib import Path as _Path
     from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse
+
     dist_dir = _Path(__file__).resolve().parent.parent.parent / "frontend-react" / "dist"
     if dist_dir.exists():
-        app.mount("/", StaticFiles(directory=str(dist_dir), html=True), name="react-spa")
-        logger.info("Serving production React SPA from %s at /", dist_dir)
+        assets_dir = dist_dir / "assets"
+        if assets_dir.exists():
+            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="spa-assets")
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_react_spa(full_path: str):
+            # Do not intercept API, health, or doc endpoints
+            if (
+                full_path.startswith("api/")
+                or full_path.startswith("health")
+                or full_path.startswith("docs")
+                or full_path.startswith("redoc")
+                or full_path == "openapi.json"
+            ):
+                return None
+            target_file = dist_dir / full_path
+            if target_file.exists() and target_file.is_file():
+                return FileResponse(str(target_file))
+            return FileResponse(str(dist_dir / "index.html"))
+
+        logger.info("Serving production React SPA from %s with SPA fallback", dist_dir)
 
     return app
 
 
 # Module-level app for uvicorn
 app = create_fastapi_app()
+
 
