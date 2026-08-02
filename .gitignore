@@ -35,8 +35,16 @@ htmlcov/
 neo4j_data/
 postgres_data/
 qdrant_data/
-redis_data/
+# Dependencies
+node_modules/
+frontend-react/node_modules/
+frontend-react/dist/
 
-# Logs
-logs/
-*.log
+# Downloaded binaries/files
+downloaded/
+*.zip
+*.pdf
+*.wasm
+*.exe
+*.node
+
