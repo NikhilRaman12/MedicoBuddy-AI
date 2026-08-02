@@ -11,6 +11,9 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     PORT=7860 \
+    HOME=/tmp \
+    HF_HOME=/tmp/hf_home \
+    TRANSFORMERS_CACHE=/tmp/hf_home \
     PYTHONPATH=/app/src:$PYTHONPATH
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,6 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Pre-install CPU-only PyTorch to reduce image size and prevent build timeouts
+RUN pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
