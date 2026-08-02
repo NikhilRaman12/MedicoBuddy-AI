@@ -3,8 +3,9 @@ title: MedicoBuddy AI
 emoji: 🩺
 colorFrom: blue
 colorTo: indigo
-sdk: docker
-app_port: 7860
+sdk: streamlit
+sdk_version: "1.42.0"
+app_file: frontend/app.py
 pinned: false
 ---
 

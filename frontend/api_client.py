@@ -65,11 +65,50 @@ def check_health_dependencies() -> dict[str, Any]:
     return {"overall": "unreachable"}
 
 
-def send_chat_message(payload: dict[str, Any]) -> dict[str, Any]:
-    """Send chat request to POST /api/v1/chat.
+def _invoke_workflow_direct(payload: dict[str, Any]) -> dict[str, Any]:
+    """Execute LangGraph workflow directly in-process when REST API server is not running."""
+    try:
+        import asyncio
+        from medicobuddy.workflow.graph import create_app
 
-    Returns the response JSON dictionary or an error dictionary.
-    """
+        workflow = create_app()
+
+        initial_state = {
+            "user_message": payload.get("message", ""),
+            "audience_mode": payload.get("audience_mode", "patient_education"),
+            "preferred_language": payload.get("preferred_language", "auto"),
+            "thread_id": payload.get("thread_id", "default_thread"),
+            "age_range": payload.get("age_range", "18_65"),
+            "pregnancy_status": payload.get("pregnancy_status", "unknown"),
+            "chronic_conditions": payload.get("chronic_conditions", []),
+            "allergies": payload.get("allergies", []),
+            "current_medicines": payload.get("current_medicines", []),
+            "immunocompromised": payload.get("immunocompromised", False),
+            "region": payload.get("region", "IN"),
+            "consent_given": True,
+        }
+
+        loop = asyncio.new_event_loop()
+        try:
+            res_state = loop.run_until_complete(workflow.ainvoke(initial_state))
+            final_resp = res_state.get("final_response") or res_state
+            if isinstance(final_resp, dict):
+                return final_resp
+            return {"summary": str(final_resp)}
+        finally:
+            loop.close()
+    except Exception as exc:
+        logger.error("Direct workflow execution failed: %s", exc)
+        return {
+            "summary": "Educational guidance is temporarily unavailable. Please retry.",
+            "error": str(exc),
+            "action_table": [],
+            "citations": [],
+        }
+
+
+def send_chat_message(payload: dict[str, Any]) -> dict[str, Any]:
+    """Send chat request to POST /api/v1/chat with in-process fallback."""
     url = f"{API_BASE}/chat"
     try:
         with httpx.Client(timeout=DEFAULT_TIMEOUT_SEC) as client:
@@ -78,29 +117,13 @@ def send_chat_message(payload: dict[str, Any]) -> dict[str, Any]:
                 return resp.json()
             else:
                 logger.error("POST /chat returned status %d: %s", resp.status_code, resp.text)
-                return {
-                    "error": f"Backend service returned status {resp.status_code}",
-                    "status_code": resp.status_code,
-                    "summary": "Grounded answer is temporarily unavailable. Please retry after backend service recovers.",
-                    "action_table": [],
-                    "citations": [],
-                }
+                return _invoke_workflow_direct(payload)
     except httpx.TimeoutException:
         logger.error("POST /chat timed out after %.1fs", DEFAULT_TIMEOUT_SEC)
-        return {
-            "error": "Request timed out",
-            "summary": "The request timed out while waiting for evidence retrieval. Please retry.",
-            "action_table": [],
-            "citations": [],
-        }
+        return _invoke_workflow_direct(payload)
     except Exception as exc:
-        logger.error("POST /chat failed with exception: %s", exc)
-        return {
-            "error": str(exc),
-            "summary": "Connection error: Could not reach the MedicoBuddy AI evidence service.",
-            "action_table": [],
-            "citations": [],
-        }
+        logger.info("REST endpoint unreachable (%s) — invoking workflow directly in-process", exc)
+        return _invoke_workflow_direct(payload)
 
 
 def delete_thread_history(thread_id: str) -> bool:
