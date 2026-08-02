@@ -1,5 +1,6 @@
 .git
 .gitignore
+.dockerignore
 .env
 .env.*
 .venv
@@ -8,6 +9,7 @@ __pycache__
 *.pyc
 .pytest_cache
 .mypy_cache
+.ruff_cache
 htmlcov
 .coverage
 *.egg-info
@@ -15,6 +17,11 @@ dist
 build
 docs/
 tests/
+artifacts/
+downloaded/
+data/
+frontend/
+frontend-react/node_modules
 *.md
 *.log
 neo4j_data/
